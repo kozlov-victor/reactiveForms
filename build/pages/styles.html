@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+<div id="app">
+            <span data-style="{
+                fontWeight: bold?'bold':'',
+                fontStyle: italic? 'italic':'',
+                textDecoration: underlined?'underline':''
+            }">styled text</span>
+    <div>
+        bold
+        <input type="checkbox" data-model="bold">
+    </div>
+    <div>
+        italic
+        <input type="checkbox" data-model="italic">
+    </div>
+    <div>
+        underlined
+        <input type="checkbox" data-model="underlined">
+    </div>
+    <button data-click="resetAll()">reset all</button>
+</div>
+
+    <script>
+        
+RF.applyBindings('#app',{
+    bold: false,
+    italic: false,
+    underlined: false,
+    resetAll: function(){
+        this.bold = this.italic = this.underlined = false;
+    }
+});
+    </script>
+</body>
+</html>

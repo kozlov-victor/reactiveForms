@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+<div id="app">
+    <input data-model="user.name"><input data-model="user.name">
+    <br/>
+    Вы ввели значение: {{user.name}}
+</div>
+
+
+    <script>
+        
+RF.applyBindings('#app',{
+    user: {
+        name: 'defaultUserName'
+    }
+});
+RF.run();
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+
+
+<style>
+    .pointer {
+        cursor: pointer;
+    }
+</style>
+<div id="app">
+    <div>
+        Текущий фрукт: {{currentFruit}}
+    </div>
+    <select data-model="currentFruit">
+        <option data-value="item" data-for="item in fruits">
+            {{item}}
+        </option>
+    </select>
+    <table>
+        <tr class="pointer" title="применить" data-click="setCurrentFruit(index)" data-for="item in fruits">
+            <td>{{item}}</td>
+            <td><button data-click="remove(index)">-</button></td>
+        </tr>
+    </table>
+    <button data-click="add()">add</button>
+</div>
+

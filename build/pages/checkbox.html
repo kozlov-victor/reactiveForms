@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+
+<div id="app">
+    <input data-model="user.name">
+    Супермен <input type="checkbox" data-model="user.isSuperMan">
+    <br/>
+    {{user.name}}, Супермен ли Вы: {{user.isSuperMan?'Да':'Нет'}}
+</div>
+
+
+    <script>
+        
+RF.applyBindings('#app',{
+    user: {
+        name: 'defaultUserName',
+        isSuperMan: false
+    }
+});
+RF.run();
+    </script>
+</body>
+</html>

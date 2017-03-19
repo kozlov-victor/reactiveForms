@@ -1,0 +1,24 @@
+
+<style>
+    .red {
+        color:red;
+    }
+    .green {
+        color: green;
+    }
+    .blue {
+        color: blue;
+    }
+</style>
+<div id="app">
+            <span data-class="{
+                red:appClass=='red',
+                green:appClass=='green',
+                blue:appClass=='blue'
+            }">color class</span>
+    <select data-model="appClass">
+        <option
+                data-for="color in ['red','green','blue']"
+                data-value="color">{{color}}</option>
+    </select>
+</div>

@@ -1,0 +1,21 @@
+
+<div id="app">
+            <span data-style="{
+                fontWeight: bold?'bold':'',
+                fontStyle: italic? 'italic':'',
+                textDecoration: underlined?'underline':''
+            }">styled text</span>
+    <div>
+        bold
+        <input type="checkbox" data-model="bold">
+    </div>
+    <div>
+        italic
+        <input type="checkbox" data-model="italic">
+    </div>
+    <div>
+        underlined
+        <input type="checkbox" data-model="underlined">
+    </div>
+    <button data-click="resetAll()">reset all</button>
+</div>

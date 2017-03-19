@@ -1,0 +1,17 @@
+
+
+<style>
+    .counter {
+        display: inline-block;
+        border: 1px solid black;
+    }
+</style>
+<div id="counterTmpl" style="display:none;">
+    <div class="counter">
+        {{counter}}
+        <button data-click="inc()">+</button>
+        <button data-click="dec()">-</button>
+    </div>
+</div>
+<counter-component></counter-component>
+<counter-component></counter-component>

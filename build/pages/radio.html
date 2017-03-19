@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+<div id="app">
+    Вы Супермен?
+    <div>
+        Да <input type="radio" value="YES" data-model="user.isSuperMan">
+    </div>
+    <div>
+        Нет <input type="radio" value="NO" data-model="user.isSuperMan">
+    </div>
+    <div>
+        Незнаю <input type="radio" value="NO_DATA" data-model="user.isSuperMan">
+    </div>
+    <br/>
+    Супермен ли Вы: {{user.isSuperMan}}
+</div>
+
+
+    <script>
+        
+RF.applyBindings('#app',{
+    user: {
+        isSuperMan: 'YES'
+    }
+});
+RF.run();
+    </script>
+</body>
+</html>

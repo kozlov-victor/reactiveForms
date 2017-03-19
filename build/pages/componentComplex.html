@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+
+<style>
+    .counter {
+        display: inline-block;
+        border: 1px solid black;
+    }
+</style>
+<div id="counterTmpl" style="display:none;">
+    <div class="counter">
+        <input type="number" data-model="model.user[modelField]">
+        <input type="range" min="1" max="200" data-model="model.user[modelField]">
+        <button data-click="inc()">+</button>
+        <button data-click="dec()">-</button>
+    </div>
+</div>
+<div id="application">
+    <div>
+        дебаг модели: {{model}}
+    </div>
+    <div>
+        name: <input data-model="model.user.name">
+    </div>
+    <div>
+        current power: {{model.user.power}}
+    </div>
+    <div>
+        current carma level: {{model.user.karmaLevel}}
+    </div>
+    <div>
+        power:
+        <counter-component
+                data-properties="
+                    {
+                        modelField: 'power'
+                    }">
+        </counter-component>
+    </div>
+
+    <div>
+        karma level:
+        <counter-component
+                data-properties="
+                    {
+                        modelField: 'karmaLevel'
+                    }">
+        </counter-component>
+    </div>
+
+</div>
+
+
+
+    <script>
+        
+
+var applicationModel = {
+    user: {
+        name: 'defaultUserName',
+        power: 100,
+        karmaLevel: 42
+    }
+};
+
+RF.registerComponent('counter-component',{
+    template: {
+        type: 'dom',
+        value: 'counterTmpl'
+    },
+    external: { // model объявлена как external, это значит, что она ссылается на внешний объект
+        // если модель не будет обозначена как external, в компоненте будет создана локальная копия модели
+        model: applicationModel
+    },
+    modelField: '', // это свойство индивидуально для каждого компонента и будет определено (переопределено) в data-properties
+    inc: function(){
+        this.model.user[this.modelField]++;
+    },
+    dec: function(){
+        this.model.user[this.modelField]--;
+    }
+});
+RF.applyBindings('#application',{
+    model: applicationModel
+});
+RF.run();
+    </script>
+</body>
+</html>

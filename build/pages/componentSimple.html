@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+
+<style>
+    .counter {
+        display: inline-block;
+        border: 1px solid black;
+    }
+</style>
+<div id="counterTmpl" style="display:none;">
+    <div class="counter">
+        {{counter}}
+        <button data-click="inc()">+</button>
+        <button data-click="dec()">-</button>
+    </div>
+</div>
+<counter-component></counter-component>
+<counter-component></counter-component>
+
+
+    <script>
+        
+RF.registerComponent('counter-component',{
+    template: {
+        type: 'dom',
+        value: 'counterTmpl'
+    },
+    counter: 0,
+    inc: function(){
+        this.counter++;
+    },
+    dec: function(){
+        this.counter--;
+    }
+});
+RF.run();
+    </script>
+</body>
+</html>

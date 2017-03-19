@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+<div id="app">
+    hasSecretKey:
+    <input type="checkbox" data-model="user.hasSecretKey">
+    <!--еще одна копия такого же чекбокса-->
+    <input type="checkbox" data-model="user.hasSecretKey">
+    <br/>
+    <div data-if="user.hasSecretKey">
+        Элемент находится в документе
+    </div>
+</div>
+
+    <script>
+        
+RF.applyBindings('#app',{
+    user: {
+        hasSecretKey: false
+    }
+});
+RF.run();
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<h3>{{pageNum}}. {{title}}</h3>
+<section>
+    <div data-html>
+        {{html}}
+    </div>
+
+    <code data-js>
+        {{js}}
+    </code>
+    <div>
+        <button onclick="
+            var f = document.getElementById('{{id}}');
+            f.src = 'pages/{{page}}.html';
+            f.style.display = '';
+        ">Выполнить</button>
+    </div>
+    <div>
+        <iframe frameborder="none" style="display: none;" id="{{id}}"></iframe>
+    </div>
+</section>

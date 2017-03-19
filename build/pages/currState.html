@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+<div id="app">
+    <input data-model="user.name">
+    <br/>
+    Вы ввели значение: {{user.name}}
+    <div>
+        <button data-click="getScopedData()">вывести текущее состояние в консоль</button>
+    </div>
+</div>
+
+    <script>
+        
+RF.applyBindings('#app',{
+    user: {
+        name: 'defaultUserName'
+    },
+    getScopedData: function(){
+        console.log(this.user);
+    }
+});
+RF.run();
+    </script>
+</body>
+</html>
