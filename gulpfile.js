@@ -12,7 +12,7 @@ const iife = require("gulp-iife");
 const fs = require("./src/_internal/fs");
 const Prism = require('node-prismjs');
 
-gulp.task('js-bundle', ()=> {
+gulp.task('engine', ()=> {
     return (
         gulp.src([
             'src/lib/polifils/polifils.js',
@@ -30,7 +30,7 @@ gulp.task('js-bundle', ()=> {
     );
 });
 
-gulp.task('tutorial', ()=> {
+gulp.task('tutor', ()=> {
     let pageNames = fs.getDirListSync('src/tutorial/pages');
     let res = [];
     let css = fs.readFileSync(`src/tutorial/tmpl/prism.css`);
@@ -77,5 +77,5 @@ gulp.task('tutorial', ()=> {
 
 });
 
-gulp.task('default', ['js-bundle']);
-gulp.task('all', ['js-bundle','tutorial']);
+gulp.task('default', ['engine']);
+gulp.task('all', ['engine','tutor']);

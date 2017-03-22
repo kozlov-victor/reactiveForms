@@ -2,26 +2,29 @@
 <div style="display: none;">
 
     <div id="page1Tmpl">
-        Введите имя <input data-model="user.firstName">
+        Введите имя <input data-model="app.user.firstName">
         <div>
-            <button data-click="toPage2()">Далее</button>
+            <button data-click="app.navigateTo(2)">Далее</button>
         </div>
     </div>
 
     <div id="page2Tmpl">
-        {{user.firstName}}, Введите фамилию <input data-model="user.lastName">
+        {{app.user.firstName}}, Введите фамилию <br/><input data-model="app.user.lastName">
         <div>
-            <button data-click="toPage1()">Назад</button>
-            <button data-click="toPage3()">Далее</button>
+            уровень кармы <br/><input data-model="app.user.carmaLevel">
+        </div>
+        <div>
+            <button data-click="app.navigateTo(1)">Назад</button>
+            <button data-click="app.navigateTo(3)">Далее</button>
         </div>
     </div>
 
     <div id="page3Tmpl">
-        Привет, {{user.firstName}} {{user.lastName}}
+        Привет, {{app.user.firstName}} {{app.user.lastName}}
         <br/>
-        Уровень кармы <input data-model="user.carmaLevel">
+        Уровень кармы {{app.user.carmaLevel}}
         <div>
-            <button data-click="toPage2()">Назад</button>
+            <button data-click="app.navigateTo(2)">Назад</button>
         </div>
     </div>
 

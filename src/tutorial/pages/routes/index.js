@@ -1,8 +1,14 @@
 
-var user = {
-    firstName:'',
-    lastName:'',
-    carmaLevel:42
+
+var app = {
+    user: {
+        firstName:'',
+        lastName:'',
+        carmaLevel:42
+    },
+    navigateTo: function(index){
+        RF.Router.navigateTo('page'+index);
+    }
 };
 
 var page1 = RF.registerComponent('page1',{
@@ -10,11 +16,8 @@ var page1 = RF.registerComponent('page1',{
         type: 'dom',
         value: 'page1Tmpl'
     },
-    toPage2: function(){
-        RF.Router.navigateTo('page2');
-    },
     external: {
-        user: user
+        app: app
     }
 });
 
@@ -23,14 +26,8 @@ var page2 = RF.registerComponent('page2',{
         type: 'dom',
         value: 'page2Tmpl'
     },
-    toPage1: function(){
-        RF.Router.navigateTo('page1');
-    },
-    toPage3: function(){
-        RF.Router.navigateTo('page3');
-    },
     external: {
-       user: user
+        app: app
     }
 });
 
@@ -39,11 +36,8 @@ var page3 = RF.registerComponent('page3',{
         type: 'dom',
         value: 'page3Tmpl'
     },
-    toPage2: function(){
-        RF.Router.navigateTo('page2');
-    },
     external: {
-        user: user
+        app: app
     }
 });
 

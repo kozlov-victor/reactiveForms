@@ -902,10 +902,9 @@ var Router = function () {
         if (!pageItem.component) {
             var componentNode = pageItem.componentProto.node.cloneNode(true);
             pageItem.component = pageItem.componentProto.runNewInstance(componentNode, {});
-            this.routeNode.appendChild(pageItem.component.node);
-        } else {
-            this.routeNode.appendChild(pageItem.component.node);
+            delete pageItem.componentProto;
         }
+        this.routeNode.appendChild(pageItem.component.node);
     };
 
     return Router;

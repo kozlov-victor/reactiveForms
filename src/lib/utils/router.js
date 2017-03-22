@@ -13,7 +13,6 @@ class Router {
                 componentProto: keyValues[key]
             };
         });
-
     }
 
     navigateTo(pageName){
@@ -23,10 +22,9 @@ class Router {
         if (!pageItem.component) {
             let componentNode = pageItem.componentProto.node.cloneNode(true);
             pageItem.component = pageItem.componentProto.runNewInstance(componentNode,{});
-            this.routeNode.appendChild(pageItem.component.node);
-        } else {
-            this.routeNode.appendChild(pageItem.component.node);
+            delete pageItem.componentProto;
         }
+        this.routeNode.appendChild(pageItem.component.node);
     }
 
 }
