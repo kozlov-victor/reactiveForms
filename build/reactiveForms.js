@@ -274,6 +274,7 @@ var ComponentProto = function () {
         externalProperties && this.applyProperties(modelView, externalProperties);
         var instance = new Component(this.name, node, modelView);
         instance.run();
+        return instance;
     };
 
     return ComponentProto;
@@ -875,6 +876,44 @@ var MiscUtils = function () {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var Router = function () {
+    function Router() {
+        _classCallCheck(this, Router);
+
+        this._pages = {};
+    }
+
+    Router.prototype.setup = function setup(keyValues) {
+        var _this = this;
+
+        this.routeNode = document.querySelector('[data-route]');
+        if (!this.routeNode) throw 'can not run Route: element with data-route attribute not found';
+        Object.keys(keyValues).forEach(function (key) {
+            _this._pages[key] = {
+                componentProto: keyValues[key]
+            };
+        });
+    };
+
+    Router.prototype.navigateTo = function navigateTo(pageName) {
+        var pageItem = this._pages[pageName];
+        if (!pageItem) throw pageName + ' not registered, set up router correctly';
+        this.routeNode.innerHTML = '';
+        if (!pageItem.component) {
+            var componentNode = pageItem.componentProto.node.cloneNode(true);
+            pageItem.component = pageItem.componentProto.runNewInstance(componentNode, {});
+            this.routeNode.appendChild(pageItem.component.node);
+        } else {
+            this.routeNode.appendChild(pageItem.component.node);
+        }
+    };
+
+    return Router;
+}();
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var Core = function () {
     function Core() {
         _classCallCheck(this, Core);
@@ -888,6 +927,7 @@ var Core = function () {
         node.innerHTML = domTemplate;
         var componentProto = new ComponentProto(name, node, modelView);
         ComponentProto.instances.push(componentProto);
+        return componentProto;
     };
 
     Core.applyBindings = function applyBindings(domElement, modelView) {
@@ -922,4 +962,5 @@ var Core = function () {
 Core.version = '0.0.1';
 
 window.RF = Core;
+window.RF.Router = new Router();
 }());

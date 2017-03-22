@@ -24,6 +24,7 @@ class ComponentProto{
         externalProperties && this.applyProperties(modelView,externalProperties);
         let instance = new Component(this.name,node,modelView);
         instance.run();
+        return instance;
     }
 
 }

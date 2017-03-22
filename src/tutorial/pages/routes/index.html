@@ -2,27 +2,30 @@
 <div style="display: none;">
 
     <div id="page1Tmpl">
-        {{title}}
         Введите имя <input data-model="user.firstName">
         <div>
-            <button>Далее</button>
+            <button data-click="toPage2()">Далее</button>
         </div>
     </div>
 
     <div id="page2Tmpl">
-        {{title}}
         Введите фамилию <input data-model="user.lastName">
         <div>
-            <button>Далее</button>
+            <button data-click="toPage1()">Назад</button>
+            <button data-click="toPage3()">Далее</button>
         </div>
     </div>
 
     <div id="page3Tmpl">
-        {{title}}
+        Привет, {{user.firstName}} {{user.lastName}}
+        <br/>
         Уровень кармы <input data-model="user.carmaLevel">
         <div>
-            <button>Далее</button>
+            <button data-click="toPage2()">Назад</button>
         </div>
     </div>
 
 </div>
+
+
+<div data-route=""></div>

@@ -11,6 +11,7 @@ class Core{
         node.innerHTML = domTemplate;
         let componentProto = new ComponentProto(name,node,modelView);
         ComponentProto.instances.push(componentProto);
+        return componentProto;
     }
 
     static applyBindings(domElement,modelView){
@@ -44,3 +45,4 @@ class Core{
 Core.version = '0.0.1';
 
 window.RF = Core;
+window.RF.Router = new Router();
