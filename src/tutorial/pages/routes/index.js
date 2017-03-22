@@ -13,7 +13,9 @@ var page1 = RF.registerComponent('page1',{
     toPage2: function(){
         RF.Router.navigateTo('page2');
     },
-    user: user
+    external: {
+        user: user
+    }
 });
 
 var page2 = RF.registerComponent('page2',{
@@ -27,7 +29,9 @@ var page2 = RF.registerComponent('page2',{
     toPage3: function(){
         RF.Router.navigateTo('page3');
     },
-    user: user
+    external: {
+       user: user
+    }
 });
 
 var page3 = RF.registerComponent('page3',{
@@ -38,7 +42,9 @@ var page3 = RF.registerComponent('page3',{
     toPage2: function(){
         RF.Router.navigateTo('page2');
     },
-    user: user
+    external: {
+        user: user
+    }
 });
 
 RF.Router.setup({

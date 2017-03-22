@@ -717,7 +717,7 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
     <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
 
     <span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"page2Tmpl"</span><span class="token operator">></span>
-        Введите фамилию <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"user.lastName"</span><span class="token operator">></span>
+        {{user<span class="token punctuation">.</span>firstName}}<span class="token punctuation">,</span> Введите фамилию <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"user.lastName"</span><span class="token operator">></span>
         <span class="token operator">&lt;</span>div<span class="token operator">></span>
             <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"toPage1()"</span><span class="token operator">></span>Назад<span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
             <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"toPage3()"</span><span class="token operator">></span>Далее<span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
@@ -755,7 +755,9 @@ var page1 <span class="token operator">=</span> RF<span class="token punctuation
     toPage2<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
         RF<span class="token punctuation">.</span>Router<span class="token punctuation">.</span><span class="token function">navigateTo</span><span class="token punctuation">(</span><span class="token string">'page2'</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
     }<span class="token punctuation">,</span>
-    user<span class="token punctuation">:</span> user
+    external<span class="token punctuation">:</span> {
+        user<span class="token punctuation">:</span> user
+    }
 }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
 
 var page2 <span class="token operator">=</span> RF<span class="token punctuation">.</span><span class="token function">registerComponent</span><span class="token punctuation">(</span><span class="token string">'page2'</span><span class="token punctuation">,</span>{
@@ -769,7 +771,9 @@ var page2 <span class="token operator">=</span> RF<span class="token punctuation
     toPage3<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
         RF<span class="token punctuation">.</span>Router<span class="token punctuation">.</span><span class="token function">navigateTo</span><span class="token punctuation">(</span><span class="token string">'page3'</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
     }<span class="token punctuation">,</span>
-    user<span class="token punctuation">:</span> user
+    external<span class="token punctuation">:</span> {
+       user<span class="token punctuation">:</span> user
+    }
 }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
 
 var page3 <span class="token operator">=</span> RF<span class="token punctuation">.</span><span class="token function">registerComponent</span><span class="token punctuation">(</span><span class="token string">'page3'</span><span class="token punctuation">,</span>{
@@ -780,7 +784,9 @@ var page3 <span class="token operator">=</span> RF<span class="token punctuation
     toPage2<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
         RF<span class="token punctuation">.</span>Router<span class="token punctuation">.</span><span class="token function">navigateTo</span><span class="token punctuation">(</span><span class="token string">'page2'</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
     }<span class="token punctuation">,</span>
-    user<span class="token punctuation">:</span> user
+    external<span class="token punctuation">:</span> {
+        user<span class="token punctuation">:</span> user
+    }
 }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
 
 RF<span class="token punctuation">.</span>Router<span class="token punctuation">.</span><span class="token function">setup</span><span class="token punctuation">(</span>{
