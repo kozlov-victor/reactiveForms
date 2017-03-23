@@ -2,7 +2,6 @@
 class MiscUtils{
 
     /**
-     * �������� ������������ �������
      * @param obj
      * @returns {*}
      */
@@ -24,7 +23,6 @@ class MiscUtils{
         return obj;
     }
     /**
-     * ��������� �������� �� ��������� �� ��������
      * @param x
      * @param y
      * @returns {*}

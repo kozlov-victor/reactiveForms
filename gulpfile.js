@@ -1,4 +1,4 @@
-
+"use strict";
 
 const browserify = require('browserify');
 const stringify = require('stringify');

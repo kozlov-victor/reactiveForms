@@ -762,47 +762,56 @@ var ExpressionEngine = function () {
     }
 
     ExpressionEngine.getExpressionFn = function getExpressionFn(code) {
-        var codeProcessed = '\n                var res;\n                with(localScope) {\n                    with(this){\n                        res=' + code + ';\n                    }\n                }\n                return res;';
-        codeProcessed = codeProcessed.split('\n').join('').split('  ').join(' ');
-        window.c = codeProcessed;
-        var fn = new Function('localScope', codeProcessed);
-        fn.expression = code;
-        return fn;
+        code = code.split('\n').join('').split("'").join('"');
+        var codeProcessed = '\n                var _val = function(obj,path) {\n                    var keys = path.split(\'.\');\n                    var lastKey = keys.pop();\n                    var res = obj;\n                    keys.forEach(function(key){\n                        res = res[key];\n                    });\n                    return res[lastKey];\n                }\n                var getVal = function(path){\n                    var res = _val(rootScope,path);\n                    if (res==undefined && localScope) res = _val(localScope,path);\n                    return res;\n                };\n                return ' + Lexer.convertExpression(code, "getVal('{expr}')") + '\n        ';
+        try {
+            var fn = new Function('rootScope', 'localScope', codeProcessed);
+            fn.expression = code;
+            fn.fnProcessed = fn.toString();
+            return fn;
+        } catch (e) {
+            console.error('can not compile function from expression');
+            console.error('expression', code);
+            console.error('compiled code', codeProcessed);
+        }
     };
 
     ExpressionEngine.runExpressionFn = function runExpressionFn(fn, component) {
+        var localScope = component.localModelView;
         try {
-            return fn.call(component.modelView, component.localModelView || {});
+            return fn(component.modelView, localScope);
         } catch (e) {
+            console.error('getting value error');
             console.error('can not evaluate expression:' + fn.expression);
-            console.error('current context', component.modelView);
-            console.error('current local context', component.localModelView);
+            console.error('     at compiled function:' + fn.fnProcessed);
+            console.error('rootScope', component.modelView);
+            console.error('localScope', localScope);
             throw e;
         }
     };
     /**
-     * ?????????? ???????? ??????? ?? ?????????
-     * ????????, expression = 'user.name' object[field] = value
+     * expression = 'user.name' object[field] = value
      */
 
 
     ExpressionEngine.setValueToContext = function setValueToContext(context, expression, value) {
         var quotes = '';
         if (typeof value == 'string') quotes = '"';
-        var code = 'with(this){' + expression + ' = ' + quotes + value + quotes + '}';
+        var code = Lexer.convertExpression(expression, 'context.{expr}') + ('=' + quotes + value + quotes);
         try {
-            var fn = new Function(code);
-            fn.call(context);
+            var fn = new Function('context', code);
+            fn(context);
         } catch (e) {
+            console.error('setting value error');
             console.error('can not evaluate expression:' + expression);
-            console.error('current code', code);
+            console.error('     at compiled function', code);
             console.error('current context', context);
             console.error('desired value to set', value);
             throw e;
         }
     };
     /**
-     * ???????? js ?????? ?? ?????????? ????????? ???? "{a:1}"
+     *  "{a:1}"
      * @param code
      * @returns {*}
      */
@@ -822,6 +831,107 @@ var ExpressionEngine = function () {
 }();
 'use strict';
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Token = function Token(type, val) {
+    _classCallCheck(this, Token);
+
+    this.tokenType = type;
+    this.tokenValue = val;
+};
+
+Token.TOKEN_TYPE = {
+    DOT: '.',
+    L_PAR: '(',
+    R_PAR: ')',
+    L_CURLY: '{',
+    R_CURLY: '}',
+    L_SQUARE: '[',
+    R_SQUARE: ']',
+    COMMA: ',',
+    PLUS: '+',
+    MULTIPLY: '*',
+    MINUS: '-',
+    DIVIDE: '/',
+    GT: '>',
+    LT: '<',
+    QUESTION: '?',
+    COLON: ':',
+    DIGIT: 'DIGIT',
+    VARIABLE: 'VARIABLE',
+    STRING: 'STRING',
+    OBJECT_KEY: 'OBJECT_KEY'
+
+};
+
+function isNumber(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+var Lexer = function () {
+    function Lexer() {
+        _classCallCheck(this, Lexer);
+    }
+
+    Lexer.tokenize = function tokenize(expression) {
+        var tokens = [];
+        var t;
+        var lastChar = '';
+        expression = expression.trim();
+        expression.split('').forEach(function (char, i) {
+
+            switch (char) {
+                case Token.TOKEN_TYPE.L_PAR:
+                case Token.TOKEN_TYPE.R_PAR:
+                case Token.TOKEN_TYPE.PLUS:
+                case Token.TOKEN_TYPE.L_CURLY:
+                case Token.TOKEN_TYPE.R_CURLY:
+                case Token.TOKEN_TYPE.L_SQUARE:
+                case Token.TOKEN_TYPE.R_SQUARE:
+                case Token.TOKEN_TYPE.COMMA:
+                case Token.TOKEN_TYPE.MINUS:
+                case Token.TOKEN_TYPE.DIVIDE:
+                case Token.TOKEN_TYPE.MULTIPLY:
+                case Token.TOKEN_TYPE.LT:
+                case Token.TOKEN_TYPE.GT:
+                case Token.TOKEN_TYPE.COLON:
+                case Token.TOKEN_TYPE.QUESTION:
+                    t = new Token(char, null);
+                    tokens.push(t);
+                    lastChar = char;
+                    break;
+                default:
+                    var last = tokens[tokens.length - 1];
+                    if (last && last.tokenType != Token.TOKEN_TYPE.STRING && char == ' ') break;
+                    if (last && (last.tokenType == Token.TOKEN_TYPE.DIGIT || last.tokenType == Token.TOKEN_TYPE.VARIABLE || last.tokenType == Token.TOKEN_TYPE.STRING)) {
+                        last.tokenValue += char;
+                    } else {
+                        var type;
+                        if (isNumber(char)) type = Token.TOKEN_TYPE.DIGIT;else if (char == '\'') type = Token.TOKEN_TYPE.STRING;else if (lastChar == Token.TOKEN_TYPE.L_CURLY || lastChar == Token.TOKEN_TYPE.COMMA) type = Token.TOKEN_TYPE.OBJECT_KEY;else type = Token.TOKEN_TYPE.VARIABLE;
+                        t = new Token(type, char);
+                        tokens.push(t);
+                    }
+                    lastChar = char;
+                    break;
+            }
+        });
+        return tokens;
+    };
+
+    Lexer.convertExpression = function convertExpression(expression, variableReplacerStr) {
+        var out = '';
+        Lexer.tokenize(expression).forEach(function (token) {
+            if (token.tokenType == Token.TOKEN_TYPE.VARIABLE) {
+                out += variableReplacerStr.replace('{expr}', token.tokenValue);
+            } else out += token.tokenValue || token.tokenType;
+        });
+        return out;
+    };
+
+    return Lexer;
+}();
+'use strict';
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -832,7 +942,6 @@ var MiscUtils = function () {
     }
 
     /**
-     * �������� ������������ �������
      * @param obj
      * @returns {*}
      */
@@ -856,7 +965,6 @@ var MiscUtils = function () {
         return obj;
     };
     /**
-     * ��������� �������� �� ��������� �� ��������
      * @param x
      * @param y
      * @returns {*}
