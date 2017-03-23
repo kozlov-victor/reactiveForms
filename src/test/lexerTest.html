@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lexer Test</title>
+    <script src="../lib/utils/lexer.js"></script>
+    <script src="../lib/utils/miscUtils.js"></script>
+    <script>
+        let assertEqual = (a,b)=>{
+            if (MiscUtils.deepEqual(a,b)) {
+                console.log('ok===>>',a,b);
+            }
+            else {
+                console.error('failed==>>>');
+                console.error('expected',b);
+                console.error('received',a);
+                throw "assertion exception";
+            }
+        };
+    </script>
+</head>
+<body>
+    <script>
+        assertEqual(
+            Lexer.convertExpression('user.name','scope.{expr}'),
+            'scope.user.name'
+        );
+        assertEqual(
+            Lexer.convertExpression('user.name',"getVal('{expr}')"),
+            "getVal('user.name')"
+        );
+        assertEqual(
+            Lexer.convertExpression("user.isSuperMan?'Да':'Нет'","getVal('{expr}')"),
+            "getVal('user.isSuperMan')?'Да':'Нет'"
+        );
+        assertEqual(
+            Lexer.convertExpression("['red','green','blue']","noMatter"),
+            "['red','green','blue']"
+        );
+        assertEqual(
+            Lexer.convertExpression("{red:appClass=='red',green:appClass=='green'}","getVal('{expr}')"),
+            "{red:getVal('appClass')=='red',green:getVal('appClass')=='green'}"
+        );
+
+    </script>
+</body>
+</html>

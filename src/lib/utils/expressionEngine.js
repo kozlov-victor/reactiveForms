@@ -24,6 +24,7 @@ class ExpressionEngine {
             let fn = new Function('rootScope','localScope',codeProcessed);
             fn.expression = code;
             fn.fnProcessed = fn.toString();
+            console.log(fn.fnProcessed);
             return fn;
         } catch(e){
             console.error('can not compile function from expression');

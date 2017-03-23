@@ -4,7 +4,7 @@ RF.applyBindings('#app',{
         name: 'defaultUserName'
     },
     getScopedData: function(){
-        console.log(this.user);
+        console.log(this);
     }
 });
 RF.run();

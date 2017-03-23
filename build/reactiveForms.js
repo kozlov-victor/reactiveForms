@@ -768,6 +768,7 @@ var ExpressionEngine = function () {
             var fn = new Function('rootScope', 'localScope', codeProcessed);
             fn.expression = code;
             fn.fnProcessed = fn.toString();
+            console.log(fn.fnProcessed);
             return fn;
         } catch (e) {
             console.error('can not compile function from expression');
@@ -840,8 +841,9 @@ var Token = function Token(type, val) {
     this.tokenValue = val;
 };
 
+Token.SPECIAL_CHARS = '.(){}[],+*-/><=?:';
+
 Token.TOKEN_TYPE = {
-    DOT: '.',
     L_PAR: '(',
     R_PAR: ')',
     L_CURLY: '{',
@@ -855,6 +857,7 @@ Token.TOKEN_TYPE = {
     DIVIDE: '/',
     GT: '>',
     LT: '<',
+    EQUAL: '=',
     QUESTION: '?',
     COLON: ':',
     DIGIT: 'DIGIT',
@@ -868,15 +871,19 @@ function isNumber(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
+function charInArr(char, arr) {
+    return arr.indexOf(char) > -1;
+}
+
 var Lexer = function () {
     function Lexer() {
         _classCallCheck(this, Lexer);
     }
 
     Lexer.tokenize = function tokenize(expression) {
-        var tokens = [];
-        var t;
-        var lastChar = '';
+        var tokens = [],
+            t = void 0,
+            lastChar = '';
         expression = expression.trim();
         expression.split('').forEach(function (char, i) {
 
@@ -896,6 +903,7 @@ var Lexer = function () {
                 case Token.TOKEN_TYPE.GT:
                 case Token.TOKEN_TYPE.COLON:
                 case Token.TOKEN_TYPE.QUESTION:
+                case Token.TOKEN_TYPE.EQUAL:
                     t = new Token(char, null);
                     tokens.push(t);
                     lastChar = char;
@@ -903,11 +911,11 @@ var Lexer = function () {
                 default:
                     var last = tokens[tokens.length - 1];
                     if (last && last.tokenType != Token.TOKEN_TYPE.STRING && char == ' ') break;
-                    if (last && (last.tokenType == Token.TOKEN_TYPE.DIGIT || last.tokenType == Token.TOKEN_TYPE.VARIABLE || last.tokenType == Token.TOKEN_TYPE.STRING)) {
+                    if (last && (last.tokenType == Token.TOKEN_TYPE.DIGIT || last.tokenType == Token.TOKEN_TYPE.VARIABLE || last.tokenType == Token.TOKEN_TYPE.OBJECT_KEY || last.tokenType == Token.TOKEN_TYPE.STRING)) {
                         last.tokenValue += char;
                     } else {
-                        var type;
-                        if (isNumber(char)) type = Token.TOKEN_TYPE.DIGIT;else if (char == '\'') type = Token.TOKEN_TYPE.STRING;else if (lastChar == Token.TOKEN_TYPE.L_CURLY || lastChar == Token.TOKEN_TYPE.COMMA) type = Token.TOKEN_TYPE.OBJECT_KEY;else type = Token.TOKEN_TYPE.VARIABLE;
+                        var type = void 0;
+                        if (isNumber(char)) type = Token.TOKEN_TYPE.DIGIT;else if (charInArr(char, ['"', "'"])) type = Token.TOKEN_TYPE.STRING;else if (lastChar == Token.TOKEN_TYPE.L_CURLY || lastChar == Token.TOKEN_TYPE.COMMA) type = Token.TOKEN_TYPE.OBJECT_KEY;else type = Token.TOKEN_TYPE.VARIABLE;
                         t = new Token(type, char);
                         tokens.push(t);
                     }
@@ -915,6 +923,7 @@ var Lexer = function () {
                     break;
             }
         });
+        //console.log(JSON.stringify(tokens));
         return tokens;
     };
 
@@ -930,6 +939,8 @@ var Lexer = function () {
 
     return Lexer;
 }();
+
+//Lexer.convertExpression("{red:appClass=='red',green:appClass=='green'}");
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1017,6 +1028,86 @@ var Router = function () {
 
     return Router;
 }();
+//
+// class Token {
+//     constructor(type,val){
+//         this.tokenType = type;
+//         this.tokenValue = val;
+//     }
+// }
+//
+// Token.SPECIAL_CHARS =
+//     '.(){}[],+*-/%!><=?:'.split('');
+//
+// Token.TOKEN_TYPE = {
+//     DIGIT:'DIGIT',
+//     VARIABLE:'VARIABLE',
+//     STRING:'STRING',
+//     OBJECT_KEY:'OBJECT_KEY'
+// };
+//
+// function isNumber(n) {
+//     return !isNaN(parseFloat(n)) && isFinite(n);
+// }
+//
+// function charInArr(char,arr) {
+//     return arr.indexOf(char)>-1;
+// }
+//
+// class Lexer {
+//
+//     static tokenize(expression) {
+//         let tokens = [], t, lastChar = '';
+//         expression = expression.trim();
+//         expression.split('').forEach(function(char,i) {
+//
+//             if (charInArr(char, Token.SPECIAL_CHARS)) {
+//                 t = new Token(char, null);
+//                 tokens.push(t);
+//                 lastChar = char;
+//             } else {
+//                 let last = tokens[tokens.length - 1];
+//                 if (last && last.tokenType != Token.TOKEN_TYPE.STRING && char == ' ') return;
+//                 if (
+//                     last &&
+//                     (
+//                     last.tokenType == Token.TOKEN_TYPE.DIGIT ||
+//                     last.tokenType == Token.TOKEN_TYPE.VARIABLE ||
+//                     last.tokenType == Token.TOKEN_TYPE.OBJECT_KEY ||
+//                     last.tokenType == Token.TOKEN_TYPE.STRING)
+//                 ) {
+//                     last.tokenValue += char;
+//                 } else {
+//                     let type;
+//                     if (isNumber(char)) type = Token.TOKEN_TYPE.DIGIT;
+//                     else if (charInArr(char, ['"', "'"])) type = Token.TOKEN_TYPE.STRING;
+//                     else if (charInArr(lastChar,[',','{'])) type = Token.TOKEN_TYPE.OBJECT_KEY;
+//                     else type = Token.TOKEN_TYPE.VARIABLE;
+//                     t = new Token(type, char);
+//                     tokens.push(t);
+//                 }
+//                 lastChar = char;
+//             }
+//         });
+//         //console.log(JSON.stringify(tokens));
+//         return tokens;
+//     }
+//
+//     static convertExpression(expression,variableReplacerStr){
+//         let out = '';
+//         Lexer.tokenize(expression).forEach(function(token){
+//             if (token.tokenType==Token.TOKEN_TYPE.VARIABLE) {
+//                 out+=variableReplacerStr.replace('{expr}',token.tokenValue);
+//             }
+//             else out+=(token.tokenValue||token.tokenType);
+//         });
+//         return out;
+//     }
+//
+// }
+
+//Lexer.convertExpression("{red:appClass=='red',green:appClass=='green'}");
+"use strict";
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }

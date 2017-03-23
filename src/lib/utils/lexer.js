@@ -1,4 +1,4 @@
-// Lexer.convertExpression("{red:appClass=='red',green:appClass=='green'}",'scope.{expr}')
+
 class Token {
     constructor(type,val){
         this.tokenType = type;
@@ -6,8 +6,10 @@ class Token {
     }
 }
 
+Token.SPECIAL_CHARS =
+    '.(){}[],+*-/><=?:';
+
 Token.TOKEN_TYPE = {
-    DOT:'.',
     L_PAR:'(',
     R_PAR:')',
     L_CURLY:'{',
@@ -21,6 +23,7 @@ Token.TOKEN_TYPE = {
     DIVIDE:'/',
     GT:'>',
     LT:'<',
+    EQUAL:'=',
     QUESTION:'?',
     COLON:':',
     DIGIT:'DIGIT',
@@ -34,12 +37,14 @@ function isNumber(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
+function charInArr(char,arr) {
+    return arr.indexOf(char)>-1;
+}
+
 class Lexer {
 
     static tokenize(expression) {
-        var tokens = [];
-        var t;
-        var lastChar = '';
+        let tokens = [], t, lastChar = '';
         expression = expression.trim();
         expression.split('').forEach(function(char,i){
 
@@ -59,25 +64,27 @@ class Lexer {
                 case Token.TOKEN_TYPE.GT:
                 case Token.TOKEN_TYPE.COLON:
                 case Token.TOKEN_TYPE.QUESTION:
+                case Token.TOKEN_TYPE.EQUAL:
                     t = new Token(char,null);
                     tokens.push(t);
                     lastChar = char;
                     break;
                 default:
-                    var last = tokens[tokens.length-1];
+                    let last = tokens[tokens.length-1];
                     if (last && last.tokenType!=Token.TOKEN_TYPE.STRING && char==' ') break;
                     if (
                         last &&
                         (
                             last.tokenType==Token.TOKEN_TYPE.DIGIT ||
                             last.tokenType==Token.TOKEN_TYPE.VARIABLE ||
+                            last.tokenType==Token.TOKEN_TYPE.OBJECT_KEY ||
                             last.tokenType==Token.TOKEN_TYPE.STRING)
                     ) {
                         last.tokenValue+=char;
                     } else {
-                        var type;
+                        let type;
                         if(isNumber(char)) type = Token.TOKEN_TYPE.DIGIT;
-                        else if (char=='\'') type = Token.TOKEN_TYPE.STRING;
+                        else if (charInArr(char,['"',"'"])) type = Token.TOKEN_TYPE.STRING;
                         else if (
                             lastChar==Token.TOKEN_TYPE.L_CURLY ||
                             lastChar==Token.TOKEN_TYPE.COMMA
@@ -90,11 +97,12 @@ class Lexer {
                     break;
             }
         });
+        //console.log(JSON.stringify(tokens));
         return tokens;
     }
 
     static convertExpression(expression,variableReplacerStr){
-        var out = '';
+        let out = '';
         Lexer.tokenize(expression).forEach(function(token){
             if (token.tokenType==Token.TOKEN_TYPE.VARIABLE) {
                out+=variableReplacerStr.replace('{expr}',token.tokenValue);
@@ -105,3 +113,5 @@ class Lexer {
     }
 
 }
+
+Lexer.convertExpression("invokeFn()",'scope.{expr}');
