@@ -1,4 +1,4 @@
-
+// Lexer.convertExpression("{red:appClass=='red',green:appClass=='green'}",'scope.{expr}')
 class Token {
     constructor(type,val){
         this.tokenType = type;
