@@ -26,7 +26,7 @@ if (!Object.keys) {
             }
         }
         return keys;
-    }
+    };
 
     if (hasDontEnumBug) {
         var dontEnumProperties = [
@@ -118,6 +118,42 @@ if (typeof Array.prototype.forEach != 'function') {
         return d; // give back the new array
     });
 
+if (!Array.prototype.map) {
+    Array.prototype.map = function(fn) {
+        var rv = [];
+        for(var i=0, l=this.length; i<l; i++)
+            rv.push(fn(this[i]));
+        return rv;
+    };
+}
+
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(elt /*, from*/)
+    {
+        var len = this.length >>> 0;
+        var from = Number(arguments[1]) || 0;
+        from = (from < 0)
+            ? Math.ceil(from)
+            : Math.floor(from);
+        if (from < 0)
+            from += len;
+
+        for (; from < len; from++)
+        {
+            if (from in this &&
+                this[from] === elt)
+                return from;
+        }
+        return -1;
+    };
+}
+
+if(!String.prototype.trim){
+    String.prototype.trim = function(){
+        return this.replace(/^\s+|\s+$/g,'');
+    };
+}
+
 if (!Object.create) {
     Object.create = function(o, props) {
         function F() {}
@@ -142,40 +178,85 @@ if (!window.Node)
     };
 
 
-if("a'b".split(/(')/g).length==2){
-    String.prototype.split = function(delimiter/*,limit*/){
-        if(typeof(delimiter)=="undefined"){
-            return [this];
+(function (undef) {
+
+    var nativeSplit = String.prototype.split,
+        compliantExecNpcg = /()??/.exec("")[1] === undef, // NPCG: nonparticipating capturing group
+        self;
+
+    self = function (str, separator, limit) {
+        // If `separator` is not a regex, use `nativeSplit`
+        if (Object.prototype.toString.call(separator) !== "[object RegExp]") {
+            return nativeSplit.call(str, separator, limit);
         }
-        var limit = arguments.length>1?arguments[1]:-1;
-        var result = [];
-        if(delimiter.constructor==RegExp){
-            delimiter.global = true;
-            var regexpResult,str=this,previousIndex = 0;
-            while(regexpResult = delimiter.exec(str)){
-                result.push(str.substring(previousIndex,regexpResult.index))
-                for (var captureGroup=1,ct=regexpResult.length;captureGroup<ct;captureGroup++){
-                    result.push(regexpResult[captureGroup]);
+        var output = [],
+            flags = (separator.ignoreCase ? "i" : "") +
+                (separator.multiline  ? "m" : "") +
+                (separator.extended   ? "x" : "") + // Proposed for ES6
+                (separator.sticky     ? "y" : ""), // Firefox 3+
+            lastLastIndex = 0,
+        // Make `global` and avoid `lastIndex` issues by working with a copy
+            separator = new RegExp(separator.source, flags + "g"),
+            separator2, match, lastIndex, lastLength;
+        str += ""; // Type-convert
+        if (!compliantExecNpcg) {
+            // Doesn't need flags gy, but they don't hurt
+            separator2 = new RegExp("^" + separator.source + "$(?!\\s)", flags);
+        }
+        /* Values for `limit`, per the spec:
+         * If undefined: 4294967295 // Math.pow(2, 32) - 1
+         * If 0, Infinity, or NaN: 0
+         * If positive number: limit = Math.floor(limit); if (limit > 4294967295) limit -= 4294967296;
+         * If negative number: 4294967296 - Math.floor(Math.abs(limit))
+         * If other: Type-convert, then use the above rules
+         */
+        limit = limit === undef ?
+        -1 >>> 0 : // Math.pow(2, 32) - 1
+        limit >>> 0; // ToUint32(limit)
+        while (match = separator.exec(str)) {
+            // `separator.lastIndex` is not reliable cross-browser
+            lastIndex = match.index + match[0].length;
+            if (lastIndex > lastLastIndex) {
+                output.push(str.slice(lastLastIndex, match.index));
+                // Fix browsers whose `exec` methods don't consistently return `undefined` for
+                // nonparticipating capturing groups
+                if (!compliantExecNpcg && match.length > 1) {
+                    match[0].replace(separator2, function () {
+                        for (var i = 1; i < arguments.length - 2; i++) {
+                            if (arguments[i] === undef) {
+                                match[i] = undef;
+                            }
+                        }
+                    });
                 }
-                str=str.substring(delimiter.lastIndex,str.length);
-            }
-            result.push(str);
-        }else{
-            var searchIndex=0,foundIndex=0,len=this.length,dlen=delimiter.length;
-            while(foundIndex!=-1){
-                foundIndex = this.indexOf(delimiter,searchIndex);
-                if(foundIndex!=-1){
-                    result.push(this.substring(searchIndex,foundIndex))
-                    searchIndex = foundIndex+dlen;
-                }else{
-                    result.push(this.substring(searchIndex,len));
+                if (match.length > 1 && match.index < str.length) {
+                    Array.prototype.push.apply(output, match.slice(1));
+                }
+                lastLength = match[0].length;
+                lastLastIndex = lastIndex;
+                if (output.length >= limit) {
+                    break;
                 }
             }
+            if (separator.lastIndex === match.index) {
+                separator.lastIndex++; // Avoid an infinite loop
+            }
         }
-        if(arguments.length>1&&result.length>limit){
-            result = result.slice(0,limit);
+        if (lastLastIndex === str.length) {
+            if (lastLength || !separator.test("")) {
+                output.push("");
+            }
+        } else {
+            output.push(str.slice(lastLastIndex));
         }
-        return result;
-    }
-}
+        return output.length > limit ? output.slice(0, limit) : output;
+    };
+
+    // For convenience
+    String.prototype.split = function (separator, limit) {
+        return self(this, separator, limit);
+    };
+
+    return self;
+})();
 

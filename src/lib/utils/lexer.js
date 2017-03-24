@@ -6,10 +6,8 @@ class Token {
     }
 }
 
-Token.SPECIAL_CHARS =
-    '.(){}[],+*-/><=?:';
 
-Token.TOKEN_TYPE = {
+Token.SYMBOL = {
     L_PAR:'(',
     R_PAR:')',
     L_CURLY:'{',
@@ -25,12 +23,16 @@ Token.TOKEN_TYPE = {
     LT:'<',
     EQUAL:'=',
     QUESTION:'?',
-    COLON:':',
+    COLON:':'
+};
+
+Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});
+
+Token.TYPE = {
     DIGIT:'DIGIT',
     VARIABLE:'VARIABLE',
     STRING:'STRING',
     OBJECT_KEY:'OBJECT_KEY'
-
 };
 
 function isNumber(n) {
@@ -46,56 +48,43 @@ class Lexer {
     static tokenize(expression) {
         let tokens = [], t, lastChar = '';
         expression = expression.trim();
-        expression.split('').forEach(function(char,i){
+        expression.split('').forEach(function(char,i) {
 
-            switch (char) {
-                case Token.TOKEN_TYPE.L_PAR:
-                case Token.TOKEN_TYPE.R_PAR:
-                case Token.TOKEN_TYPE.PLUS:
-                case Token.TOKEN_TYPE.L_CURLY:
-                case Token.TOKEN_TYPE.R_CURLY:
-                case Token.TOKEN_TYPE.L_SQUARE:
-                case Token.TOKEN_TYPE.R_SQUARE:
-                case Token.TOKEN_TYPE.COMMA:
-                case Token.TOKEN_TYPE.MINUS:
-                case Token.TOKEN_TYPE.DIVIDE:
-                case Token.TOKEN_TYPE.MULTIPLY:
-                case Token.TOKEN_TYPE.LT:
-                case Token.TOKEN_TYPE.GT:
-                case Token.TOKEN_TYPE.COLON:
-                case Token.TOKEN_TYPE.QUESTION:
-                case Token.TOKEN_TYPE.EQUAL:
-                    t = new Token(char,null);
+            if (charInArr(char, Token.ALL_SYMBOLS)) {
+                t = new Token(char, null);
+                tokens.push(t);
+                lastChar = char;
+            } else {
+                let lastToken = tokens[tokens.length - 1];
+                if (lastToken && lastToken.tokenType != Token.TYPE.STRING && char == ' ') return;
+                if (
+                    lastToken &&
+                    (
+                        lastToken.tokenType == Token.TYPE.DIGIT ||
+                        lastToken.tokenType == Token.TYPE.VARIABLE ||
+                        lastToken.tokenType == Token.TYPE.OBJECT_KEY ||
+                        lastToken.tokenType == Token.TYPE.STRING
+                    )
+                ) {
+                    lastToken.tokenValue += char;
+                } else {
+                    let type;
+                    if(isNumber(char)) type = Token.TYPE.DIGIT;
+                    else if (charInArr(char,['"',"'"])) type = Token.TYPE.STRING;
+                    else if (
+                        lastChar==Token.SYMBOL.L_CURLY ||
+                        lastChar==Token.SYMBOL.COMMA
+                    ) type = Token.TYPE.OBJECT_KEY;
+                    else type = Token.TYPE.VARIABLE;
+                    t = new Token(type,char);
                     tokens.push(t);
-                    lastChar = char;
-                    break;
-                default:
-                    let last = tokens[tokens.length-1];
-                    if (last && last.tokenType!=Token.TOKEN_TYPE.STRING && char==' ') break;
-                    if (
-                        last &&
-                        (
-                            last.tokenType==Token.TOKEN_TYPE.DIGIT ||
-                            last.tokenType==Token.TOKEN_TYPE.VARIABLE ||
-                            last.tokenType==Token.TOKEN_TYPE.OBJECT_KEY ||
-                            last.tokenType==Token.TOKEN_TYPE.STRING)
-                    ) {
-                        last.tokenValue+=char;
-                    } else {
-                        let type;
-                        if(isNumber(char)) type = Token.TOKEN_TYPE.DIGIT;
-                        else if (charInArr(char,['"',"'"])) type = Token.TOKEN_TYPE.STRING;
-                        else if (
-                            lastChar==Token.TOKEN_TYPE.L_CURLY ||
-                            lastChar==Token.TOKEN_TYPE.COMMA
-                        ) type = Token.TOKEN_TYPE.OBJECT_KEY;
-                        else type = Token.TOKEN_TYPE.VARIABLE;
-                        t = new Token(type,char);
-                        tokens.push(t);
-                    }
-                    lastChar = char;
-                    break;
+                }
+                lastChar = char;
             }
+        });
+
+        tokens.forEach(t=>{
+            t.tokenValue && (t.tokenValue=t.tokenValue.trim());
         });
         //console.log(JSON.stringify(tokens));
         return tokens;
@@ -103,8 +92,9 @@ class Lexer {
 
     static convertExpression(expression,variableReplacerStr){
         let out = '';
+        expression = expression.split('\n').join('');
         Lexer.tokenize(expression).forEach(function(token){
-            if (token.tokenType==Token.TOKEN_TYPE.VARIABLE) {
+            if (token.tokenType==Token.TYPE.VARIABLE) {
                out+=variableReplacerStr.replace('{expr}',token.tokenValue);
             }
             else out+=(token.tokenValue||token.tokenType);
@@ -113,5 +103,3 @@ class Lexer {
     }
 
 }
-
-Lexer.convertExpression("invokeFn()",'scope.{expr}');

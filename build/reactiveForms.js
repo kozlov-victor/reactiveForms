@@ -121,6 +121,35 @@ e // placeholder
     return d; // give back the new array
 });
 
+if (!Array.prototype.map) {
+    Array.prototype.map = function (fn) {
+        var rv = [];
+        for (var i = 0, l = this.length; i < l; i++) {
+            rv.push(fn(this[i]));
+        }return rv;
+    };
+}
+
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (elt /*, from*/) {
+        var len = this.length >>> 0;
+        var from = Number(arguments[1]) || 0;
+        from = from < 0 ? Math.ceil(from) : Math.floor(from);
+        if (from < 0) from += len;
+
+        for (; from < len; from++) {
+            if (from in this && this[from] === elt) return from;
+        }
+        return -1;
+    };
+}
+
+if (!String.prototype.trim) {
+    String.prototype.trim = function () {
+        return this.replace(/^\s+|\s+$/g, '');
+    };
+}
+
 if (!Object.create) {
     Object.create = function (o, props) {
         function F() {}
@@ -143,47 +172,91 @@ if (!window.Node) window.Node = {
     TEXT_NODE: 3
 };
 
-if ("a'b".split(/(')/g).length == 2) {
-    String.prototype.split = function (delimiter /*,limit*/) {
-        if (typeof delimiter == "undefined") {
-            return [this];
+// Avoid running twice; that would break the `nativeSplit` reference
+(function (undef) {
+
+    var nativeSplit = String.prototype.split,
+        compliantExecNpcg = /()??/.exec("")[1] === undef,
+        // NPCG: nonparticipating capturing group
+    self;
+
+    self = function self(str, separator, limit) {
+        // If `separator` is not a regex, use `nativeSplit`
+        if (Object.prototype.toString.call(separator) !== "[object RegExp]") {
+            return nativeSplit.call(str, separator, limit);
         }
-        var limit = arguments.length > 1 ? arguments[1] : -1;
-        var result = [];
-        if (delimiter.constructor == RegExp) {
-            delimiter.global = true;
-            var regexpResult,
-                str = this,
-                previousIndex = 0;
-            while (regexpResult = delimiter.exec(str)) {
-                result.push(str.substring(previousIndex, regexpResult.index));
-                for (var captureGroup = 1, ct = regexpResult.length; captureGroup < ct; captureGroup++) {
-                    result.push(regexpResult[captureGroup]);
+        var output = [],
+            flags = (separator.ignoreCase ? "i" : "") + (separator.multiline ? "m" : "") + (separator.extended ? "x" : "") + ( // Proposed for ES6
+        separator.sticky ? "y" : ""),
+            // Firefox 3+
+        lastLastIndex = 0,
+
+        // Make `global` and avoid `lastIndex` issues by working with a copy
+        separator = new RegExp(separator.source, flags + "g"),
+            separator2,
+            match,
+            lastIndex,
+            lastLength;
+        str += ""; // Type-convert
+        if (!compliantExecNpcg) {
+            // Doesn't need flags gy, but they don't hurt
+            separator2 = new RegExp("^" + separator.source + "$(?!\\s)", flags);
+        }
+        /* Values for `limit`, per the spec:
+         * If undefined: 4294967295 // Math.pow(2, 32) - 1
+         * If 0, Infinity, or NaN: 0
+         * If positive number: limit = Math.floor(limit); if (limit > 4294967295) limit -= 4294967296;
+         * If negative number: 4294967296 - Math.floor(Math.abs(limit))
+         * If other: Type-convert, then use the above rules
+         */
+        limit = limit === undef ? -1 >>> 0 : // Math.pow(2, 32) - 1
+        limit >>> 0; // ToUint32(limit)
+        while (match = separator.exec(str)) {
+            // `separator.lastIndex` is not reliable cross-browser
+            lastIndex = match.index + match[0].length;
+            if (lastIndex > lastLastIndex) {
+                output.push(str.slice(lastLastIndex, match.index));
+                // Fix browsers whose `exec` methods don't consistently return `undefined` for
+                // nonparticipating capturing groups
+                if (!compliantExecNpcg && match.length > 1) {
+                    match[0].replace(separator2, function () {
+                        for (var i = 1; i < arguments.length - 2; i++) {
+                            if (arguments[i] === undef) {
+                                match[i] = undef;
+                            }
+                        }
+                    });
                 }
-                str = str.substring(delimiter.lastIndex, str.length);
+                if (match.length > 1 && match.index < str.length) {
+                    Array.prototype.push.apply(output, match.slice(1));
+                }
+                lastLength = match[0].length;
+                lastLastIndex = lastIndex;
+                if (output.length >= limit) {
+                    break;
+                }
             }
-            result.push(str);
+            if (separator.lastIndex === match.index) {
+                separator.lastIndex++; // Avoid an infinite loop
+            }
+        }
+        if (lastLastIndex === str.length) {
+            if (lastLength || !separator.test("")) {
+                output.push("");
+            }
         } else {
-            var searchIndex = 0,
-                foundIndex = 0,
-                len = this.length,
-                dlen = delimiter.length;
-            while (foundIndex != -1) {
-                foundIndex = this.indexOf(delimiter, searchIndex);
-                if (foundIndex != -1) {
-                    result.push(this.substring(searchIndex, foundIndex));
-                    searchIndex = foundIndex + dlen;
-                } else {
-                    result.push(this.substring(searchIndex, len));
-                }
-            }
+            output.push(str.slice(lastLastIndex));
         }
-        if (arguments.length > 1 && result.length > limit) {
-            result = result.slice(0, limit);
-        }
-        return result;
+        return output.length > limit ? output.slice(0, limit) : output;
     };
-}
+
+    // For convenience
+    String.prototype.split = function (separator, limit) {
+        return self(this, separator, limit);
+    };
+
+    return self;
+})();
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -756,6 +829,24 @@ var DomUtils = function () {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var _val = function _val(obj, path) {
+    var keys = path.split('.');
+    var lastKey = keys.pop();
+    var res = obj;
+    keys.forEach(function (key) {
+        res = res[key];
+    });
+    return res[lastKey];
+};
+var getVal = function getVal(rootScope, localScope, path) {
+    var res = _val(rootScope, path);
+    if (res == undefined && localScope) res = _val(localScope, path);
+    if (res && res.call) return function () {
+        res.apply(rootScope, Array.prototype.slice.call(arguments));
+    };else return res;
+};
+var external = { getVal: getVal };
+
 var ExpressionEngine = function () {
     function ExpressionEngine() {
         _classCallCheck(this, ExpressionEngine);
@@ -763,12 +854,12 @@ var ExpressionEngine = function () {
 
     ExpressionEngine.getExpressionFn = function getExpressionFn(code) {
         code = code.split('\n').join('').split("'").join('"');
-        var codeProcessed = '\n                var _val = function(obj,path) {\n                    var keys = path.split(\'.\');\n                    var lastKey = keys.pop();\n                    var res = obj;\n                    keys.forEach(function(key){\n                        res = res[key];\n                    });\n                    return res[lastKey];\n                }\n                var getVal = function(path){\n                    var res = _val(rootScope,path);\n                    if (res==undefined && localScope) res = _val(localScope,path);\n                    return res;\n                };\n                return ' + Lexer.convertExpression(code, "getVal('{expr}')") + '\n        ';
+        var codeProcessed = '\n                return ' + Lexer.convertExpression(code, "external.getVal(rootScope,localScope,'{expr}')") + '\n        ';
         try {
-            var fn = new Function('rootScope', 'localScope', codeProcessed);
+            var fn = new Function('rootScope', 'localScope', 'external', codeProcessed);
             fn.expression = code;
             fn.fnProcessed = fn.toString();
-            console.log(fn.fnProcessed);
+            //console.log(fn.fnProcessed);
             return fn;
         } catch (e) {
             console.error('can not compile function from expression');
@@ -780,7 +871,7 @@ var ExpressionEngine = function () {
     ExpressionEngine.runExpressionFn = function runExpressionFn(fn, component) {
         var localScope = component.localModelView;
         try {
-            return fn(component.modelView, localScope);
+            return fn.call(component.modelView, component.modelView, localScope, external);
         } catch (e) {
             console.error('getting value error');
             console.error('can not evaluate expression:' + fn.expression);
@@ -841,9 +932,7 @@ var Token = function Token(type, val) {
     this.tokenValue = val;
 };
 
-Token.SPECIAL_CHARS = '.(){}[],+*-/><=?:';
-
-Token.TOKEN_TYPE = {
+Token.SYMBOL = {
     L_PAR: '(',
     R_PAR: ')',
     L_CURLY: '{',
@@ -859,12 +948,18 @@ Token.TOKEN_TYPE = {
     LT: '<',
     EQUAL: '=',
     QUESTION: '?',
-    COLON: ':',
+    COLON: ':'
+};
+
+Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(function (key) {
+    return Token.SYMBOL[key];
+});
+
+Token.TYPE = {
     DIGIT: 'DIGIT',
     VARIABLE: 'VARIABLE',
     STRING: 'STRING',
     OBJECT_KEY: 'OBJECT_KEY'
-
 };
 
 function isNumber(n) {
@@ -887,41 +982,27 @@ var Lexer = function () {
         expression = expression.trim();
         expression.split('').forEach(function (char, i) {
 
-            switch (char) {
-                case Token.TOKEN_TYPE.L_PAR:
-                case Token.TOKEN_TYPE.R_PAR:
-                case Token.TOKEN_TYPE.PLUS:
-                case Token.TOKEN_TYPE.L_CURLY:
-                case Token.TOKEN_TYPE.R_CURLY:
-                case Token.TOKEN_TYPE.L_SQUARE:
-                case Token.TOKEN_TYPE.R_SQUARE:
-                case Token.TOKEN_TYPE.COMMA:
-                case Token.TOKEN_TYPE.MINUS:
-                case Token.TOKEN_TYPE.DIVIDE:
-                case Token.TOKEN_TYPE.MULTIPLY:
-                case Token.TOKEN_TYPE.LT:
-                case Token.TOKEN_TYPE.GT:
-                case Token.TOKEN_TYPE.COLON:
-                case Token.TOKEN_TYPE.QUESTION:
-                case Token.TOKEN_TYPE.EQUAL:
-                    t = new Token(char, null);
+            if (charInArr(char, Token.ALL_SYMBOLS)) {
+                t = new Token(char, null);
+                tokens.push(t);
+                lastChar = char;
+            } else {
+                var lastToken = tokens[tokens.length - 1];
+                if (lastToken && lastToken.tokenType != Token.TYPE.STRING && char == ' ') return;
+                if (lastToken && (lastToken.tokenType == Token.TYPE.DIGIT || lastToken.tokenType == Token.TYPE.VARIABLE || lastToken.tokenType == Token.TYPE.OBJECT_KEY || lastToken.tokenType == Token.TYPE.STRING)) {
+                    lastToken.tokenValue += char;
+                } else {
+                    var type = void 0;
+                    if (isNumber(char)) type = Token.TYPE.DIGIT;else if (charInArr(char, ['"', "'"])) type = Token.TYPE.STRING;else if (lastChar == Token.SYMBOL.L_CURLY || lastChar == Token.SYMBOL.COMMA) type = Token.TYPE.OBJECT_KEY;else type = Token.TYPE.VARIABLE;
+                    t = new Token(type, char);
                     tokens.push(t);
-                    lastChar = char;
-                    break;
-                default:
-                    var last = tokens[tokens.length - 1];
-                    if (last && last.tokenType != Token.TOKEN_TYPE.STRING && char == ' ') break;
-                    if (last && (last.tokenType == Token.TOKEN_TYPE.DIGIT || last.tokenType == Token.TOKEN_TYPE.VARIABLE || last.tokenType == Token.TOKEN_TYPE.OBJECT_KEY || last.tokenType == Token.TOKEN_TYPE.STRING)) {
-                        last.tokenValue += char;
-                    } else {
-                        var type = void 0;
-                        if (isNumber(char)) type = Token.TOKEN_TYPE.DIGIT;else if (charInArr(char, ['"', "'"])) type = Token.TOKEN_TYPE.STRING;else if (lastChar == Token.TOKEN_TYPE.L_CURLY || lastChar == Token.TOKEN_TYPE.COMMA) type = Token.TOKEN_TYPE.OBJECT_KEY;else type = Token.TOKEN_TYPE.VARIABLE;
-                        t = new Token(type, char);
-                        tokens.push(t);
-                    }
-                    lastChar = char;
-                    break;
+                }
+                lastChar = char;
             }
+        });
+
+        tokens.forEach(function (t) {
+            t.tokenValue && (t.tokenValue = t.tokenValue.trim());
         });
         //console.log(JSON.stringify(tokens));
         return tokens;
@@ -929,8 +1010,9 @@ var Lexer = function () {
 
     Lexer.convertExpression = function convertExpression(expression, variableReplacerStr) {
         var out = '';
+        expression = expression.split('\n').join('');
         Lexer.tokenize(expression).forEach(function (token) {
-            if (token.tokenType == Token.TOKEN_TYPE.VARIABLE) {
+            if (token.tokenType == Token.TYPE.VARIABLE) {
                 out += variableReplacerStr.replace('{expr}', token.tokenValue);
             } else out += token.tokenValue || token.tokenType;
         });
@@ -939,8 +1021,6 @@ var Lexer = function () {
 
     return Lexer;
 }();
-
-//Lexer.convertExpression("{red:appClass=='red',green:appClass=='green'}");
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1028,86 +1108,6 @@ var Router = function () {
 
     return Router;
 }();
-//
-// class Token {
-//     constructor(type,val){
-//         this.tokenType = type;
-//         this.tokenValue = val;
-//     }
-// }
-//
-// Token.SPECIAL_CHARS =
-//     '.(){}[],+*-/%!><=?:'.split('');
-//
-// Token.TOKEN_TYPE = {
-//     DIGIT:'DIGIT',
-//     VARIABLE:'VARIABLE',
-//     STRING:'STRING',
-//     OBJECT_KEY:'OBJECT_KEY'
-// };
-//
-// function isNumber(n) {
-//     return !isNaN(parseFloat(n)) && isFinite(n);
-// }
-//
-// function charInArr(char,arr) {
-//     return arr.indexOf(char)>-1;
-// }
-//
-// class Lexer {
-//
-//     static tokenize(expression) {
-//         let tokens = [], t, lastChar = '';
-//         expression = expression.trim();
-//         expression.split('').forEach(function(char,i) {
-//
-//             if (charInArr(char, Token.SPECIAL_CHARS)) {
-//                 t = new Token(char, null);
-//                 tokens.push(t);
-//                 lastChar = char;
-//             } else {
-//                 let last = tokens[tokens.length - 1];
-//                 if (last && last.tokenType != Token.TOKEN_TYPE.STRING && char == ' ') return;
-//                 if (
-//                     last &&
-//                     (
-//                     last.tokenType == Token.TOKEN_TYPE.DIGIT ||
-//                     last.tokenType == Token.TOKEN_TYPE.VARIABLE ||
-//                     last.tokenType == Token.TOKEN_TYPE.OBJECT_KEY ||
-//                     last.tokenType == Token.TOKEN_TYPE.STRING)
-//                 ) {
-//                     last.tokenValue += char;
-//                 } else {
-//                     let type;
-//                     if (isNumber(char)) type = Token.TOKEN_TYPE.DIGIT;
-//                     else if (charInArr(char, ['"', "'"])) type = Token.TOKEN_TYPE.STRING;
-//                     else if (charInArr(lastChar,[',','{'])) type = Token.TOKEN_TYPE.OBJECT_KEY;
-//                     else type = Token.TOKEN_TYPE.VARIABLE;
-//                     t = new Token(type, char);
-//                     tokens.push(t);
-//                 }
-//                 lastChar = char;
-//             }
-//         });
-//         //console.log(JSON.stringify(tokens));
-//         return tokens;
-//     }
-//
-//     static convertExpression(expression,variableReplacerStr){
-//         let out = '';
-//         Lexer.tokenize(expression).forEach(function(token){
-//             if (token.tokenType==Token.TOKEN_TYPE.VARIABLE) {
-//                 out+=variableReplacerStr.replace('{expr}',token.tokenValue);
-//             }
-//             else out+=(token.tokenValue||token.tokenType);
-//         });
-//         return out;
-//     }
-//
-// }
-
-//Lexer.convertExpression("{red:appClass=='red',green:appClass=='green'}");
-"use strict";
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }

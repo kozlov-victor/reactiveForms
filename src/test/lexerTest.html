@@ -41,7 +41,26 @@
             Lexer.convertExpression("{red:appClass=='red',green:appClass=='green'}","getVal('{expr}')"),
             "{red:getVal('appClass')=='red',green:getVal('appClass')=='green'}"
         );
-
+        assertEqual(
+                Lexer.convertExpression("invokeFn()","getVal('{expr}')"),
+                "getVal('invokeFn')()"
+        );
+        assertEqual(
+                Lexer.convertExpression("invokeFn(user.name)","scope.{expr}"),
+                "scope.invokeFn(scope.user.name)"
+        );
+        assertEqual(
+                Lexer.convertExpression(
+                        `
+                            {
+                                fontWeight: bold?'bold':'',
+                                fontStyle: italic? 'italic':''
+                            }
+                        `
+                        ,"scope.{expr}"
+                    ),
+                    "{fontWeight:scope.bold?'bold':'',fontStyle:scope.italic?'italic':''}"
+        );
     </script>
 </body>
 </html>
