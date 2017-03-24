@@ -6,11 +6,13 @@ class Router {
     }
 
     setup(keyValues){
-        this.routeNode = document.querySelector('[data-route]');
-        if (!this.routeNode) throw 'can not run Route: element with data-route attribute not found';
+        var routePlaceholderNode = document.querySelector('[data-route]');
+        if (!routePlaceholderNode) throw 'can not run Route: element with data-route attribute not found';
+        this.routeNode = routePlaceholderNode.parentNode.appendChild(document.createElement('div'));
         Object.keys(keyValues).forEach(key=>{
             this._pages[key]={
-                componentProto: keyValues[key]
+                componentProto: keyValues[key],
+                component: null
             };
         });
     }
@@ -18,13 +20,14 @@ class Router {
     navigateTo(pageName){
         let pageItem = this._pages[pageName];
         if (!pageItem) throw `${pageName} not registered, set up router correctly`;
-        this.routeNode.innerHTML = '';
+        //this.routeNode.innerHTML = '';
         if (!pageItem.component) {
             let componentNode = pageItem.componentProto.node.cloneNode(true);
             pageItem.component = pageItem.componentProto.runNewInstance(componentNode,{});
             delete pageItem.componentProto;
         }
-        this.routeNode.appendChild(pageItem.component.node);
+        this.routeNode.parentNode.replaceChild(pageItem.component.node,this.routeNode);
+        this.routeNode = pageItem.component.node;
     }
 
 }

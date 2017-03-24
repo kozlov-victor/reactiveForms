@@ -172,7 +172,6 @@ if (!window.Node) window.Node = {
     TEXT_NODE: 3
 };
 
-// Avoid running twice; that would break the `nativeSplit` reference
 (function (undef) {
 
     var nativeSplit = String.prototype.split,
@@ -1085,11 +1084,13 @@ var Router = function () {
     Router.prototype.setup = function setup(keyValues) {
         var _this = this;
 
-        this.routeNode = document.querySelector('[data-route]');
-        if (!this.routeNode) throw 'can not run Route: element with data-route attribute not found';
+        var routePlaceholderNode = document.querySelector('[data-route]');
+        if (!routePlaceholderNode) throw 'can not run Route: element with data-route attribute not found';
+        this.routeNode = routePlaceholderNode.parentNode.appendChild(document.createElement('div'));
         Object.keys(keyValues).forEach(function (key) {
             _this._pages[key] = {
-                componentProto: keyValues[key]
+                componentProto: keyValues[key],
+                component: null
             };
         });
     };
@@ -1097,13 +1098,14 @@ var Router = function () {
     Router.prototype.navigateTo = function navigateTo(pageName) {
         var pageItem = this._pages[pageName];
         if (!pageItem) throw pageName + ' not registered, set up router correctly';
-        this.routeNode.innerHTML = '';
+        //this.routeNode.innerHTML = '';
         if (!pageItem.component) {
             var componentNode = pageItem.componentProto.node.cloneNode(true);
             pageItem.component = pageItem.componentProto.runNewInstance(componentNode, {});
             delete pageItem.componentProto;
         }
-        this.routeNode.appendChild(pageItem.component.node);
+        this.routeNode.parentNode.replaceChild(pageItem.component.node, this.routeNode);
+        this.routeNode = pageItem.component.node;
     };
 
     return Router;
