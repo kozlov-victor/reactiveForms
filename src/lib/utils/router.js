@@ -20,7 +20,6 @@ class Router {
     navigateTo(pageName){
         let pageItem = this._pages[pageName];
         if (!pageItem) throw `${pageName} not registered, set up router correctly`;
-        //this.routeNode.innerHTML = '';
         if (!pageItem.component) {
             let componentNode = pageItem.componentProto.node.cloneNode(true);
             pageItem.component = pageItem.componentProto.runNewInstance(componentNode,{});
