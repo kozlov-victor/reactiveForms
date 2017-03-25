@@ -7,6 +7,7 @@ class ScopedDomFragment extends Component {
 
     constructor(node,modelView,localModelView){
         super(null,node,modelView,localModelView);
+        this.parent = null;
     }
 
 }

@@ -1,20 +1,21 @@
 
-var _val = function(obj,path) {
-    var keys = path.split('.');
-    var lastKey = keys.pop();
-    var res = obj;
+let _val = function(obj,path) {
+    let keys = path.split('.');
+    let lastKey = keys.pop();
+    let res = obj;
     keys.forEach(function(key){
-        res = res[key];
+        if (res!==undefined) res = res[key];
     });
+    if (res===undefined) return res;
     return res[lastKey];
 };
-var getVal = function(rootScope,localScope,path){
-    var res = _val(rootScope,path);
+let getVal = function(rootScope,localScope,path){
+    let res = _val(rootScope,path);
     if (res==undefined && localScope) res = _val(localScope,path);
     if (res && res.call) return function(){res.apply(rootScope,Array.prototype.slice.call(arguments))};
     else return res;
 };
-var external = {getVal};
+let external = {getVal};
 
 class ExpressionEngine {
     static getExpressionFn(code){
@@ -36,9 +37,11 @@ class ExpressionEngine {
 
     }
     static runExpressionFn(fn,component){
-        var localScope = component.localModelView;
+        let localScope = component.localModelView;
         try {
-            return fn.call(component.modelView,component.modelView,localScope,external);
+            let res = fn.call(component.modelView,component.modelView,localScope,external);
+            if (res==undefined && component.parent) res = ExpressionEngine.runExpressionFn(fn,component.parent);
+            return res;
         } catch(e){
             console.error('getting value error');
             console.error('can not evaluate expression:' + fn.expression);

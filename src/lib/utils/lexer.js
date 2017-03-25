@@ -23,7 +23,9 @@ Token.SYMBOL = {
     LT:'<',
     EQUAL:'=',
     QUESTION:'?',
-    COLON:':'
+    COLON:':',
+    AMPERSAND:'&',
+    OR:'|'
 };
 
 Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});
@@ -32,7 +34,8 @@ Token.TYPE = {
     DIGIT:'DIGIT',
     VARIABLE:'VARIABLE',
     STRING:'STRING',
-    OBJECT_KEY:'OBJECT_KEY'
+    OBJECT_KEY:'OBJECT_KEY',
+    FUNCTION:'FUNCTION'
 };
 
 function isNumber(n) {
@@ -50,12 +53,14 @@ class Lexer {
         expression = expression.trim();
         expression.split('').forEach(function(char,i) {
 
+            let lastToken = tokens[tokens.length - 1];
+
             if (charInArr(char, Token.ALL_SYMBOLS)) {
                 t = new Token(char, null);
                 tokens.push(t);
                 lastChar = char;
+                if (lastToken && char==Token.SYMBOL.L_PAR) lastToken.tokenType = Token.TYPE.FUNCTION;
             } else {
-                let lastToken = tokens[tokens.length - 1];
                 if (lastToken && lastToken.tokenType != Token.TYPE.STRING && char == ' ') return;
                 if (
                     lastToken &&
@@ -94,7 +99,7 @@ class Lexer {
         let out = '';
         expression = expression.split('\n').join('');
         Lexer.tokenize(expression).forEach(function(token){
-            if (token.tokenType==Token.TYPE.VARIABLE) {
+            if ([Token.TYPE.VARIABLE,Token.TYPE.FUNCTION].indexOf(token.tokenType)>-1) {
                out+=variableReplacerStr.replace('{expr}',token.tokenValue);
             }
             else out+=(token.tokenValue||token.tokenType);

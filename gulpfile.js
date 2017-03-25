@@ -11,8 +11,10 @@ const babel = require('gulp-babel');
 const iife = require("gulp-iife");
 const fs = require("./src/_internal/fs");
 const Prism = require('node-prismjs');
+const uglify = require('gulp-uglify');
 
 gulp.task('engine', ()=> {
+    let debug = true;
     return (
         gulp.src([
             'src/lib/polifils/polifils.js',
@@ -26,6 +28,24 @@ gulp.task('engine', ()=> {
         }))
         .pipe(concat('reactiveForms.js'))
         .pipe(iife())
+        .pipe(uglify({
+            output: { // http://lisperator.net/uglifyjs/codegen
+                beautify: debug,
+                comments: debug ? true : /^!|\b(copyright|license)\b|@(preserve|license|cc_on)\b/i,
+            },
+            compress: { // http://lisperator.net/uglifyjs/compress, http://davidwalsh.name/compress-uglify
+                sequences: !debug,
+                booleans: !debug,
+                conditionals: !debug,
+                hoist_funs: false,
+                hoist_vars: debug,
+                warnings: debug,
+            },
+            mangle: !debug,
+            outSourceMap: true,
+            basePath: 'www',
+            sourceRoot: '/'
+        }))
         .pipe(gulp.dest('build/'))
     );
 });

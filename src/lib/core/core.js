@@ -21,6 +21,10 @@ class Core{
         fragment.run();
     };
 
+    static digest(){
+        Component.digestAll();
+    }
+
     static run(){
         ComponentProto.instances.forEach(function(componentProto){
             let domEls =  DomUtils.nodeListToArray(document.getElementsByTagName(componentProto.name));

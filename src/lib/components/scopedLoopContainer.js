@@ -3,10 +3,11 @@
 class ScopedLoopContainer extends Component {
 
     constructor(node,modelView){
-        super(null,node,modelView);
+        super(null,node,modelView,undefined);
         this.scopedDomFragments = [];
         this.lastFrafmentsLength = 0;
         this.node = node;
+        this.parent = null;
     }
 
     _destroyFragment(index){
@@ -31,7 +32,7 @@ class ScopedLoopContainer extends Component {
             });
     }
 
-    _processIterations(newArr,oldArr){
+    _processIterations(newArr = [],oldArr){
 
         let currNodeInIteration = this.anchor;
         newArr.forEach((iterableItem,i)=>{
@@ -44,6 +45,7 @@ class ScopedLoopContainer extends Component {
                 let node = this.node.cloneNode(true);
                 currNodeInIteration.parentNode.insertBefore(node,currNodeInIteration.nextSibling);
                 let scopedDomFragment = new ScopedDomFragment(node,this.modelView,localModelView);
+                scopedDomFragment.parent = this.parent;
                 new DirectiveEngine(scopedDomFragment).run();
                 currNodeInIteration = node;
                 this.scopedDomFragments.push(scopedDomFragment);
