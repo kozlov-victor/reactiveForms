@@ -913,7 +913,7 @@
         };
         return Core;
     }();
-    Core.version = "0.0.1";
+    Core.version = "0.1.0";
     window.RF = Core;
     window.RF.Router = new Router();
 }();
