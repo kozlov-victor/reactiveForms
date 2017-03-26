@@ -45,7 +45,7 @@ class Core{
 
 }
 
-Core.version = '0.2.0';
+Core.version = '0.2.1';
 
 window.RF = Core;
 window.RF.Router = new Router();

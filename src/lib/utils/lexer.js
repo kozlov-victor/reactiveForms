@@ -27,7 +27,8 @@ Token.SYMBOL = {
     QUESTION:'?',
     COLON:':',
     AMPERSAND:'&',
-    OR:'|'
+    OR:'|',
+    EXCLAMATION:'!'
 };
 
 Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});

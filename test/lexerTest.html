@@ -50,6 +50,14 @@
                 "scope.invokeFn(scope.user.name)"
         );
         assertEqual(
+            Lexer.convertExpression("!error.type","scope.{expr}"),
+            "!scope.error.type"
+        );
+//        assertEqual( // todo implement!
+//            Lexer.convertExpression("error.type==true","scope.{expr}"),
+//            "scope.error.type==true"
+//        );
+        assertEqual(
                 Lexer.convertExpression(
                         `
                             {

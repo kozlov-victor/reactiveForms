@@ -738,7 +738,8 @@
         QUESTION: "?",
         COLON: ":",
         AMPERSAND: "&",
-        OR: "|"
+        OR: "|",
+        EXCLAMATION: "!"
     };
     Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(function(key) {
         return Token.SYMBOL[key];
@@ -953,7 +954,7 @@
         };
         return Core;
     }();
-    Core.version = "0.2.0";
+    Core.version = "0.2.1";
     window.RF = Core;
     window.RF.Router = new Router();
 }();
