@@ -1,11 +1,11 @@
 
+var fruits = [{name:'apple'},{name:'peanut'},{name:'orange'}];
+
 RF.applyBindings('#app',{
-    fruits: [
-        'apple','peanut','orange'
-    ],
-    currentFruit: 'orange',
+    fruits: fruits,
+    currentFruit: fruits[0],
     add: function(){
-        this.fruits.push(~~(Math.random()*100));
+        this.fruits.push({name:~~(Math.random()*100)});
     },
     remove: function(i){
         this.fruits.splice(i,1);

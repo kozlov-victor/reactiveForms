@@ -23,10 +23,11 @@ class DirectiveEngine {
     runDirective_For(){
         this._eachElementWithAttr('data-for',(el,expression)=>{
             let tokens = expression.split(' ');
-            if (tokens[1]!=='in') throw 'can not parse expression ' + expression;
+            if (['in','of'].indexOf(tokens[1])==-1) throw 'can not parse expression ' + expression;
             let eachItemName = tokens[0];
             let iterableObjectName = tokens[2];
             let scopedLoopContainer = new ScopedLoopContainer(el,this.component.modelView);
+            scopedLoopContainer.parent = this.component;
             scopedLoopContainer.run(eachItemName,iterableObjectName);
         });
     }
@@ -110,11 +111,16 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-class',(el,expression)=>{
             this.component.addWatcher(
                 expression,
-                function(classObj){
-                    for (let key in classObj) {
-                        if (!classObj.hasOwnProperty(key)) continue;
-                        DomUtils.toggleClass(el,key,!!classObj[key]);
+                function(classNameOrObj){
+                    if (typeof classNameOrObj === 'object') {
+                        for (let key in classNameOrObj) {
+                            if (!classNameOrObj.hasOwnProperty(key)) continue;
+                            DomUtils.toggleClass(el,key,!!classNameOrObj[key]);
+                        }
+                    } else {
+                        el.className = classNameOrObj;
                     }
+
                 }
             );
         });

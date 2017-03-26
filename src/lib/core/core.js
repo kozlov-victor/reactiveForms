@@ -21,6 +21,10 @@ class Core{
         fragment.run();
     };
 
+    static digest(){
+        Component.digestAll();
+    }
+
     static run(){
         ComponentProto.instances.forEach(function(componentProto){
             let domEls =  DomUtils.nodeListToArray(document.getElementsByTagName(componentProto.name));
@@ -42,7 +46,7 @@ class Core{
 
 }
 
-Core.version = '0.0.1';
+Core.version = '0.1.0';
 
 window.RF = Core;
 window.RF.Router = new Router();

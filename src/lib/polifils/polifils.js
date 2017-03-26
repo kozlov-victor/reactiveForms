@@ -9,48 +9,14 @@ if (!ElementPrototype.remove) {
 }
 
 if (!Object.keys) {
-    // JScript in IE8 and below mistakenly skips over built-in properties.
-    // https://developer.mozilla.org/en/ECMAScript_DontEnum_attribute
-    var hasDontEnumBug = !({toString: true}).propertyIsEnumerable('toString');
-
-    var getKeys = function(object) {
-        var type = typeof object;
-        if (type != 'object' && type != 'function' || object === null) {
-            throw new TypeError('Object.keys called on non-object');
-        }
-
+    Object.keys = function(obj) {
         var keys = [];
-        for (var key in object) {
-            if (Object.prototype.hasOwnProperty.call(object, key)) {
-                keys.push(key);
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                keys.push(i);
             }
         }
-        return keys;
-    };
-
-    if (hasDontEnumBug) {
-        var dontEnumProperties = [
-            'toString',
-            'toLocaleString',
-            'valueOf',
-            'hasOwnProperty',
-            'isPrototypeOf',
-            'prototypeIsEnumerable',
-            'constructor'
-        ];
-
-        Object.keys = function(object) {
-            var keys = getKeys(object);
-            for (var ii = 0, il = dontEnumProperties.length; ii < il; ii++) {
-                var property = dontEnumProperties[ii];
-                if (object.hasOwnProperty(property)) {
-                    keys.push(property);
-                }
-            }
-            return keys;
-        };
-    } else {
-        Object.keys = getKeys;
+        return keys
     }
 }
 
