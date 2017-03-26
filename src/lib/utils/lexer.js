@@ -1,4 +1,6 @@
 
+// todo resolve expression error at app.task.taskCases[0].text
+
 class Token {
     constructor(type,val){
         this.tokenType = type;
