@@ -714,6 +714,7 @@
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
+    // todo resolve expression error at app.task.taskCases[0].text
     Token = function Token(type, val) {
         _classCallCheck(this, Token);
         this.tokenType = type;
