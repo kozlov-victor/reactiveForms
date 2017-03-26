@@ -1,6 +1,6 @@
 !function() {
     "use strict";
-    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DirectiveEngine, DomUtils, _val, getVal, external, ExpressionEngine, Token, Lexer, MiscUtils, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DirectiveEngine, DomUtils, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, MiscUtils, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
@@ -132,15 +132,26 @@
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
     Component = function() {
-        function Component(name, node, modelView, localModelView) {
+        function Component(name, node, modelView) {
             _classCallCheck(this, Component);
+            this.parent = null;
+            this.children = null;
             this.name = name;
             this.node = node;
             this.modelView = modelView;
-            this.localModelView = localModelView;
             this.watchers = [];
             Component.instances.push(this);
         }
+        Component.prototype.addChild = function(childComponent) {
+            if (!this.children) this.children = [];
+            this.children.push(childComponent);
+        };
+        Component.prototype.updateModelView = function(modelView) {
+            this.modelView = modelView;
+            if (this.children) this.children.forEach(function(c) {
+                c.modelView = modelView;
+            });
+        };
         Component.prototype.addWatcher = function(expression, listenerFn) {
             var watcherFn = ExpressionEngine.getExpressionFn(expression);
             this.watchers.push({
@@ -163,6 +174,7 @@
         Component.prototype.run = function() {
             new DirectiveEngine(this).run();
         };
+        Component.prototype.destroy = function() {};
         Component.digestAll = function() {
             Component.instances.forEach(function(cmp) {
                 cmp.digest();
@@ -227,11 +239,9 @@
  */
     ScopedDomFragment = function(_Component) {
         _inherits(ScopedDomFragment, _Component);
-        function ScopedDomFragment(node, modelView, localModelView) {
+        function ScopedDomFragment(node, modelView) {
             _classCallCheck(this, ScopedDomFragment);
-            var _this = _possibleConstructorReturn(this, _Component.call(this, null, node, modelView, localModelView));
-            _this.parent = null;
-            return _this;
+            return _possibleConstructorReturn(this, _Component.call(this, null, node, modelView));
         }
         return ScopedDomFragment;
     }(Component);
@@ -266,8 +276,10 @@
             return _this;
         }
         ScopedLoopContainer.prototype._destroyFragment = function(index) {
+            var removedFragment;
             this.scopedDomFragments[index].node.remove();
-            this.scopedDomFragments.splice(index, 1);
+            removedFragment = this.scopedDomFragments.splice(index, 1);
+            removedFragment.destroy();
             this.lastFrafmentsLength--;
         };
         ScopedLoopContainer.prototype.run = function(eachItemName, iterableObjectName) {
@@ -285,21 +297,26 @@
             var l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [], currNodeInIteration = (arguments[1], 
             this.anchor);
             newArr.forEach(function(iterableItem, i) {
-                var node, scopedDomFragment, localModelView = {};
-                localModelView[_this3.eachItemName] = iterableItem;
-                localModelView.index = i;
+                var localModelView, node, scopedDomFragment, _localModelView;
                 if (!_this3.scopedDomFragments[i]) {
+                    localModelView = {};
+                    localModelView[_this3.eachItemName] = iterableItem;
+                    localModelView.index = i;
                     node = _this3.node.cloneNode(true);
                     currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
-                    scopedDomFragment = new ScopedDomFragment(node, _this3.modelView, localModelView);
+                    scopedDomFragment = new ScopedDomFragment(node, localModelView);
                     scopedDomFragment.parent = _this3.parent;
+                    scopedDomFragment.parent.addChild(scopedDomFragment);
                     new DirectiveEngine(scopedDomFragment).run();
                     currNodeInIteration = node;
                     _this3.scopedDomFragments.push(scopedDomFragment);
                     _this3.lastFrafmentsLength++;
                 } else {
+                    _localModelView = _this3.scopedDomFragments[i].modelView;
+                    _localModelView[_this3.eachItemName] = iterableItem;
+                    _localModelView.index = i;
                     currNodeInIteration = _this3.scopedDomFragments[i].node;
-                    _this3.scopedDomFragments[i].localModelView = localModelView;
+                    _this3.scopedDomFragments[i].updateModelView(_localModelView);
                     _this3.scopedDomFragments[i].digest();
                 }
             });
@@ -613,19 +630,18 @@
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
-    _val = function(obj, path) {
-        var keys = path.split("."), lastKey = keys.pop(), res = obj;
+    _getValByPath = function _getValByPath(component, path) {
+        var keys = path.split("."), lastKey = keys.pop(), res = component.modelView;
         keys.forEach(function(key) {
             if (void 0 !== res) res = res[key];
         });
-        if (void 0 === res) return res; else return res[lastKey];
-    };
-    getVal = function(rootScope, localScope, path) {
-        var res = _val(rootScope, path);
-        if (void 0 == res && localScope) res = _val(localScope, path);
-        if (res && res.call) return function() {
-            res.apply(rootScope, Array.prototype.slice.call(arguments));
+        if (void 0 !== res) res = res[lastKey];
+        if (void 0 === res && component.parent) return _getValByPath(component.parent, path); else if (res && res.call) return function() {
+            return res.apply(component.modelView, Array.prototype.slice.call(arguments));
         }; else return res;
+    };
+    getVal = function(component, path) {
+        return _getValByPath(component, path);
     };
     external = {
         getVal: getVal
@@ -637,9 +653,9 @@
         ExpressionEngine.getExpressionFn = function(code) {
             var codeProcessed, fn;
             code = code.split("\n").join("").split("'").join('"');
-            codeProcessed = "\n                return " + Lexer.convertExpression(code, "external.getVal(rootScope,localScope,'{expr}')") + "\n        ";
+            codeProcessed = "\n                return " + Lexer.convertExpression(code, "external.getVal(component,'{expr}')") + "\n        ";
             try {
-                fn = new Function("rootScope", "localScope", "external", codeProcessed);
+                fn = new Function("component", "external", codeProcessed);
                 fn.expression = code;
                 fn.fnProcessed = fn.toString();
                 //console.log(fn.fnProcessed);
@@ -651,17 +667,13 @@
             }
         };
         ExpressionEngine.runExpressionFn = function(fn, component) {
-            var res, localScope = component.localModelView;
             try {
-                res = fn.call(component.modelView, component.modelView, localScope, external);
-                if (void 0 == res && component.parent) res = ExpressionEngine.runExpressionFn(fn, component.parent);
-                return res;
+                return fn.call(component.modelView, component, external);
             } catch (e) {
                 console.error("getting value error");
                 console.error("can not evaluate expression:" + fn.expression);
                 console.error("     at compiled function:" + fn.fnProcessed);
-                console.error("rootScope", component.modelView);
-                console.error("localScope", localScope);
+                console.error("component", component);
                 throw e;
             }
         };

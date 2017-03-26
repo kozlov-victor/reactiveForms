@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="description" content="DBMON Angular" />
+    <meta name="description" content="DBMON Reactive Forms" />
     <link href="resources/styles.css" rel="stylesheet" type="text/css" />
     <meta charset="utf-8">
     <title>dbmon (Reactive Forms)</title>
@@ -13,7 +13,7 @@
     <table class="table table-striped latest-data">
         <tbody>
         <!-- Database -->
-        <tr data-for="db in app.databases">
+        <tr data-for="db in data.databases">
             <td class="dbname">
                 {{db.dbname}}
             </td>

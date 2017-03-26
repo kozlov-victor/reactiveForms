@@ -1,19 +1,24 @@
 
-let _val = function(obj,path) {
+let _getValByPath = function(component, path) {
     let keys = path.split('.');
     let lastKey = keys.pop();
-    let res = obj;
+    let res = component.modelView;
     keys.forEach(function(key){
         if (res!==undefined) res = res[key];
     });
-    if (res===undefined) return res;
-    return res[lastKey];
+    if (res!==undefined) res = res[lastKey];
+    if (res===undefined && component.parent) return _getValByPath(component.parent,path);
+    else {
+        if (res && res.call) {
+            return function() {
+                return res.apply(component.modelView, Array.prototype.slice.call(arguments))
+            }
+        }
+        return res;
+    }
 };
-let getVal = function(rootScope,localScope,path){
-    let res = _val(rootScope,path);
-    if (res==undefined && localScope) res = _val(localScope,path);
-    if (res && res.call) return function(){res.apply(rootScope,Array.prototype.slice.call(arguments))};
-    else return res;
+let getVal = function(component,path){
+    return _getValByPath(component,path);
 };
 let external = {getVal};
 
@@ -21,10 +26,10 @@ class ExpressionEngine {
     static getExpressionFn(code){
         code = code.split('\n').join('').split("'").join('"');
         let codeProcessed = `
-                return ${Lexer.convertExpression(code,"external.getVal(rootScope,localScope,'{expr}')")}
+                return ${Lexer.convertExpression(code,"external.getVal(component,'{expr}')")}
         `;
         try {
-            let fn = new Function('rootScope','localScope','external',codeProcessed);
+            let fn = new Function('component','external',codeProcessed);
             fn.expression = code;
             fn.fnProcessed = fn.toString();
             //console.log(fn.fnProcessed);
@@ -37,17 +42,13 @@ class ExpressionEngine {
 
     }
     static runExpressionFn(fn,component){
-        let localScope = component.localModelView;
         try {
-            let res = fn.call(component.modelView,component.modelView,localScope,external);
-            if (res==undefined && component.parent) res = ExpressionEngine.runExpressionFn(fn,component.parent);
-            return res;
+            return fn.call(component.modelView,component,external);
         } catch(e){
             console.error('getting value error');
             console.error('can not evaluate expression:' + fn.expression);
             console.error('     at compiled function:' + fn.fnProcessed);
-            console.error('rootScope',component.modelView);
-            console.error('localScope',localScope);
+            console.error('component',component);
             throw e;
         }
     }

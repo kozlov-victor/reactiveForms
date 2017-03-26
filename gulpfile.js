@@ -54,7 +54,7 @@ gulp.task('tutor', ()=> {
     let pageNames = fs.getDirListSync('src/tutorial/pages');
     let res = [];
     let css = fs.readFileSync(`src/tutorial/tmpl/prism.css`);
-    pageNames.forEach((page)=>{
+    pageNames.forEach((page,index)=>{
         let html = fs.readFileSync(`src/tutorial/pages/${page}/index.html`);
         let js = fs.readFileSync(`src/tutorial/pages/${page}/index.js`);
 

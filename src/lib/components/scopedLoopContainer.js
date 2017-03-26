@@ -13,7 +13,8 @@ class ScopedLoopContainer extends Component {
     _destroyFragment(index){
         let currFragment = this.scopedDomFragments[index];
         currFragment.node.remove();
-        this.scopedDomFragments.splice(index,1);
+        let removedFragment = this.scopedDomFragments.splice(index,1);
+        removedFragment.destroy();
         this.lastFrafmentsLength--;
     }
 
@@ -37,22 +38,28 @@ class ScopedLoopContainer extends Component {
         let currNodeInIteration = this.anchor;
         newArr.forEach((iterableItem,i)=>{
 
-            let localModelView = {};
-            localModelView[this.eachItemName] = iterableItem;
-            localModelView['index'] = i;
-
             if (!this.scopedDomFragments[i]) {
+
+                let localModelView = {};
+                localModelView[this.eachItemName] = iterableItem;
+                localModelView['index'] = i;
+
                 let node = this.node.cloneNode(true);
                 currNodeInIteration.parentNode.insertBefore(node,currNodeInIteration.nextSibling);
-                let scopedDomFragment = new ScopedDomFragment(node,this.modelView,localModelView);
+                let scopedDomFragment = new ScopedDomFragment(node,localModelView);
                 scopedDomFragment.parent = this.parent;
+                scopedDomFragment.parent.addChild(scopedDomFragment);
                 new DirectiveEngine(scopedDomFragment).run();
                 currNodeInIteration = node;
                 this.scopedDomFragments.push(scopedDomFragment);
                 this.lastFrafmentsLength++;
             } else {
+                let localModelView = this.scopedDomFragments[i].modelView;
+                localModelView[this.eachItemName] = iterableItem;
+                localModelView['index'] = i;
+
                 currNodeInIteration = this.scopedDomFragments[i].node;
-                this.scopedDomFragments[i].localModelView = localModelView;
+                this.scopedDomFragments[i].updateModelView(localModelView);
                 this.scopedDomFragments[i].digest();
             }
 

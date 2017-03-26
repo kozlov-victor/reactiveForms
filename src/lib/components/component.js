@@ -2,13 +2,28 @@
 
 class Component {
 
-    constructor(name,node,modelView,localModelView){
+    constructor(name,node,modelView){
+        this.parent = null;
+        this.children = null;
         this.name = name;
         this.node = node;
         this.modelView = modelView;
-        this.localModelView = localModelView;
         this.watchers = [];
         Component.instances.push(this);
+    }
+
+    addChild(childComponent) {
+        if (!this.children) this.children = [];
+        this.children.push(childComponent);
+    }
+
+    updateModelView(modelView){
+        this.modelView = modelView;
+        if (this.children) {
+            this.children.forEach(c=>{
+                c.modelView = modelView;
+            });
+        }
     }
 
     addWatcher(expression, listenerFn) {
@@ -32,10 +47,19 @@ class Component {
             }
             watcher.last = newValue;
         });
+        // if (this.children) {
+        //     this.children.forEach(c=>{
+        //         c.digest();
+        //     });
+        // }
     };
 
     run() {
         new DirectiveEngine(this).run();
+    }
+
+    destroy(){
+        // todo not implemented yet!
     }
 
     static digestAll() {

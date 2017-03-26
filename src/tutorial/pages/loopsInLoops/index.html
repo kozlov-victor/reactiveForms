@@ -1,0 +1,19 @@
+
+
+<div id="app">
+    <ul>
+        <li data-for="b in app.bundles">
+            {{b.name}}
+            <ul>
+                <li data-for="d in b.data">
+                    {{d.slot}}
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <button data-click="app.changeExternal()">Изменить внешнее значение</button>
+    <button data-click="app.changeInternal()">Изменить вложенное значение</button>
+    <button data-click="app.changeAll()">Изменить все (изменить по ссылке)</button>
+    <button data-click="app.changeGlobal()">Изменить ссылку на объект</button>
+</div>
+
