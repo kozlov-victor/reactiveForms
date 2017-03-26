@@ -572,6 +572,58 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
     </section>
 </li>
 <li>
+    <h3>Простой компонент с шаблоном из строки</h3>
+    <section>
+        <div data-html>
+            
+
+<span class="token operator">&lt;</span>style<span class="token operator">></span>
+    <span class="token punctuation">.</span>counter {
+        display<span class="token punctuation">:</span> inline<span class="token operator">-</span>block<span class="token comment" spellcheck="true">;</span>
+        border<span class="token punctuation">:</span> 1px solid black<span class="token comment" spellcheck="true">;</span>
+    }
+<span class="token operator">&lt;</span><span class="token operator">/</span>style<span class="token operator">></span>
+<span class="token operator">&lt;</span>counter<span class="token operator">-</span>component<span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>counter<span class="token operator">-</span>component<span class="token operator">></span>
+<span class="token operator">&lt;</span>counter<span class="token operator">-</span>component<span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>counter<span class="token operator">-</span>component<span class="token operator">></span>
+
+        </div>
+
+        <code data-js>
+            
+
+RF<span class="token punctuation">.</span><span class="token function">registerComponent</span><span class="token punctuation">(</span><span class="token string">'counter-component'</span><span class="token punctuation">,</span>{
+    template<span class="token punctuation">:</span> {
+        type<span class="token punctuation">:</span> <span class="token string">'string'</span><span class="token punctuation">,</span>
+        value<span class="token punctuation">:</span>
+            <span class="token string">'&lt;div class="counter">'</span><span class="token operator">+</span>
+            <span class="token string">'    {{counter}}'</span><span class="token operator">+</span>
+            <span class="token string">'    &lt;button data-click="inc()">+&lt;/button>'</span><span class="token operator">+</span>
+            <span class="token string">'    &lt;button data-click="dec()">-&lt;/button>'</span><span class="token operator">+</span>
+            <span class="token string">'&lt;/div>'</span>
+    }<span class="token punctuation">,</span>
+    counter<span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    inc<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
+        this<span class="token punctuation">.</span>counter<span class="token operator">+</span><span class="token operator">+</span><span class="token comment" spellcheck="true">;</span>
+    }<span class="token punctuation">,</span>
+    dec<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
+        this<span class="token punctuation">.</span>counter<span class="token operator">-</span><span class="token operator">-</span><span class="token comment" spellcheck="true">;</span>
+    }
+}<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+RF<span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+        </code>
+        <div>
+            <button onclick="
+            var f = document.getElementById('componentFromString');
+            f.src = 'pages/componentFromString.html';
+            f.style.display = '';
+        ">Выполнить</button>
+        </div>
+        <div>
+            <iframe frameborder="none" style="display: none;" id="componentFromString"></iframe>
+        </div>
+    </section>
+</li>
+<li>
     <h3>Компонент, который взаимодействует с моделью из внешнего источника данных</h3>
     <section>
         <div data-html>

@@ -13,8 +13,24 @@ const fs = require("./src/_internal/fs");
 const Prism = require('node-prismjs');
 const uglify = require('gulp-uglify');
 
+const through = require("through2");
+
+const customFn = function gulpIife(opts) {
+    return through.obj(function (file, encoding, callback) {
+        let contents = String(file.contents);
+        let result = contents;
+        // custom processing
+        file.contents = Buffer(result);
+
+        if (file.sourceMap) {
+            applySourceMap(file, result.sourceMap);
+        }
+        callback(null, file);
+    });
+};
 gulp.task('engine', ()=> {
-    let debug = true;
+    let argv = require('yargs').argv;
+    let debug = !argv.prod;
     return (
         gulp.src([
             'src/lib/polifils/polifils.js',
@@ -27,6 +43,7 @@ gulp.task('engine', ()=> {
             presets: [ ["es2015", {"loose": true}] ]
         }))
         .pipe(concat('reactiveForms.js'))
+        //.pipe(customFn())
         .pipe(iife())
         .pipe(uglify({
             output: { // http://lisperator.net/uglifyjs/codegen

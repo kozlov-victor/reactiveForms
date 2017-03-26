@@ -2,9 +2,8 @@
 
 class Core{
 
-
     static registerComponent(name,modelView){
-        let tmpl = document.getElementById(modelView.template.value);
+        let tmpl = TemplateLoader.getNode(modelView.template);
         let domTemplate = tmpl.innerHTML;
         tmpl.remove();
         let node = document.createElement('div');
@@ -46,7 +45,7 @@ class Core{
 
 }
 
-Core.version = '0.1.0';
+Core.version = '0.2.0';
 
 window.RF = Core;
 window.RF.Router = new Router();

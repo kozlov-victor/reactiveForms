@@ -1,6 +1,6 @@
 !function() {
     "use strict";
-    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DirectiveEngine, DomUtils, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, MiscUtils, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DirectiveEngine, DomUtils, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, MiscUtils, Router, TemplateLoader, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
@@ -848,27 +848,66 @@
             this._pages = {};
         }
         Router.prototype.setup = function(keyValues) {
-            var _this = this;
-            this.routeNode = document.querySelector("[data-route]");
-            if (!this.routeNode) throw "can not run Route: element with data-route attribute not found";
+            var _this = this, routePlaceholderNode = document.querySelector("[data-route]");
+            if (!routePlaceholderNode) throw "can not run Route: element with data-route attribute not found";
+            this.routeNode = routePlaceholderNode.parentNode.appendChild(document.createElement("div"));
             Object.keys(keyValues).forEach(function(key) {
                 _this._pages[key] = {
-                    componentProto: keyValues[key]
+                    componentProto: keyValues[key],
+                    component: null
                 };
             });
         };
         Router.prototype.navigateTo = function(pageName) {
             var componentNode, pageItem = this._pages[pageName];
             if (!pageItem) throw pageName + " not registered, set up router correctly";
-            this.routeNode.innerHTML = "";
             if (!pageItem.component) {
                 componentNode = pageItem.componentProto.node.cloneNode(true);
                 pageItem.component = pageItem.componentProto.runNewInstance(componentNode, {});
                 delete pageItem.componentProto;
             }
-            this.routeNode.appendChild(pageItem.component.node);
+            this.routeNode.parentNode.replaceChild(pageItem.component.node, this.routeNode);
+            this.routeNode = pageItem.component.node;
         };
         return Router;
+    }();
+    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+        return typeof obj;
+    } : function(obj) {
+        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+    }
+    TemplateLoader = function() {
+        function TemplateLoader() {
+            _classCallCheck(this, TemplateLoader);
+        }
+        TemplateLoader._getNodeFromDom = function(templateObj) {
+            if (!templateObj.value) throw "template.value must be specified";
+            if (!document.getElementById(templateObj.value)) throw "can not fing dom element with id " + templateObj.value;
+        };
+        TemplateLoader._getNodeFromString = function(templateObj) {
+            if (!templateObj.value) throw "template string not provided";
+            if ("string" != typeof templateObj.value) throw "template.value mast be a String, but " + _typeof(templateObj.value) + " found";
+            var container = document.createElement("div");
+            container.innerHTML = templateObj.value;
+            return container;
+        };
+        TemplateLoader.getNode = function(templateObj) {
+            if (!templateObj) throw "template object not defined. Provide template at your component";
+            switch (templateObj.type) {
+              case "dom":
+                return TemplateLoader._getNodeFromDom(templateObj);
+
+              case "string":
+                return TemplateLoader._getNodeFromString(templateObj);
+
+              default:
+                throw "can not load template with type " + templateObj.type + ', only "dom" and "string" types is supported';
+            }
+        };
+        return TemplateLoader;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -878,7 +917,7 @@
             _classCallCheck(this, Core);
         }
         Core.registerComponent = function(name, modelView) {
-            var node, componentProto, tmpl = document.getElementById(modelView.template.value), domTemplate = tmpl.innerHTML;
+            var node, componentProto, tmpl = TemplateLoader.getNode(modelView.template), domTemplate = tmpl.innerHTML;
             tmpl.remove();
             node = document.createElement("div");
             node.innerHTML = domTemplate;
@@ -913,7 +952,7 @@
         };
         return Core;
     }();
-    Core.version = "0.1.0";
+    Core.version = "0.2.0";
     window.RF = Core;
     window.RF.Router = new Router();
 }();
