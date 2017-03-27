@@ -440,35 +440,42 @@
                 });
             });
         };
-        DirectiveEngine.prototype.runDirective_If = function() {
+        DirectiveEngine.prototype.runDirective_Disabled = function() {
             var _this8 = this;
+            this._eachElementWithAttr("data-disabled", function(el, expression) {
+                _this8.component.addWatcher(expression, function(value) {
+                    if (value) el.setAttribute("disabled", "disabled"); else el.removeAttribute("disabled");
+                });
+            });
+        };
+        DirectiveEngine.prototype.runDirective_If = function() {
+            var _this9 = this;
             this._eachElementWithAttr("data-if", function(el, expression) {
                 var cloned, comment = document.createComment("");
                 el.parentNode.insertBefore(comment, el);
                 cloned = void 0;
-                _this8.component.addWatcher(expression, function(val) {
+                _this9.component.addWatcher(expression, function(val) {
                     if (val) {
-                        if (!el.parentElement) {
-                            cloned = el.cloneNode(true);
-                            comment.parentNode.insertBefore(cloned, comment.nextSibling);
-                        }
+                        if (!el.parentElement) //cloned = el.cloneNode(true);
+                        comment.parentNode.insertBefore(el, comment.nextSibling);
                     } else if (cloned) cloned.remove(); else el.remove();
                 });
             });
         };
         DirectiveEngine.prototype.run = function() {
-            var _this9 = this;
+            var _this10 = this;
             this.runDirective_Value();
             this.runDirective_For();
             this.runTextNodes();
             [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown" ].forEach(function(eventName) {
-                _this9.runDomEvent(eventName);
+                _this10.runDomEvent(eventName);
             });
             this.runDirective_Bind();
             this.runDirective_Model();
             this.runDirective_Value();
             this.runDirective_Class();
             this.runDirective_Style();
+            this.runDirective_Disabled();
             this.runDirective_If();
         };
         return DirectiveEngine;
@@ -739,7 +746,8 @@
         COLON: ":",
         AMPERSAND: "&",
         OR: "|",
-        EXCLAMATION: "!"
+        EXCLAMATION: "!",
+        SEMICOLON: ";"
     };
     Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(function(key) {
         return Token.SYMBOL[key];
@@ -749,7 +757,8 @@
         VARIABLE: "VARIABLE",
         STRING: "STRING",
         OBJECT_KEY: "OBJECT_KEY",
-        FUNCTION: "FUNCTION"
+        FUNCTION: "FUNCTION",
+        BOOLEAN: "BOOLEAN"
     };
     function isNumber(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
@@ -762,15 +771,18 @@
             _classCallCheck(this, Lexer);
         }
         Lexer.tokenize = function(expression) {
-            var tokens = [], t = void 0, lastChar = "";
+            var isEndWithSemicolon = expression[expression.length - 1] == Token.SYMBOL.SEMICOLON, tokens = [], t = void 0, lastChar = "";
             expression = expression.trim();
+            if (!isEndWithSemicolon) expression += Token.SYMBOL.SEMICOLON;
             expression.split("").forEach(function(char, i) {
                 var type, lastToken = tokens[tokens.length - 1];
+                if (lastToken && charInArr(lastToken.tokenValue, [ "true", "false" ])) lastToken.tokenType = Token.TYPE.BOOLEAN;
                 if (charInArr(char, Token.ALL_SYMBOLS)) {
                     t = new Token(char, null);
                     tokens.push(t);
                     lastChar = char;
-                    if (lastToken && char == Token.SYMBOL.L_PAR) lastToken.tokenType = Token.TYPE.FUNCTION;
+                    if (!lastToken) return;
+                    if (char == Token.SYMBOL.L_PAR) lastToken.tokenType = Token.TYPE.FUNCTION;
                 } else {
                     if (lastToken && lastToken.tokenType != Token.TYPE.STRING && " " == char) return;
                     if (lastToken && (lastToken.tokenType == Token.TYPE.DIGIT || lastToken.tokenType == Token.TYPE.VARIABLE || lastToken.tokenType == Token.TYPE.OBJECT_KEY || lastToken.tokenType == Token.TYPE.STRING)) lastToken.tokenValue += char; else {
@@ -785,6 +797,7 @@
             tokens.forEach(function(t) {
                 t.tokenValue && (t.tokenValue = t.tokenValue.trim());
             });
+            if (!isEndWithSemicolon) tokens.pop();
             //console.log(JSON.stringify(tokens));
             return tokens;
         };

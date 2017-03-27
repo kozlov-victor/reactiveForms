@@ -10,10 +10,18 @@
     
 
 <div id="app">
-    <input data-model="user.name">
-    Супермен <input type="checkbox" data-model="user.isSuperMan">
+    <input
+        data-disabled="isDisabled"
+        data-model="user.name">
+    Супермен
+    <input
+        data-disabled="isDisabled"
+        type="checkbox"
+        data-model="user.isSuperMan">
     <br/>
     {{user.name}}, Супермен ли Вы: {{user.isSuperMan?'Да':'Нет'}}
+    <hr/>
+    disable it <input type="checkbox" data-model="isDisabled">
 </div>
 
 
@@ -22,7 +30,8 @@
 RF.applyBindings('#app',{
     user: {
         name: 'defaultUserName',
-        isSuperMan: false
+        isSuperMan: false,
+        isDisabled: false
     }
 });
 RF.run();

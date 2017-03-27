@@ -2,7 +2,8 @@
 RF.applyBindings('#app',{
     user: {
         name: 'defaultUserName',
-        isSuperMan: false
+        isSuperMan: false,
+        isDisabled: false
     }
 });
 RF.run();

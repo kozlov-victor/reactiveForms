@@ -1,7 +1,11 @@
 
 RF.applyBindings('#app',{
     user: {
-        hasSecretKey: false
+        hasSecretKey: true,
+        numOfClicks:0
+    },
+    clickMe: function(){
+        this.user.numOfClicks++;
     }
 });
 RF.run();

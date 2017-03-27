@@ -14,16 +14,24 @@
     <!--еще одна копия такого же чекбокса-->
     <input type="checkbox" data-model="user.hasSecretKey">
     <br/>
-    <div data-if="user.hasSecretKey">
-        Элемент находится в документе
+    <div
+        data-click="clickMe()"
+        data-if="user.hasSecretKey">
+        Элемент находится в документе (click me)
     </div>
+    <hr/>
+    Кликнуто {{user.numOfClicks}} раз
 </div>
 
     <script>
         
 RF.applyBindings('#app',{
     user: {
-        hasSecretKey: false
+        hasSecretKey: true,
+        numOfClicks:0
+    },
+    clickMe: function(){
+        this.user.numOfClicks++;
     }
 });
 RF.run();

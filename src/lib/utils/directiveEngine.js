@@ -140,25 +140,31 @@ class DirectiveEngine {
         });
     };
 
+    runDirective_Disabled(){
+        this._eachElementWithAttr('data-disabled',(el,expression)=>{
+            this.component.addWatcher(
+                expression,
+                function(value){
+                    if (value) el.setAttribute('disabled','disabled');
+                    else el.removeAttribute('disabled');
+                }
+            );
+        });
+    };
+
     runDirective_If(){
         this._eachElementWithAttr('data-if',(el,expression)=>{
             let comment = document.createComment('');
             el.parentNode.insertBefore(comment,el);
-            let cloned;
             this.component.addWatcher(
                 expression,
                 function(val){
                     if (val) {
                         if (!el.parentElement) {
-                            cloned = el.cloneNode(true);
-                            comment.parentNode.insertBefore(cloned,comment.nextSibling);
+                            comment.parentNode.insertBefore(el,comment.nextSibling);
                         }
                     } else {
-                        if (cloned) {
-                            cloned.remove();
-                        } else {
-                            el.remove();
-                        }
+                        el.remove();
                     }
                 }
             );
@@ -181,6 +187,7 @@ class DirectiveEngine {
         this.runDirective_Value();
         this.runDirective_Class();
         this.runDirective_Style();
+        this.runDirective_Disabled();
         this.runDirective_If();
     }
 

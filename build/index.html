@@ -267,9 +267,13 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
     <span class="token operator">&lt;</span>!<span class="token operator">-</span><span class="token operator">-</span>еще одна копия такого же чекбокса<span class="token operator">-</span><span class="token operator">-</span><span class="token operator">></span>
     <span class="token operator">&lt;</span>input type<span class="token operator">=</span><span class="token string">"checkbox"</span> data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"user.hasSecretKey"</span><span class="token operator">></span>
     <span class="token operator">&lt;</span>br<span class="token operator">/</span><span class="token operator">></span>
-    <span class="token operator">&lt;</span>div data<span class="token operator">-</span><span class="token keyword">if</span><span class="token operator">=</span><span class="token string">"user.hasSecretKey"</span><span class="token operator">></span>
-        Элемент находится в документе
+    <span class="token operator">&lt;</span>div
+        data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"clickMe()"</span>
+        data<span class="token operator">-</span><span class="token keyword">if</span><span class="token operator">=</span><span class="token string">"user.hasSecretKey"</span><span class="token operator">></span>
+        Элемент находится в документе <span class="token punctuation">(</span>click me<span class="token punctuation">)</span>
     <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+    <span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+    Кликнуто {{user<span class="token punctuation">.</span>numOfClicks}} раз
 <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
         </div>
 
@@ -277,7 +281,11 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
             
 RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#app'</span><span class="token punctuation">,</span>{
     user<span class="token punctuation">:</span> {
-        hasSecretKey<span class="token punctuation">:</span> <span class="token boolean">false</span>
+        hasSecretKey<span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        numOfClicks<span class="token punctuation">:</span><span class="token number">0</span>
+    }<span class="token punctuation">,</span>
+    clickMe<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
+        this<span class="token punctuation">.</span>user<span class="token punctuation">.</span>numOfClicks<span class="token operator">+</span><span class="token operator">+</span><span class="token comment" spellcheck="true">;</span>
     }
 }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
 RF<span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
@@ -301,10 +309,18 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
             
 
 <span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"app"</span><span class="token operator">></span>
-    <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"user.name"</span><span class="token operator">></span>
-    Супермен <span class="token operator">&lt;</span>input type<span class="token operator">=</span><span class="token string">"checkbox"</span> data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"user.isSuperMan"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>input
+        data<span class="token operator">-</span>disabled<span class="token operator">=</span><span class="token string">"isDisabled"</span>
+        data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"user.name"</span><span class="token operator">></span>
+    Супермен
+    <span class="token operator">&lt;</span>input
+        data<span class="token operator">-</span>disabled<span class="token operator">=</span><span class="token string">"isDisabled"</span>
+        type<span class="token operator">=</span><span class="token string">"checkbox"</span>
+        data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"user.isSuperMan"</span><span class="token operator">></span>
     <span class="token operator">&lt;</span>br<span class="token operator">/</span><span class="token operator">></span>
     {{user<span class="token punctuation">.</span>name}}<span class="token punctuation">,</span> Супермен ли Вы<span class="token punctuation">:</span> {{user<span class="token punctuation">.</span>isSuperMan<span class="token operator">?</span><span class="token string">'Да'</span><span class="token punctuation">:</span><span class="token string">'Нет'</span>}}
+    <span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+    disable it <span class="token operator">&lt;</span>input type<span class="token operator">=</span><span class="token string">"checkbox"</span> data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"isDisabled"</span><span class="token operator">></span>
 <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
 
         </div>
@@ -314,7 +330,8 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
 RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#app'</span><span class="token punctuation">,</span>{
     user<span class="token punctuation">:</span> {
         name<span class="token punctuation">:</span> <span class="token string">'defaultUserName'</span><span class="token punctuation">,</span>
-        isSuperMan<span class="token punctuation">:</span> <span class="token boolean">false</span>
+        isSuperMan<span class="token punctuation">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+        isDisabled<span class="token punctuation">:</span> <span class="token boolean">false</span>
     }
 }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
 RF<span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
