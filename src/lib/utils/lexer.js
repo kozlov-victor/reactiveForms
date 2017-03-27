@@ -28,17 +28,19 @@ Token.SYMBOL = {
     COLON:':',
     AMPERSAND:'&',
     OR:'|',
-    EXCLAMATION:'!'
+    EXCLAMATION:'!',
+    SEMICOLON:';'
 };
 
 Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});
 
 Token.TYPE = {
-    DIGIT:'DIGIT',
-    VARIABLE:'VARIABLE',
-    STRING:'STRING',
-    OBJECT_KEY:'OBJECT_KEY',
-    FUNCTION:'FUNCTION'
+    DIGIT:      'DIGIT',
+    VARIABLE:   'VARIABLE',
+    STRING:     'STRING',
+    OBJECT_KEY: 'OBJECT_KEY',
+    FUNCTION:   'FUNCTION',
+    BOOLEAN:    'BOOLEAN'
 };
 
 function isNumber(n) {
@@ -52,17 +54,23 @@ function charInArr(char,arr) {
 class Lexer {
 
     static tokenize(expression) {
+        let isEndWithSemicolon = expression[expression.length-1]==Token.SYMBOL.SEMICOLON;
         let tokens = [], t, lastChar = '';
         expression = expression.trim();
+        if (!isEndWithSemicolon) expression = expression+Token.SYMBOL.SEMICOLON;
         expression.split('').forEach(function(char,i) {
 
             let lastToken = tokens[tokens.length - 1];
+            if (lastToken && charInArr(lastToken.tokenValue,['true','false']))
+                lastToken.tokenType = Token.TYPE.BOOLEAN;
 
             if (charInArr(char, Token.ALL_SYMBOLS)) {
                 t = new Token(char, null);
                 tokens.push(t);
                 lastChar = char;
-                if (lastToken && char==Token.SYMBOL.L_PAR) lastToken.tokenType = Token.TYPE.FUNCTION;
+                if (!lastToken) return;
+                if (char==Token.SYMBOL.L_PAR) lastToken.tokenType = Token.TYPE.FUNCTION;
+
             } else {
                 if (lastToken && lastToken.tokenType != Token.TYPE.STRING && char == ' ') return;
                 if (
@@ -94,6 +102,7 @@ class Lexer {
         tokens.forEach(t=>{
             t.tokenValue && (t.tokenValue=t.tokenValue.trim());
         });
+        if (!isEndWithSemicolon) tokens.pop();
         //console.log(JSON.stringify(tokens));
         return tokens;
     }

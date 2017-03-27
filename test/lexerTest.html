@@ -50,12 +50,20 @@
                 "scope.invokeFn(scope.user.name)"
         );
         assertEqual(
-            Lexer.convertExpression("!error.type","scope.{expr}"),
-            "!scope.error.type"
+            Lexer.convertExpression("!error.type;","scope.{expr}"),
+            "!scope.error.type;"
         );
-//        assertEqual( // todo implement!
-//            Lexer.convertExpression("error.type==true","scope.{expr}"),
-//            "scope.error.type==true"
+        assertEqual(
+            Lexer.convertExpression("error.isFatal==true","scope.{expr}"),
+            "scope.error.isFatal==true"
+        );
+        assertEqual(
+            Lexer.convertExpression("error.isFatal==false;","scope.{expr}"),
+            "scope.error.isFatal==false;"
+        );
+//        assertEqual( // todo implement
+//            Lexer.convertExpression("object.field[0].value","scope.{expr}"),
+//            "scope.object.field[0].value"
 //        );
         assertEqual(
                 Lexer.convertExpression(
