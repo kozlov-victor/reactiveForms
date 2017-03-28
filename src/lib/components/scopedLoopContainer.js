@@ -13,7 +13,7 @@ class ScopedLoopContainer extends Component {
     _destroyFragment(index){
         let currFragment = this.scopedDomFragments[index];
         currFragment.node.remove();
-        let removedFragment = this.scopedDomFragments.splice(index,1);
+        let removedFragment = this.scopedDomFragments.splice(index,1)[0];
         removedFragment.destroy();
         this.lastFrafmentsLength--;
     }

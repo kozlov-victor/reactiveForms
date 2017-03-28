@@ -278,7 +278,7 @@
         ScopedLoopContainer.prototype._destroyFragment = function(index) {
             var removedFragment;
             this.scopedDomFragments[index].node.remove();
-            removedFragment = this.scopedDomFragments.splice(index, 1);
+            removedFragment = this.scopedDomFragments.splice(index, 1)[0];
             removedFragment.destroy();
             this.lastFrafmentsLength--;
         };
@@ -451,14 +451,12 @@
         DirectiveEngine.prototype.runDirective_If = function() {
             var _this9 = this;
             this._eachElementWithAttr("data-if", function(el, expression) {
-                var cloned, comment = document.createComment("");
+                var comment = document.createComment("");
                 el.parentNode.insertBefore(comment, el);
-                cloned = void 0;
                 _this9.component.addWatcher(expression, function(val) {
                     if (val) {
-                        if (!el.parentElement) //cloned = el.cloneNode(true);
-                        comment.parentNode.insertBefore(el, comment.nextSibling);
-                    } else if (cloned) cloned.remove(); else el.remove();
+                        if (!el.parentElement) comment.parentNode.insertBefore(el, comment.nextSibling);
+                    } else el.remove();
                 });
             });
         };
