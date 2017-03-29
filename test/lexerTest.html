@@ -65,6 +65,10 @@
 //            Lexer.convertExpression("object.field[0].value","scope.{expr}"),
 //            "scope.object.field[0].value"
 //        );
+//        assertEqual( // todo implement
+//            Lexer.convertExpression('app.removeInternal(i,j)','scope.{expr}'),
+//            "scope.app.removeInternal(scope.i,scope.j)"
+//        );
         assertEqual(
                 Lexer.convertExpression(
                         `

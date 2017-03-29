@@ -18,8 +18,10 @@ class ScopedLoopContainer extends Component {
         this.lastFrafmentsLength--;
     }
 
-    run(eachItemName,iterableObjectName){
+    run(eachItemName,indexName,iterableObjectName){
+
         this.eachItemName = eachItemName;
+        this.indexName = indexName;
 
         this.anchor = document.createComment(`loop: ${eachItemName} in ${iterableObjectName}`);
         this.node.parentNode.insertBefore(this.anchor,this.node.nextSibling);
@@ -42,7 +44,7 @@ class ScopedLoopContainer extends Component {
 
                 let localModelView = {};
                 localModelView[this.eachItemName] = iterableItem;
-                localModelView['index'] = i;
+                if (this.indexName) localModelView[this.indexName] = i;
 
                 let node = this.node.cloneNode(true);
                 currNodeInIteration.parentNode.insertBefore(node,currNodeInIteration.nextSibling);
@@ -56,10 +58,9 @@ class ScopedLoopContainer extends Component {
             } else {
                 let localModelView = this.scopedDomFragments[i].modelView;
                 localModelView[this.eachItemName] = iterableItem;
-                localModelView['index'] = i;
+                if (this.indexName) localModelView[this.indexName] = i;
 
                 currNodeInIteration = this.scopedDomFragments[i].node;
-                this.scopedDomFragments[i].updateModelView(localModelView);
                 this.scopedDomFragments[i].digest();
             }
 

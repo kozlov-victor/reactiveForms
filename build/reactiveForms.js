@@ -146,12 +146,14 @@
             if (!this.children) this.children = [];
             this.children.push(childComponent);
         };
-        Component.prototype.updateModelView = function(modelView) {
-            this.modelView = modelView;
-            if (this.children) this.children.forEach(function(c) {
-                c.modelView = modelView;
-            });
-        };
+        // updateModelView(modelView){ // todo need??
+        //     this.modelView = modelView;
+        //     if (this.children) {
+        //         this.children.forEach(c=>{
+        //             c.modelView = modelView;
+        //         });
+        //     }
+        // }
         Component.prototype.addWatcher = function(expression, listenerFn) {
             var watcherFn = ExpressionEngine.getExpressionFn(expression);
             this.watchers.push({
@@ -282,9 +284,10 @@
             removedFragment.destroy();
             this.lastFrafmentsLength--;
         };
-        ScopedLoopContainer.prototype.run = function(eachItemName, iterableObjectName) {
+        ScopedLoopContainer.prototype.run = function(eachItemName, indexName, iterableObjectName) {
             var _this2 = this;
             this.eachItemName = eachItemName;
+            this.indexName = indexName;
             this.anchor = document.createComment("loop: " + eachItemName + " in " + iterableObjectName);
             this.node.parentNode.insertBefore(this.anchor, this.node.nextSibling);
             this.node.remove();
@@ -301,7 +304,7 @@
                 if (!_this3.scopedDomFragments[i]) {
                     localModelView = {};
                     localModelView[_this3.eachItemName] = iterableItem;
-                    localModelView.index = i;
+                    if (_this3.indexName) localModelView[_this3.indexName] = i;
                     node = _this3.node.cloneNode(true);
                     currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
                     scopedDomFragment = new ScopedDomFragment(node, localModelView);
@@ -314,9 +317,8 @@
                 } else {
                     _localModelView = _this3.scopedDomFragments[i].modelView;
                     _localModelView[_this3.eachItemName] = iterableItem;
-                    _localModelView.index = i;
+                    if (_this3.indexName) _localModelView[_this3.indexName] = i;
                     currNodeInIteration = _this3.scopedDomFragments[i].node;
-                    _this3.scopedDomFragments[i].updateModelView(_localModelView);
                     _this3.scopedDomFragments[i].digest();
                 }
             });
@@ -354,13 +356,20 @@
         DirectiveEngine.prototype.runDirective_For = function() {
             var _this = this;
             this._eachElementWithAttr("data-for", function(el, expression) {
-                var eachItemName, iterableObjectName, scopedLoopContainer, tokens = expression.split(" ");
+                var variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, tokens = expression.split(" ");
                 if ([ "in", "of" ].indexOf(tokens[1]) == -1) throw "can not parse expression " + expression;
-                eachItemName = tokens[0];
+                variables = Lexer.tokenize(tokens[0]).filter(function(t) {
+                    return [ Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY ].indexOf(t.tokenType) > -1;
+                }).map(function(t) {
+                    return t.tokenValue;
+                });
+                if (!variables.length) throw "can not parse expression " + expression;
+                eachItemName = variables[0];
+                indexName = variables[1];
                 iterableObjectName = tokens[2];
                 scopedLoopContainer = new ScopedLoopContainer(el, _this.component.modelView);
                 scopedLoopContainer.parent = _this.component;
-                scopedLoopContainer.run(eachItemName, iterableObjectName);
+                scopedLoopContainer.run(eachItemName, indexName, iterableObjectName);
             });
         };
         DirectiveEngine.prototype.runTextNodes = function() {
@@ -747,6 +756,7 @@
         EXCLAMATION: "!",
         SEMICOLON: ";"
     };
+    Token.KEY_WORDS = [ "in", "of" ];
     Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(function(key) {
         return Token.SYMBOL[key];
     });
@@ -756,13 +766,14 @@
         STRING: "STRING",
         OBJECT_KEY: "OBJECT_KEY",
         FUNCTION: "FUNCTION",
-        BOOLEAN: "BOOLEAN"
+        BOOLEAN: "BOOLEAN",
+        KEY_WORD: "KEY_WORD"
     };
     function isNumber(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
     }
     function charInArr(char, arr) {
-        return arr.indexOf(char) > -1;
+        return char && arr.indexOf(char) > -1;
     }
     Lexer = function() {
         function Lexer() {
@@ -794,13 +805,14 @@
             });
             tokens.forEach(function(t) {
                 t.tokenValue && (t.tokenValue = t.tokenValue.trim());
+                if (charInArr(t.tokenValue, Token.KEY_WORDS)) t.tokenType = Token.KEY_WORDS;
             });
             if (!isEndWithSemicolon) tokens.pop();
             //console.log(JSON.stringify(tokens));
             return tokens;
         };
-        Lexer.convertExpression = function(expression, variableReplacerStr) {
-            var out = "";
+        Lexer.convertExpression = function(expression) {
+            var variableReplacerStr = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "{expr}", out = "";
             expression = expression.split("\n").join("");
             Lexer.tokenize(expression).forEach(function(token) {
                 if ([ Token.TYPE.VARIABLE, Token.TYPE.FUNCTION ].indexOf(token.tokenType) > -1) out += variableReplacerStr.replace("{expr}", token.tokenValue); else out += token.tokenValue || token.tokenType;

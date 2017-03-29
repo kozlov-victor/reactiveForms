@@ -11,15 +11,22 @@
 
 <div id="app">
     <ul>
-        <li data-for="b in app.bundles">
-            {{b.name}}
+        <li data-for="b,i in app.bundles">
+            {{i+1}}. {{b.name}} <button data-click="app.removeExternal(i)">remove({{i}})</button>
             <ul>
-                <li data-for="d in b.data">
-                    {{d.slot}}
+                <li data-for="d,j in b.data">
+                     {{j+1}}. {{d.slot}}
+                    <button data-click="app.removeInternal(0,j)">remove({{i}},{{j}})</button>
                 </li>
             </ul>
         </li>
     </ul>
+
+    <button data-click="app.add()">+</button>
+
+    <hr/>
+
+
     <button data-click="app.changeExternal()">Изменить внешнее значение</button>
     <button data-click="app.changeInternal()">Изменить вложенное значение</button>
     <button data-click="app.changeAll()">Изменить все (изменить по ссылке)</button>
@@ -60,26 +67,44 @@ var rnd = function(){
 };
 
 app.changeExternal = function(){
-    for (var i=0;i<3;i++) {
+    for (var i=0;i<this.app.bundles.length;i++) {
         this.app.bundles[i].name = 'bundle_'+rnd();
     }
 };
 
 app.changeInternal = function(){
-    for (var i=0;i<3;i++) {
-        for (var j=0;j<2;j++) {
+    for (var i=0;i<this.app.bundles.length;i++) {
+        for (var j=0;j<this.app.bundles[i].data.length;j++) {
             this.app.bundles[i].data[j] = {slot:'slot_'+rnd()};
         }
     }
 };
 
 app.changeAll = function(){
-    for (var i=0;i<3;i++) {
+    for (var i=0;i<this.app.bundles.length;i++) {
         this.app.bundles[i].name = 'bundle_'+rnd();
-        for (var j=0;j<2;j++) {
+        for (var j=0;j<this.app.bundles[i].data.length;j++) {
             this.app.bundles[i].data[j] = {slot:'slot_'+rnd()};
         }
     }
+};
+
+app.add = function(){
+    this.app.bundles.push({
+        name:'Хранилище_'+rnd(),
+        data: [
+            {'slot':'sl_'+rnd()},
+            {'slot':'sl_'+rnd()}
+        ]
+    });
+};
+
+app.removeExternal = function(i){
+    this.app.bundles.splice(i,1);
+};
+
+app.removeInternal = function(i,j){
+    this.app.bundles[i].data.splice(j);
 };
 
 app.changeGlobal = function(){

@@ -32,6 +32,8 @@ Token.SYMBOL = {
     SEMICOLON:';'
 };
 
+Token.KEY_WORDS = ['in','of'];
+
 Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});
 
 Token.TYPE = {
@@ -40,7 +42,8 @@ Token.TYPE = {
     STRING:     'STRING',
     OBJECT_KEY: 'OBJECT_KEY',
     FUNCTION:   'FUNCTION',
-    BOOLEAN:    'BOOLEAN'
+    BOOLEAN:    'BOOLEAN',
+    KEY_WORD:   'KEY_WORD'
 };
 
 function isNumber(n) {
@@ -48,7 +51,7 @@ function isNumber(n) {
 }
 
 function charInArr(char,arr) {
-    return arr.indexOf(char)>-1;
+    return char && arr.indexOf(char)>-1;
 }
 
 class Lexer {
@@ -101,17 +104,21 @@ class Lexer {
 
         tokens.forEach(t=>{
             t.tokenValue && (t.tokenValue=t.tokenValue.trim());
+            if (charInArr(t.tokenValue,Token.KEY_WORDS)) t.tokenType = Token.KEY_WORDS;
         });
         if (!isEndWithSemicolon) tokens.pop();
         //console.log(JSON.stringify(tokens));
         return tokens;
     }
 
-    static convertExpression(expression,variableReplacerStr){
+    static convertExpression(expression,variableReplacerStr = '{expr}'){
         let out = '';
         expression = expression.split('\n').join('');
         Lexer.tokenize(expression).forEach(function(token){
-            if ([Token.TYPE.VARIABLE,Token.TYPE.FUNCTION].indexOf(token.tokenType)>-1) {
+            if ([
+                    Token.TYPE.VARIABLE,
+                    Token.TYPE.FUNCTION
+                ].indexOf(token.tokenType)>-1) {
                out+=variableReplacerStr.replace('{expr}',token.tokenValue);
             }
             else out+=(token.tokenValue||token.tokenType);

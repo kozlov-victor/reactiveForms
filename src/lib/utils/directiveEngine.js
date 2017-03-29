@@ -24,11 +24,18 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-for',(el,expression)=>{
             let tokens = expression.split(' ');
             if (['in','of'].indexOf(tokens[1])==-1) throw 'can not parse expression ' + expression;
-            let eachItemName = tokens[0];
+            let variables =
+                Lexer.tokenize(tokens[0]).
+                filter(t=>{return [Token.TYPE.VARIABLE,Token.TYPE.OBJECT_KEY].indexOf(t.tokenType)>-1}).
+                map(t=>{return t.tokenValue});
+
+            if (!variables.length) throw  'can not parse expression ' + expression;
+            let eachItemName = variables[0];
+            let indexName = variables[1];
             let iterableObjectName = tokens[2];
             let scopedLoopContainer = new ScopedLoopContainer(el,this.component.modelView);
             scopedLoopContainer.parent = this.component;
-            scopedLoopContainer.run(eachItemName,iterableObjectName);
+            scopedLoopContainer.run(eachItemName,indexName,iterableObjectName);
         });
     }
 

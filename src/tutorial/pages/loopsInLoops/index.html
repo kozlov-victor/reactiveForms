@@ -2,15 +2,22 @@
 
 <div id="app">
     <ul>
-        <li data-for="b in app.bundles">
-            {{b.name}}
+        <li data-for="b,i in app.bundles">
+            {{i+1}}. {{b.name}} <button data-click="app.removeExternal(i)">remove({{i}})</button>
             <ul>
-                <li data-for="d in b.data">
-                    {{d.slot}}
+                <li data-for="d,j in b.data">
+                     {{j+1}}. {{d.slot}}
+                    <button data-click="app.removeInternal(i,j)">remove({{i}},{{j}})</button>
                 </li>
             </ul>
         </li>
     </ul>
+
+    <button data-click="app.add()">+</button>
+
+    <hr/>
+
+
     <button data-click="app.changeExternal()">Изменить внешнее значение</button>
     <button data-click="app.changeInternal()">Изменить вложенное значение</button>
     <button data-click="app.changeAll()">Изменить все (изменить по ссылке)</button>
