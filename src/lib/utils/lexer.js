@@ -34,9 +34,10 @@ Token.SYMBOL = {
 
 Token.KEY_WORDS = ['in','of'];
 
-Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});
+Token.ALL_SPECIAL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});
 
 Token.TYPE = {
+    SPECIAL_SYMBOL: 'SPECIAL_SYMBOL',
     DIGIT:      'DIGIT',
     VARIABLE:   'VARIABLE',
     STRING:     'STRING',
@@ -67,8 +68,8 @@ class Lexer {
             if (lastToken && charInArr(lastToken.tokenValue,['true','false']))
                 lastToken.tokenType = Token.TYPE.BOOLEAN;
 
-            if (charInArr(char, Token.ALL_SYMBOLS)) {
-                t = new Token(char, null);
+            if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS)) {
+                t = new Token(Token.TYPE.SPECIAL_SYMBOL, char);
                 tokens.push(t);
                 lastChar = char;
                 if (!lastToken) return;
@@ -81,7 +82,6 @@ class Lexer {
                     (
                         lastToken.tokenType == Token.TYPE.DIGIT ||
                         lastToken.tokenType == Token.TYPE.VARIABLE ||
-                        lastToken.tokenType == Token.TYPE.OBJECT_KEY ||
                         lastToken.tokenType == Token.TYPE.STRING
                     )
                 ) {
@@ -90,10 +90,10 @@ class Lexer {
                     let type;
                     if(isNumber(char)) type = Token.TYPE.DIGIT;
                     else if (charInArr(char,['"',"'"])) type = Token.TYPE.STRING;
-                    else if (
-                        lastChar==Token.SYMBOL.L_CURLY ||
-                        lastChar==Token.SYMBOL.COMMA
-                    ) type = Token.TYPE.OBJECT_KEY;
+                    // else if (
+                    //     lastChar==Token.SYMBOL.L_CURLY ||
+                    //     lastChar==Token.SYMBOL.COMMA
+                    // ) type = Token.TYPE.OBJECT_KEY;
                     else type = Token.TYPE.VARIABLE;
                     t = new Token(type,char);
                     tokens.push(t);
@@ -102,12 +102,22 @@ class Lexer {
             }
         });
 
-        tokens.forEach(t=>{
+        tokens.forEach((t,i)=>{
             t.tokenValue && (t.tokenValue=t.tokenValue.trim());
             if (charInArr(t.tokenValue,Token.KEY_WORDS)) t.tokenType = Token.KEY_WORDS;
+
+            if (t && t.tokenType==Token.TYPE.VARIABLE) {
+                let next = tokens[i+1];
+                // if (next && (next.tokenValue==Token.SYMBOL.COMMA || next.tokenValue==Token.SYMBOL.R_CURLY))
+                //     t.tokenType = Token.TYPE.OBJECT_KEY;
+                let prev = tokens[i-1];
+                if (prev && (charInArr(prev.tokenValue,[Token.SYMBOL.L_CURLY,Token.TYPE.COMMA])))
+                    t.tokenType = Token.TYPE.OBJECT_KEY;
+            }
+
         });
         if (!isEndWithSemicolon) tokens.pop();
-        //console.log(JSON.stringify(tokens));
+        console.log(JSON.stringify(tokens));
         return tokens;
     }
 

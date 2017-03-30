@@ -757,7 +757,7 @@
         SEMICOLON: ";"
     };
     Token.KEY_WORDS = [ "in", "of" ];
-    Token.ALL_SYMBOLS = Object.keys(Token.SYMBOL).map(function(key) {
+    Token.ALL_SPECIAL_SYMBOLS = Object.keys(Token.SYMBOL).map(function(key) {
         return Token.SYMBOL[key];
     });
     Token.TYPE = {
@@ -786,7 +786,7 @@
             expression.split("").forEach(function(char, i) {
                 var type, lastToken = tokens[tokens.length - 1];
                 if (lastToken && charInArr(lastToken.tokenValue, [ "true", "false" ])) lastToken.tokenType = Token.TYPE.BOOLEAN;
-                if (charInArr(char, Token.ALL_SYMBOLS)) {
+                if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS)) {
                     t = new Token(char, null);
                     tokens.push(t);
                     lastChar = char;
