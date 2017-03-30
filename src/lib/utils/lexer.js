@@ -108,16 +108,13 @@ class Lexer {
 
             if (t && t.tokenType==Token.TYPE.VARIABLE) {
                 let next = tokens[i+1];
-                // if (next && (next.tokenValue==Token.SYMBOL.COMMA || next.tokenValue==Token.SYMBOL.R_CURLY))
-                //     t.tokenType = Token.TYPE.OBJECT_KEY;
-                let prev = tokens[i-1];
-                if (prev && (charInArr(prev.tokenValue,[Token.SYMBOL.L_CURLY,Token.TYPE.COMMA])))
+                if (next && (next.tokenValue == Token.SYMBOL.COLON))
                     t.tokenType = Token.TYPE.OBJECT_KEY;
             }
 
         });
         if (!isEndWithSemicolon) tokens.pop();
-        console.log(JSON.stringify(tokens));
+        //console.log(JSON.stringify(tokens));
         return tokens;
     }
 

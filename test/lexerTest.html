@@ -21,66 +21,66 @@
 </head>
 <body>
     <script>
-//        assertEqual(
-//            Lexer.convertExpression('user.name','scope.{expr}'),
-//            'scope.user.name'
-//        );
-//        assertEqual(
-//            Lexer.convertExpression('user.name',"getVal('{expr}')"),
-//            "getVal('user.name')"
-//        );
-//        assertEqual(
-//            Lexer.convertExpression("user.isSuperMan?'Да':'Нет'","getVal('{expr}')"),
-//            "getVal('user.isSuperMan')?'Да':'Нет'"
-//        );
-//        assertEqual(
-//            Lexer.convertExpression("['red','green','blue']","noMatter"),
-//            "['red','green','blue']"
-//        );
+        assertEqual(
+            Lexer.convertExpression('user.name','scope.{expr}'),
+            'scope.user.name'
+        );
+        assertEqual(
+            Lexer.convertExpression('user.name',"getVal('{expr}')"),
+            "getVal('user.name')"
+        );
+        assertEqual(
+            Lexer.convertExpression("user.isSuperMan?'Да':'Нет'","getVal('{expr}')"),
+            "getVal('user.isSuperMan')?'Да':'Нет'"
+        );
+        assertEqual(
+            Lexer.convertExpression("['red','green','blue']","noMatter"),
+            "['red','green','blue']"
+        );
         assertEqual(
             Lexer.convertExpression("{red:appClass=='red',green:appClass=='green'}","getVal('{expr}')"),
             "{red:getVal('appClass')=='red',green:getVal('appClass')=='green'}"
         );
-//        assertEqual(
-//                Lexer.convertExpression("invokeFn()","getVal('{expr}')"),
-//                "getVal('invokeFn')()"
-//        );
-//        assertEqual(
-//                Lexer.convertExpression("invokeFn(user.name)","scope.{expr}"),
-//                "scope.invokeFn(scope.user.name)"
-//        );
-//        assertEqual(
-//            Lexer.convertExpression("!error.type;","scope.{expr}"),
-//            "!scope.error.type;"
-//        );
-//        assertEqual(
-//            Lexer.convertExpression("error.isFatal==true","scope.{expr}"),
-//            "scope.error.isFatal==true"
-//        );
-//        assertEqual(
-//            Lexer.convertExpression("error.isFatal==false;","scope.{expr}"),
-//            "scope.error.isFatal==false;"
-//        );
+        assertEqual(
+                Lexer.convertExpression("invokeFn()","getVal('{expr}')"),
+                "getVal('invokeFn')()"
+        );
+        assertEqual(
+                Lexer.convertExpression("invokeFn(user.name)","scope.{expr}"),
+                "scope.invokeFn(scope.user.name)"
+        );
+        assertEqual(
+            Lexer.convertExpression("!error.type;","scope.{expr}"),
+            "!scope.error.type;"
+        );
+        assertEqual(
+            Lexer.convertExpression("error.isFatal==true","scope.{expr}"),
+            "scope.error.isFatal==true"
+        );
+        assertEqual(
+            Lexer.convertExpression("error.isFatal==false;","scope.{expr}"),
+            "scope.error.isFatal==false;"
+        );
 //        assertEqual( // todo implement
 //            Lexer.convertExpression("object.field[0].value","scope.{expr}"),
 //            "scope.object.field[0].value"
 //        );
-//        assertEqual( // todo implement
-//            Lexer.convertExpression('app.removeInternal(i,j)','scope.{expr}'),
-//            "scope.app.removeInternal(scope.i,scope.j)"
-//        );
-//        assertEqual(
-//                Lexer.convertExpression(
-//                        `
-//                            {
-//                                fontWeight: bold?'bold':'',
-//                                fontStyle: italic? 'italic':''
-//                            }
-//                        `
-//                        ,"scope.{expr}"
-//                    ),
-//                    "{fontWeight:scope.bold?'bold':'',fontStyle:scope.italic?'italic':''}"
-//        );
+        assertEqual( // todo implement
+            Lexer.convertExpression('app.removeInternal(i,j)','scope.{expr}'),
+            "scope.app.removeInternal(scope.i,scope.j)"
+        );
+        assertEqual(
+                Lexer.convertExpression(
+                        `
+                            {
+                                fontWeight: bold?'bold':'',
+                                fontStyle: italic? 'italic':''
+                            }
+                        `
+                        ,"scope.{expr}"
+                    ),
+                    "{fontWeight:scope.bold?'bold':'',fontStyle:scope.italic?'italic':''}"
+        );
     </script>
 </body>
 </html>
