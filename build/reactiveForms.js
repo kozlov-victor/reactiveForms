@@ -121,7 +121,6 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
-        self;
     }();
     _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
@@ -325,6 +324,7 @@
             if (this.lastFrafmentsLength > newArr.length) {
                 l = this.scopedDomFragments.length;
                 for (i = 0, max = this.lastFrafmentsLength - newArr.length; i < max; i++) this._destroyFragment(l - i - 1);
+                this.lastFrafmentsLength = this.scopedDomFragments.length;
             }
         };
         return ScopedLoopContainer;
@@ -551,9 +551,6 @@
                 break;
 
               case "select":
-                el.value = value;
-                break;
-
               case "textarea":
                 el.value = value;
             }
@@ -582,8 +579,6 @@
                 break;
 
               case "select":
-                return el.value;
-
               case "textarea":
                 return el.value;
             }
@@ -595,8 +590,6 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
-                    return "click";
-
                   case "radio":
                     return "click";
 

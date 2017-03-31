@@ -3,17 +3,18 @@
 <div id="app">
     <ul>
         <li data-for="b,i in app.bundles">
-            {{i+1}}. {{b.name}} <button data-click="app.removeExternal(i)">remove({{i}})</button>
+            {{i+1}}. {{b.name}} <button class="inline-block" data-click="app.removeExternal(i)">-</button>
             <ul>
                 <li data-for="d,j in b.data">
                      {{j+1}}. {{d.slot}}
-                    <button data-click="app.removeInternal(i,j)">remove({{i}},{{j}})</button>
+                    <button class="inline-block" data-click="app.removeInternal(i,j)">-</button>
                 </li>
             </ul>
+            <button class="inline-block" data-click="app.addInternal(i)">+</button>
         </li>
     </ul>
 
-    <button data-click="app.add()">+</button>
+    <button class="inline-block" data-click="app.add()">+</button>
 
     <hr/>
 

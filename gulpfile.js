@@ -74,9 +74,10 @@ gulp.task('tutor', ()=> {
     pageNames.forEach((page,index)=>{
         let html = fs.readFileSync(`src/tutorial/pages/${page}/index.html`);
         let js = fs.readFileSync(`src/tutorial/pages/${page}/index.js`);
+        let css = fs.readFileSync(`src/tutorial/tmpl/common.css`);
 
         let runCodeTmpl = fs.readFileSync(`src/tutorial/tmpl/runCode.html`);
-        runCodeTmpl = parametrize(runCodeTmpl,{html,js});
+        runCodeTmpl = parametrize(runCodeTmpl,{html,js,css});
         fs.createFolderSync('build/pages');
         fs.writeFileSync(`build/pages/${page}.html`,runCodeTmpl);
 

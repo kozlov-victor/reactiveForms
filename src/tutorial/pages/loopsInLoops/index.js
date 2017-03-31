@@ -69,6 +69,10 @@ app.removeInternal = function(i,j){
     this.app.bundles[i].data.splice(j);
 };
 
+app.addInternal = function(i){
+    this.app.bundles[i].data.push({slot:'new_'+rnd()})
+};
+
 app.changeGlobal = function(){
 
     this.app.bundles = [

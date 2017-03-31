@@ -3,6 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>RunCode</title>
+    <style>
+        
+button, input[type=text] {
+    display: block;
+    margin: 0 auto 3px;
+    width: 80%;
+    background-color: #00dcff;
+    border: none;
+    padding: 3px;
+}
+
+button.inline-block {
+    display: inline-block;
+    width: auto;
+}
+
+button {
+    color: white;
+}
+
+button:active,input:active {
+    outline: 1px solid blue;
+}
+    </style>
     <script src="../reactiveForms.js"></script>
 </head>
 <body>
@@ -12,17 +36,18 @@
 <div id="app">
     <ul>
         <li data-for="b,i in app.bundles">
-            {{i+1}}. {{b.name}} <button data-click="app.removeExternal(i)">remove({{i}})</button>
+            {{i+1}}. {{b.name}} <button class="inline-block" data-click="app.removeExternal(i)">-</button>
             <ul>
                 <li data-for="d,j in b.data">
                      {{j+1}}. {{d.slot}}
-                    <button data-click="app.removeInternal(i,j)">remove({{i}},{{j}})</button>
+                    <button class="inline-block" data-click="app.removeInternal(i,j)">-</button>
                 </li>
             </ul>
+            <button class="inline-block" data-click="app.addInternal(i)">+</button>
         </li>
     </ul>
 
-    <button data-click="app.add()">+</button>
+    <button class="inline-block" data-click="app.add()">+</button>
 
     <hr/>
 
@@ -105,6 +130,10 @@ app.removeExternal = function(i){
 
 app.removeInternal = function(i,j){
     this.app.bundles[i].data.splice(j);
+};
+
+app.addInternal = function(i){
+    this.app.bundles[i].data.push({slot:'new_'+rnd()})
 };
 
 app.changeGlobal = function(){

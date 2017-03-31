@@ -71,6 +71,7 @@ class ScopedLoopContainer extends Component {
             for (let i=0,max=this.lastFrafmentsLength-newArr.length;i<max;i++) {
                 this._destroyFragment(l-i-1);
             }
+            this.lastFrafmentsLength=this.scopedDomFragments.length;
         }
 
     }
