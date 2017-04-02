@@ -66,7 +66,13 @@ app.removeExternal = function(i){
 };
 
 app.removeInternal = function(i,j){
-    this.app.bundles[i].data.splice(j);
+    this.app.bundles[i].data.splice(j,1);
+};
+
+app.addInternal = function(i){
+    this.app.bundles[i].data.push({
+        slot: 'new_'+rnd()
+    });
 };
 
 app.changeGlobal = function(){

@@ -32,7 +32,7 @@ Token.SYMBOL = {
     SEMICOLON:';'
 };
 
-Token.KEY_WORDS = ['in','of'];
+Token.KEY_WORDS = ['in','of']; // todo null undefined ...
 
 Token.ALL_SPECIAL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});
 

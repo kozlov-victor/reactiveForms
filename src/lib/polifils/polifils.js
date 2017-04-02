@@ -4,7 +4,7 @@ var ElementPrototype = typeof HTMLElement !== "undefined"
 
 if (!ElementPrototype.remove) {
     ElementPrototype.remove = function () {
-        this.parentNode.removeChild(this);
+        this.parentNode && this.parentNode.removeChild(this);
     };
 }
 

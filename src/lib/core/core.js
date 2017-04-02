@@ -3,6 +3,7 @@
 class Core{
 
     static registerComponent(name,modelView){
+        name = MiscUtils.camelToSnake(name);
         let tmpl = TemplateLoader.getNode(modelView.template);
         let domTemplate = tmpl.innerHTML;
         tmpl.remove();
@@ -25,27 +26,12 @@ class Core{
     }
 
     static run(){
-        ComponentProto.instances.forEach(function(componentProto){
-            let domEls =  DomUtils.nodeListToArray(document.getElementsByTagName(componentProto.name));
-            let componentNodes = [];
-            domEls.forEach(function(it){
-                let componentNode = componentProto.node.cloneNode(true);
-                componentNodes.push(componentNode);
-                it.parentNode.insertBefore(componentNode,it);
-                let dataProperties = it.getAttribute('data-properties')||'{}';
-                dataProperties = ExpressionEngine.getObjectFromString(dataProperties);
-                componentProto.runNewInstance(componentNode,dataProperties);
-                it.parentNode.removeChild(it);
-            });
-            componentNodes.forEach((node)=>{
-                DomUtils.removeParentBunNotChildren(node);
-            });
-        });
+        DirectiveEngine.runComponents();
     }
 
 }
 
-Core.version = '0.2.1';
+Core.version = '0.2.2';
 
 window.RF = Core;
 window.RF.Router = new Router();
