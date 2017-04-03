@@ -9,6 +9,8 @@ class Component {
         this.node = node;
         this.modelView = modelView;
         this.watchers = [];
+        // this.id = MiscUtils.getUID();
+        // this.node.setAttribute('data-component-id',this.id);
         Component.instances.push(this);
     }
 

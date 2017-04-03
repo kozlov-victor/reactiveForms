@@ -26,6 +26,7 @@ class Router {
             delete pageItem.componentProto;
         }
         this.routeNode.parentNode.replaceChild(pageItem.component.node,this.routeNode);
+        DirectiveEngine.runComponents(pageItem.component);
         this.routeNode = pageItem.component.node;
     }
 

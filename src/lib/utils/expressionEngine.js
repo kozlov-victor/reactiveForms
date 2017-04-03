@@ -52,16 +52,20 @@ class ExpressionEngine {
             throw e;
         }
     }
+
+    static executeExpression(code,component){
+        let fn = ExpressionEngine.getExpressionFn(code);
+        return ExpressionEngine.runExpressionFn(fn,component);
+    }
+
     /**
      * expression = 'user.name' object[field] = value
      */
     static setValueToContext(context,expression,value){
-        let quotes = '';
-        if (typeof value == 'string') quotes = '"';
-        let code = Lexer.convertExpression(expression,'context.{expr}')+`=${quotes}${value}${quotes}`;
+        let code = Lexer.convertExpression(expression,'context.{expr}')+`=value`;
         try {
-            let fn = new Function('context',code);
-            fn(context);
+            let fn = new Function('context','value',code);
+            fn(context,value);
         } catch(e){
             console.error('setting value error');
             console.error('can not evaluate expression:' + expression);

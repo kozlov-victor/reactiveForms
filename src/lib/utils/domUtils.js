@@ -142,8 +142,8 @@ class DomUtils {
     }
 
     static addEventListener(el,type,fn){
-        if (el.addEventListener) el.addEventListener(type,fn);
-        else el.attachEvent('on'+type,fn);
+        if (el.addEventListener) el.addEventListener(type,fn,true);
+        else el.attachEvent('on'+type,fn,true);
     }
 
     static setTextNodeValue(el,value){
@@ -181,4 +181,13 @@ class DomUtils {
         }
         nodeToBeRemoved.parentNode.removeChild(nodeToBeRemoved);
     }
+
+    static getClosestElWithDataAttr(node,dataAttr){
+        while (node) {
+            if (node===document) return;
+            if (node.hasAttribute(dataAttr)) return node;
+            node = node.parentNode;
+        }
+    }
+
 }

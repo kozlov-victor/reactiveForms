@@ -4,7 +4,8 @@ class TemplateLoader {
     static _getNodeFromDom(templateObj){
         if (!templateObj.value) throw "template.value must be specified";
         let node = document.getElementById(templateObj.value);
-        if (!node) throw `can not fing dom element with id ${templateObj.value}`
+        if (!node) throw `can not fing dom element with id ${templateObj.value}`;
+        return node;
     }
 
     static _getNodeFromString(templateObj){

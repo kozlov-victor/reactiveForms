@@ -55,10 +55,12 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-'+eventName,(el,expression)=>{
             let fn = ExpressionEngine.getExpressionFn(expression);
             DomUtils.addEventListener(el,eventName,e=>{
-                e = e || window.e;
-                e.preventDefault && e.preventDefault();
-                e.stopPropagation && e.stopPropagation();
-                e.cancelBubble = true;
+                if (eventName!='keypress') {
+                    e = e || window.e;
+                    e.preventDefault && e.preventDefault();
+                    e.stopPropagation && e.stopPropagation();
+                    e.cancelBubble = true;
+                }
                 ExpressionEngine.runExpressionFn(fn,this.component);
                 Component.digestAll();
             });
@@ -178,19 +180,39 @@ class DirectiveEngine {
         });
     };
 
+    static runComponents(rootComponent){
+        ComponentProto.instances.forEach(componentProto=>{
+            let domEls =  DomUtils.nodeListToArray(document.getElementsByTagName(componentProto.name));
+            let componentNodes = [];
+            domEls.forEach(it=>{
+                let componentNode = componentProto.node.cloneNode(true);
+                componentNodes.push(componentNode);
+                it.parentNode.insertBefore(componentNode,it);
+                let dataPropertiesAttr = it.getAttribute('data-properties');
+                let dataProperties = dataPropertiesAttr?
+                    ExpressionEngine.executeExpression(dataPropertiesAttr,rootComponent):{};
+                componentProto.runNewInstance(componentNode,dataProperties);
+                it.parentNode.removeChild(it);
+            });
+            componentNodes.forEach((node)=>{
+                DomUtils.removeParentBunNotChildren(node);
+            });
+        });
+    }
+
     run(){
         this.runDirective_Value();
         this.runDirective_For();
         this.runTextNodes();
+        this.runDirective_Model(); // todo проверить, не  нарушилась ли последовательность событий
         [   'click','blur','focus',
             'submit','change',
             'keypress','keyup','keydown'
 
         ].forEach(eventName =>{
-                this.runDomEvent(eventName);
-            });
+            this.runDomEvent(eventName);
+        });
         this.runDirective_Bind();
-        this.runDirective_Model();
         this.runDirective_Value();
         this.runDirective_Class();
         this.runDirective_Style();
