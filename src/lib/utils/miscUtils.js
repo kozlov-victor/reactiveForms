@@ -7,7 +7,8 @@ class MiscUtils {
      * @returns {*}
      */
     static deepCopy(obj) {
-        if (!obj) return null;
+        if (obj===undefined) return undefined;
+        else if (obj===null) return null;
         if (Object.prototype.toString.call(obj) === '[object Array]') {
             let out = [], i = 0, len = obj.length;
             for (; i < len; i++) {

@@ -816,18 +816,18 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
 <span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"app"</span><span class="token operator">></span>
     <span class="token operator">&lt;</span>ul<span class="token operator">></span>
         <span class="token operator">&lt;</span>li data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"b,i in app.bundles"</span><span class="token operator">></span>
-            {{i<span class="token operator">+</span><span class="token number">1</span>}}<span class="token punctuation">.</span> {{b<span class="token punctuation">.</span>name}} <span class="token operator">&lt;</span>button class<span class="token operator">=</span><span class="token string">"inline-block"</span> data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.removeExternal(i)"</span><span class="token operator">></span><span class="token operator">-</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+            {{i<span class="token operator">+</span><span class="token number">1</span>}}<span class="token punctuation">.</span> {{b<span class="token punctuation">.</span>name}} <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.removeExternal(i)"</span><span class="token operator">></span><span class="token function">remove</span><span class="token punctuation">(</span>{{i}}<span class="token punctuation">)</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
             <span class="token operator">&lt;</span>ul<span class="token operator">></span>
                 <span class="token operator">&lt;</span>li data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"d,j in b.data"</span><span class="token operator">></span>
                      {{j<span class="token operator">+</span><span class="token number">1</span>}}<span class="token punctuation">.</span> {{d<span class="token punctuation">.</span>slot}}
-                    <span class="token operator">&lt;</span>button class<span class="token operator">=</span><span class="token string">"inline-block"</span> data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.removeInternal(i,j)"</span><span class="token operator">></span><span class="token operator">-</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+                    <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.removeInternal(i,j)"</span><span class="token operator">></span><span class="token function">remove</span><span class="token punctuation">(</span>{{i}}<span class="token punctuation">,</span>{{j}}<span class="token punctuation">)</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
                 <span class="token operator">&lt;</span><span class="token operator">/</span>li<span class="token operator">></span>
             <span class="token operator">&lt;</span><span class="token operator">/</span>ul<span class="token operator">></span>
-            <span class="token operator">&lt;</span>button class<span class="token operator">=</span><span class="token string">"inline-block"</span> data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.addInternal(i)"</span><span class="token operator">></span><span class="token operator">+</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+            <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.addInternal(i)"</span><span class="token operator">></span><span class="token operator">+</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
         <span class="token operator">&lt;</span><span class="token operator">/</span>li<span class="token operator">></span>
     <span class="token operator">&lt;</span><span class="token operator">/</span>ul<span class="token operator">></span>
 
-    <span class="token operator">&lt;</span>button class<span class="token operator">=</span><span class="token string">"inline-block"</span> data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.add()"</span><span class="token operator">></span><span class="token operator">+</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+    <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.add()"</span><span class="token operator">></span><span class="token operator">+</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
 
     <span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
 
@@ -910,7 +910,13 @@ app<span class="token punctuation">.</span>removeExternal <span class="token ope
 }<span class="token comment" spellcheck="true">;</span>
 
 app<span class="token punctuation">.</span>removeInternal <span class="token operator">=</span> <span class="token function">function</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span>j<span class="token punctuation">)</span>{
-    this<span class="token punctuation">.</span>app<span class="token punctuation">.</span>bundles<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>data<span class="token punctuation">.</span><span class="token function">splice</span><span class="token punctuation">(</span>j<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+    this<span class="token punctuation">.</span>app<span class="token punctuation">.</span>bundles<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>data<span class="token punctuation">.</span><span class="token function">splice</span><span class="token punctuation">(</span>j<span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+}<span class="token comment" spellcheck="true">;</span>
+
+app<span class="token punctuation">.</span>addInternal <span class="token operator">=</span> <span class="token function">function</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span>{
+    this<span class="token punctuation">.</span>app<span class="token punctuation">.</span>bundles<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>data<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>{
+        slot<span class="token punctuation">:</span> <span class="token string">'new_'</span><span class="token operator">+</span><span class="token function">rnd</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
 }<span class="token comment" spellcheck="true">;</span>
 
 app<span class="token punctuation">.</span>addInternal <span class="token operator">=</span> <span class="token function">function</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span>{
@@ -959,6 +965,85 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="loopsInLoops"></iframe>
+        </div>
+    </section>
+</li>
+<li>
+    <h3>Вложенные циклы</h3>
+    <section>
+        <div data-html>
+            
+<span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"nodeItemTmpl"</span><span class="token operator">></span>
+    nodeItemTmpl {{prp}}
+<span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+
+<span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"app"</span><span class="token operator">></span>
+
+    <span class="token operator">&lt;</span>node<span class="token operator">-</span>item
+        data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"i in [1,2,3]"</span>
+        data<span class="token operator">-</span>properties<span class="token operator">=</span><span class="token string">"{prp:i}"</span><span class="token operator">></span>
+        {{i}}
+    <span class="token operator">&lt;</span><span class="token operator">/</span>node<span class="token operator">-</span>item<span class="token operator">></span>
+
+<span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+
+
+        </div>
+
+        <code data-js>
+            
+var app <span class="token operator">=</span> {}<span class="token comment" spellcheck="true">;</span>
+
+app<span class="token punctuation">.</span>nodes <span class="token operator">=</span> <span class="token punctuation">[</span>
+    {
+        name<span class="token punctuation">:</span><span class="token string">'node_1'</span><span class="token punctuation">,</span>
+        children<span class="token punctuation">:</span> <span class="token punctuation">[</span>
+            {
+                name<span class="token punctuation">:</span><span class="token string">'node_1_1'</span>
+            }<span class="token punctuation">,</span>
+            {
+                name<span class="token punctuation">:</span><span class="token string">'node_1_2'</span>
+            }
+        <span class="token punctuation">]</span>
+    }<span class="token punctuation">,</span>
+    {
+        name<span class="token punctuation">:</span><span class="token string">'node_2'</span><span class="token punctuation">,</span>
+        children<span class="token punctuation">:</span> <span class="token punctuation">[</span>
+            {
+                name<span class="token punctuation">:</span><span class="token string">'node_2_1'</span>
+            }<span class="token punctuation">,</span>
+            {
+                name<span class="token punctuation">:</span><span class="token string">'node_2_2'</span>
+            }
+        <span class="token punctuation">]</span>
+    }
+<span class="token punctuation">]</span><span class="token comment" spellcheck="true">;</span>
+
+RF<span class="token punctuation">.</span><span class="token function">registerComponent</span><span class="token punctuation">(</span><span class="token string">'node-item'</span><span class="token punctuation">,</span>{
+    template<span class="token punctuation">:</span> {
+        type<span class="token punctuation">:</span><span class="token string">'dom'</span><span class="token punctuation">,</span>
+        value<span class="token punctuation">:</span><span class="token string">'nodeItemTmpl'</span>
+    }<span class="token punctuation">,</span>
+    external<span class="token punctuation">:</span> {
+        node<span class="token punctuation">:</span><span class="token keyword">null</span>
+    }<span class="token punctuation">,</span>
+    prp<span class="token punctuation">:</span><span class="token operator">-</span><span class="token number">1</span>
+}<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+
+RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#app'</span><span class="token punctuation">,</span>{
+    app<span class="token punctuation">:</span>app
+}<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+RF<span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+        </code>
+        <div>
+            <button onclick="
+            var f = document.getElementById('recursiveTree');
+            f.src = 'pages/recursiveTree.html';
+            f.style.display = '';
+        ">Выполнить</button>
+        </div>
+        <div>
+            <iframe frameborder="none" style="display: none;" id="recursiveTree"></iframe>
         </div>
     </section>
 </li>

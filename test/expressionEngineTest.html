@@ -3,28 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <title>Lexer Test</title>
-    <script src="../lib/utils/lexer.js"></script>
-    <script src="../lib/utils/miscUtils.js"></script>
+    <script src="../src/lib/utils/lexer.js"></script>
+    <script src="../src/lib/utils/expressionEngine.js"></script>
+    <script src="../src/lib/utils/miscUtils.js"></script>
+    <style>
+        .item {
+            color: white;
+            padding: 5px;
+            margin: 5px;
+        }
+        .success {
+            background-color: #829066;
+        }
+        .error {
+            background-color: #d1232f;
+        }
+    </style>
     <script>
+        let toStr = (a)=>{
+            if (typeof a == 'object') return JSON.stringify(a);
+            return a.toString();
+        };
+        let showResult = (a,b,isSuccess)=>{
+            let msg = `
+                ${isSuccess?'ok====>':'failed====>'}
+                expected: ${toStr(a)}, received: ${toStr(b)}
+            `;
+            let item = document.createElement('div');
+            item.textContent = msg;
+            item.className = `item ${isSuccess?'success':'error'}`;
+            document.body.appendChild(item);
+        };
+
         let assertEqual = (a,b)=>{
             if (MiscUtils.deepEqual(a,b)) {
-                console.log('ok===>>',a,b);
+                showResult(a,b,true);
             }
             else {
-                console.error('failed==>>>');
-                console.error('expected',b);
-                console.error('received',a);
-                throw "assertion exception";
+                showResult(a,b,false);
             }
+        };
+        let exec = (expr,modelView)=>{
+            return ExpressionEngine.executeExpression(expr,{
+                modelView: modelView
+            })
         };
     </script>
 </head>
 <body>
 <script>
-//    assertEqual(
-//        Lexer.convertExpression('user.name','scope.{expr}'),
-//        'scope.user.name'
+    assertEqual(
+        exec(
+            'user.name', {
+                user:{
+                    name:'testName'
+                }
+            }
+        ),
+        'testName'
+    );
+    assertEqual(
+        exec("['red','green','blue']",{}),
+        ['red','green','blue']
+    );
+//    assertEqual( // todo
+//        exec("['red','green','blue'].length",{}),
+//        ['red','green','blue'].length
 //    );
+    assertEqual(
+        exec("invokeFn()",{invokeFn: function(){return 42}}),
+        42
+    );
+    assertEqual(
+        exec("invokeFn(a,b)",{
+            invokeFn: function(a,b){return a+b},
+            a:1,
+            b:41
+        }),
+        42
+    );
+    assertEqual(
+        exec("{var1:a,var2:b}",{
+            a:1,
+            b:41
+        }),
+        {var1:1,var2:41}
+    );
 </script>
 </body>
 </html>
