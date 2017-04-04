@@ -1,6 +1,10 @@
 
 <div id="nodeItemTmpl">
     {{node.name}}
+    <node-item
+            data-for="node in node.children"
+            data-properties="{node:node}">
+    </node-item>
 </div>
 
 <div id="app">

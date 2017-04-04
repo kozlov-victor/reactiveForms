@@ -27,5 +27,9 @@ class ComponentProto{
         return instance;
     }
 
+    static getByName(name){
+        return ComponentProto.instances.filter(it=>{return it.name==name})[0] || null;
+    }
+
 }
 ComponentProto.instances = [];

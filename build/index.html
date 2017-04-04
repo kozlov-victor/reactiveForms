@@ -974,15 +974,18 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
         <div data-html>
             
 <span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"nodeItemTmpl"</span><span class="token operator">></span>
-    nodeItemTmpl {{prp}}
+    {{node<span class="token punctuation">.</span>name}}
+    <span class="token operator">&lt;</span>node<span class="token operator">-</span>item
+            data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"node in node.children"</span>
+            data<span class="token operator">-</span>properties<span class="token operator">=</span><span class="token string">"{node:node}"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>node<span class="token operator">-</span>item<span class="token operator">></span>
 <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
 
 <span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"app"</span><span class="token operator">></span>
 
     <span class="token operator">&lt;</span>node<span class="token operator">-</span>item
-        data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"i in [1,2,3]"</span>
-        data<span class="token operator">-</span>properties<span class="token operator">=</span><span class="token string">"{prp:i}"</span><span class="token operator">></span>
-        {{i}}
+        data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"node in app.nodes"</span>
+        data<span class="token operator">-</span>properties<span class="token operator">=</span><span class="token string">"{node:node}"</span><span class="token operator">></span>
     <span class="token operator">&lt;</span><span class="token operator">/</span>node<span class="token operator">-</span>item<span class="token operator">></span>
 
 <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
@@ -1026,8 +1029,7 @@ RF<span class="token punctuation">.</span><span class="token function">registerC
     }<span class="token punctuation">,</span>
     external<span class="token punctuation">:</span> {
         node<span class="token punctuation">:</span><span class="token keyword">null</span>
-    }<span class="token punctuation">,</span>
-    prp<span class="token punctuation">:</span><span class="token operator">-</span><span class="token number">1</span>
+    }
 }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
 
 RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#app'</span><span class="token punctuation">,</span>{

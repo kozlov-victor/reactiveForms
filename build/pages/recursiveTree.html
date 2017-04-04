@@ -33,15 +33,18 @@ button:active,input:active {
 
     
 <div id="nodeItemTmpl">
-    nodeItemTmpl {{prp}}
+    {{node.name}}
+    <node-item
+            data-for="node in node.children"
+            data-properties="{node:node}">
+    </node-item>
 </div>
 
 <div id="app">
 
     <node-item
-        data-for="i in [1,2,3]"
-        data-properties="{prp:i}">
-        {{i}}
+        data-for="node in app.nodes"
+        data-properties="{node:node}">
     </node-item>
 
 </div>
@@ -84,8 +87,7 @@ RF.registerComponent('node-item',{
     },
     external: {
         node:null
-    },
-    prp:-1
+    }
 });
 
 RF.applyBindings('#app',{

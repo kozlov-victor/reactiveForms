@@ -183,12 +183,12 @@ class DirectiveEngine {
     runComponents(){
         ComponentProto.instances.forEach(componentProto=>{
             let domEls =  DomUtils.nodeListToArray(this.component.node.getElementsByTagName(componentProto.name));
-            if (this.component.node.tagName.toLowerCase()==componentProto.name.toLocaleLowerCase())
-                domEls.push(this.component.node);
+            // if (this.component.node.tagName.toLowerCase()==componentProto.name.toLocaleLowerCase())
+            //     domEls.push(this.component.node);
             let componentNodes = []; // todo need?
             domEls.forEach(it=>{
-                //if (it.getAttribute('data-_processed')) return;
-                //it.setAttribute('data-_processed','1');
+                if (it.getAttribute('data-_processed')) return;
+                it.setAttribute('data-_processed','1');
                 let componentNode = componentProto.node.cloneNode(true);
                 componentNodes.push(componentNode);
                 it.parentNode.insertBefore(componentNode,it);
@@ -201,7 +201,6 @@ class DirectiveEngine {
                 //it.parentNode.removeChild(it);
             });
             domEls.forEach(it=>{
-                console.log(it);
                 //it.remove();
             });
             //componentNodes.forEach((node)=>{

@@ -148,14 +148,13 @@
             if (!this.children) this.children = [];
             this.children.push(childComponent);
         };
-        // updateModelView(modelView){ // todo need??
-        //     this.modelView = modelView;
-        //     if (this.children) {
-        //         this.children.forEach(c=>{
-        //             c.modelView = modelView;
-        //         });
-        //     }
-        // }
+        Component.prototype.updateModelView = function(modelView) {
+            // todo need??
+            this.modelView = modelView;
+            if (this.children) this.children.forEach(function(c) {
+                c.modelView = modelView;
+            });
+        };
         Component.prototype.addWatcher = function(expression, listenerFn) {
             var watcherFn = ExpressionEngine.getExpressionFn(expression);
             this.watchers.push({
@@ -178,7 +177,15 @@
         Component.prototype.run = function() {
             new DirectiveEngine(this).run();
         };
-        Component.prototype.destroy = function() {};
+        Component.prototype.destroy = function() {
+            // todo not implemented yet!
+            // remove watchers
+            // remove nodes
+            this.node.remove();
+            if (this.children) this.children.forEach(function(c) {
+                c.destroy();
+            });
+        };
         Component.digestAll = function() {
             Component.instances.forEach(function(cmp) {
                 cmp.digest();
@@ -214,6 +221,11 @@
             instance = new Component(this.name, node, modelView);
             instance.run();
             return instance;
+        };
+        ComponentProto.getByName = function(name) {
+            return ComponentProto.instances.filter(function(it) {
+                return it.name == name;
+            })[0] || null;
         };
         return ComponentProto;
     }();
@@ -280,10 +292,8 @@
             return _this;
         }
         ScopedLoopContainer.prototype._destroyFragment = function(index) {
-            var removedFragment;
-            this.scopedDomFragments[index].node.remove();
-            removedFragment = this.scopedDomFragments.splice(index, 1)[0];
-            removedFragment.destroy();
+            this.scopedDomFragments[index];
+            this.scopedDomFragments.splice(index, 1)[0].destroy();
             this.lastFrafmentsLength--;
         };
         ScopedLoopContainer.prototype.run = function(eachItemName, indexName, iterableObjectName) {
@@ -302,24 +312,44 @@
             var l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [], currNodeInIteration = (arguments[1], 
             this.anchor);
             newArr.forEach(function(iterableItem, i) {
-                var localModelView, node, scopedDomFragment, _localModelView;
+                var localModelView, possibleComponentProto, node, scopedDomFragment, dataPropertiesAttr, dataProperties, _node, _scopedDomFragment, _localModelView;
                 if (!_this3.scopedDomFragments[i]) {
                     localModelView = {};
                     localModelView[_this3.eachItemName] = iterableItem;
                     if (_this3.indexName) localModelView[_this3.indexName] = i;
-                    node = _this3.node.cloneNode(true);
-                    currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
-                    scopedDomFragment = new ScopedDomFragment(node, localModelView);
-                    scopedDomFragment.parent = _this3.parent;
-                    scopedDomFragment.parent.addChild(scopedDomFragment);
-                    new DirectiveEngine(scopedDomFragment).run();
-                    currNodeInIteration = node;
-                    _this3.scopedDomFragments.push(scopedDomFragment);
-                    _this3.lastFrafmentsLength++;
+                    possibleComponentProto = ComponentProto.getByName(_this3.node.tagName.toLowerCase());
+                    if (possibleComponentProto) {
+                        node = possibleComponentProto.node.cloneNode(true);
+                        scopedDomFragment = new ScopedDomFragment(node, localModelView);
+                        dataPropertiesAttr = _this3.node.getAttribute("data-properties");
+                        dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, scopedDomFragment) : {};
+                        Object.keys(dataProperties).forEach(function(key) {
+                            localModelView[key] = dataProperties[key];
+                        });
+                        currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
+                        scopedDomFragment.parent = _this3.parent;
+                        scopedDomFragment.parent.addChild(scopedDomFragment);
+                        scopedDomFragment.node.setAttribute("data-_processed", "1");
+                        new DirectiveEngine(scopedDomFragment).run();
+                        currNodeInIteration = node;
+                        _this3.scopedDomFragments.push(scopedDomFragment);
+                        _this3.lastFrafmentsLength++;
+                    } else {
+                        _node = _this3.node.cloneNode(true);
+                        _scopedDomFragment = new ScopedDomFragment(_node, localModelView);
+                        currNodeInIteration.parentNode.insertBefore(_node, currNodeInIteration.nextSibling);
+                        _scopedDomFragment.parent = _this3.parent;
+                        _scopedDomFragment.parent.addChild(_scopedDomFragment);
+                        new DirectiveEngine(_scopedDomFragment).run();
+                        currNodeInIteration = _node;
+                        _this3.scopedDomFragments.push(_scopedDomFragment);
+                        _this3.lastFrafmentsLength++;
+                    }
                 } else {
                     _localModelView = _this3.scopedDomFragments[i].modelView;
                     _localModelView[_this3.eachItemName] = iterableItem;
                     if (_this3.indexName) _localModelView[_this3.indexName] = i;
+                    _this3.scopedDomFragments[i].updateModelView(_localModelView);
                     currNodeInIteration = _this3.scopedDomFragments[i].node;
                     _this3.scopedDomFragments[i].digest();
                 }
@@ -327,7 +357,7 @@
             if (this.lastFrafmentsLength > newArr.length) {
                 l = this.scopedDomFragments.length;
                 for (i = 0, max = this.lastFrafmentsLength - newArr.length; i < max; i++) this._destroyFragment(l - i - 1);
-                this.lastFrafmentsLength = this.scopedDomFragments.length;
+                this.lastFrafmentsLength;
             }
         };
         return ScopedLoopContainer;
@@ -474,32 +504,38 @@
                 });
             });
         };
-        DirectiveEngine.runComponents = function(rootComponent) {
+        DirectiveEngine.prototype.runComponents = function() {
+            var _this10 = this;
             ComponentProto.instances.forEach(function(componentProto) {
-                var domEls = DomUtils.nodeListToArray(document.getElementsByTagName(componentProto.name)), componentNodes = [];
+                var domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name)), componentNodes = [];
+                // todo need?
                 domEls.forEach(function(it) {
-                    var dataPropertiesAttr, dataProperties, componentNode = componentProto.node.cloneNode(true);
-                    componentNodes.push(componentNode);
-                    it.parentNode.insertBefore(componentNode, it);
-                    dataPropertiesAttr = it.getAttribute("data-properties");
-                    dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, rootComponent) : {};
-                    componentProto.runNewInstance(componentNode, dataProperties);
-                    it.parentNode.removeChild(it);
+                    var componentNode, dataPropertiesAttr, dataProperties, component;
+                    if (!it.getAttribute("data-_processed")) {
+                        it.setAttribute("data-_processed", "1");
+                        componentNode = componentProto.node.cloneNode(true);
+                        componentNodes.push(componentNode);
+                        it.parentNode.insertBefore(componentNode, it);
+                        dataPropertiesAttr = it.getAttribute("data-properties");
+                        dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
+                        component = componentProto.runNewInstance(componentNode, dataProperties);
+                        component.parent = _this10.component;
+                        component.parent.addChild(component);
+                    }
                 });
-                componentNodes.forEach(function(node) {
-                    DomUtils.removeParentBunNotChildren(node);
-                });
+                domEls.forEach(function(it) {});
             });
         };
         DirectiveEngine.prototype.run = function() {
-            var _this10 = this;
+            var _this11 = this;
             this.runDirective_Value();
             this.runDirective_For();
+            this.runComponents();
             this.runTextNodes();
             this.runDirective_Model();
-            // todo проверить, не  нарушилась ли последовательность событий
+            // todo check event sequence in legacy browsers
             [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown" ].forEach(function(eventName) {
-                _this10.runDomEvent(eventName);
+                _this11.runDomEvent(eventName);
             });
             this.runDirective_Bind();
             this.runDirective_Value();
@@ -658,7 +694,7 @@
             for (i = 0; i < nodeList.length; i++) arr.push(nodeList[i]);
             return arr;
         };
-        DomUtils.removeParentBunNotChildren = function(nodeToBeRemoved) {
+        DomUtils.removeParentButNotChildren = function(nodeToBeRemoved) {
             for (;nodeToBeRemoved.firstChild; ) nodeToBeRemoved.parentNode.insertBefore(nodeToBeRemoved.firstChild, nodeToBeRemoved);
             nodeToBeRemoved.parentNode.removeChild(nodeToBeRemoved);
         };
@@ -938,7 +974,6 @@
                 delete pageItem.componentProto;
             }
             this.routeNode.parentNode.replaceChild(pageItem.component.node, this.routeNode);
-            DirectiveEngine.runComponents(pageItem.component);
             this.routeNode = pageItem.component.node;
         };
         return Router;
@@ -1011,7 +1046,7 @@
             Component.digestAll();
         };
         Core.run = function() {
-            DirectiveEngine.runComponents();
+            console.warn("core.run() is deprecated for now");
         };
         return Core;
     }();
