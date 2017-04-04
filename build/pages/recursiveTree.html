@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <style>
+        
+button, input[type=text] {
+    display: block;
+    margin: 0 auto 3px;
+    width: 80%;
+    background-color: #00dcff;
+    border: none;
+    padding: 3px;
+}
+
+button.inline-block {
+    display: inline-block;
+    width: auto;
+}
+
+button {
+    color: white;
+}
+
+button:active,input:active {
+    outline: 1px solid blue;
+}
+    </style>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+<div id="nodeItemTmpl">
+    nodeItemTmpl {{prp}}
+</div>
+
+<div id="app">
+
+    <node-item
+        data-for="i in [1,2,3]"
+        data-properties="{prp:i}">
+        {{i}}
+    </node-item>
+
+</div>
+
+
+
+    <script>
+        
+var app = {};
+
+app.nodes = [
+    {
+        name:'node_1',
+        children: [
+            {
+                name:'node_1_1'
+            },
+            {
+                name:'node_1_2'
+            }
+        ]
+    },
+    {
+        name:'node_2',
+        children: [
+            {
+                name:'node_2_1'
+            },
+            {
+                name:'node_2_2'
+            }
+        ]
+    }
+];
+
+RF.registerComponent('node-item',{
+    template: {
+        type:'dom',
+        value:'nodeItemTmpl'
+    },
+    external: {
+        node:null
+    },
+    prp:-1
+});
+
+RF.applyBindings('#app',{
+    app:app
+});
+RF.run();
+    </script>
+</body>
+</html>

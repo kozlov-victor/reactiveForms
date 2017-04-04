@@ -5,16 +5,41 @@
     <title>Lexer Test</title>
     <script src="../src/lib/utils/lexer.js"></script>
     <script src="../src/lib/utils/miscUtils.js"></script>
+    <style>
+        .item {
+            color: white;
+            padding: 5px;
+            margin: 5px;
+        }
+        .success {
+            background-color: #829066;
+        }
+        .error {
+            background-color: #d1232f;
+        }
+    </style>
     <script>
+        let toStr = (a)=>{
+            if (typeof a == 'object') return JSON.stringify(a);
+            return a.toString();
+        };
+        let showResult = (a,b,isSuccess)=>{
+            let msg = `
+                ${isSuccess?'ok====>':'failed====>'}
+                expected: ${toStr(a)}, received: ${toStr(b)}
+            `;
+            let item = document.createElement('div');
+            item.textContent = msg;
+            item.className = `item ${isSuccess?'success':'error'}`;
+            document.body.appendChild(item);
+        };
+
         let assertEqual = (a,b)=>{
             if (MiscUtils.deepEqual(a,b)) {
-                console.log('ok===>>',a,b);
+                showResult(a,b,true);
             }
             else {
-                console.error('failed==>>>');
-                console.error('expected',b);
-                console.error('received',a);
-                throw "assertion exception";
+                showResult(a,b,false);
             }
         };
     </script>

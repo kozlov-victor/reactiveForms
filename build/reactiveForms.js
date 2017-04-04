@@ -121,6 +121,7 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
+        self;
     }();
     _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
@@ -147,13 +148,14 @@
             if (!this.children) this.children = [];
             this.children.push(childComponent);
         };
-        Component.prototype.updateModelView = function(modelView) {
-            // todo need??
-            this.modelView = modelView;
-            if (this.children) this.children.forEach(function(c) {
-                c.modelView = modelView;
-            });
-        };
+        // updateModelView(modelView){ // todo need??
+        //     this.modelView = modelView;
+        //     if (this.children) {
+        //         this.children.forEach(c=>{
+        //             c.modelView = modelView;
+        //         });
+        //     }
+        // }
         Component.prototype.addWatcher = function(expression, listenerFn) {
             var watcherFn = ExpressionEngine.getExpressionFn(expression);
             this.watchers.push({
@@ -176,15 +178,7 @@
         Component.prototype.run = function() {
             new DirectiveEngine(this).run();
         };
-        Component.prototype.destroy = function() {
-            // todo not implemented yet!
-            // remove watchers
-            // remove nodes
-            this.node.remove();
-            if (this.children) this.children.forEach(function(c) {
-                c.destroy();
-            });
-        };
+        Component.prototype.destroy = function() {};
         Component.digestAll = function() {
             Component.instances.forEach(function(cmp) {
                 cmp.digest();
@@ -286,8 +280,10 @@
             return _this;
         }
         ScopedLoopContainer.prototype._destroyFragment = function(index) {
-            this.scopedDomFragments[index];
-            this.scopedDomFragments.splice(index, 1)[0].destroy();
+            var removedFragment;
+            this.scopedDomFragments[index].node.remove();
+            removedFragment = this.scopedDomFragments.splice(index, 1)[0];
+            removedFragment.destroy();
             this.lastFrafmentsLength--;
         };
         ScopedLoopContainer.prototype.run = function(eachItemName, indexName, iterableObjectName) {
@@ -324,7 +320,6 @@
                     _localModelView = _this3.scopedDomFragments[i].modelView;
                     _localModelView[_this3.eachItemName] = iterableItem;
                     if (_this3.indexName) _localModelView[_this3.indexName] = i;
-                    _this3.scopedDomFragments[i].updateModelView(_localModelView);
                     currNodeInIteration = _this3.scopedDomFragments[i].node;
                     _this3.scopedDomFragments[i].digest();
                 }
@@ -332,7 +327,7 @@
             if (this.lastFrafmentsLength > newArr.length) {
                 l = this.scopedDomFragments.length;
                 for (i = 0, max = this.lastFrafmentsLength - newArr.length; i < max; i++) this._destroyFragment(l - i - 1);
-                this.lastFrafmentsLength;
+                this.lastFrafmentsLength = this.scopedDomFragments.length;
             }
         };
         return ScopedLoopContainer;
@@ -479,38 +474,32 @@
                 });
             });
         };
-        DirectiveEngine.prototype.runComponents = function() {
-            var _this10 = this;
+        DirectiveEngine.runComponents = function(rootComponent) {
             ComponentProto.instances.forEach(function(componentProto) {
-                var componentNodes, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
-                if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLocaleLowerCase()) domEls.push(_this10.component.node);
-                componentNodes = [];
-                // todo need?
+                var domEls = DomUtils.nodeListToArray(document.getElementsByTagName(componentProto.name)), componentNodes = [];
                 domEls.forEach(function(it) {
-                    var dataPropertiesAttr, dataProperties, component, componentNode = componentProto.node.cloneNode(true);
+                    var dataPropertiesAttr, dataProperties, componentNode = componentProto.node.cloneNode(true);
                     componentNodes.push(componentNode);
                     it.parentNode.insertBefore(componentNode, it);
                     dataPropertiesAttr = it.getAttribute("data-properties");
-                    dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
-                    component = componentProto.runNewInstance(componentNode, dataProperties);
-                    component.parent = _this10.component;
-                    component.parent.addChild(component);
+                    dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, rootComponent) : {};
+                    componentProto.runNewInstance(componentNode, dataProperties);
+                    it.parentNode.removeChild(it);
                 });
-                domEls.forEach(function(it) {
-                    console.log(it);
+                componentNodes.forEach(function(node) {
+                    DomUtils.removeParentBunNotChildren(node);
                 });
             });
         };
         DirectiveEngine.prototype.run = function() {
-            var _this11 = this;
+            var _this10 = this;
             this.runDirective_Value();
             this.runDirective_For();
-            this.runComponents();
             this.runTextNodes();
             this.runDirective_Model();
-            // todo check event sequence in legacy browsers
+            // todo проверить, не  нарушилась ли последовательность событий
             [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown" ].forEach(function(eventName) {
-                _this11.runDomEvent(eventName);
+                _this10.runDomEvent(eventName);
             });
             this.runDirective_Bind();
             this.runDirective_Value();
@@ -585,6 +574,9 @@
                 break;
 
               case "select":
+                el.value = value;
+                break;
+
               case "textarea":
                 el.value = value;
             }
@@ -613,6 +605,8 @@
                 break;
 
               case "select":
+                return el.value;
+
               case "textarea":
                 return el.value;
             }
@@ -624,6 +618,8 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
+                    return "click";
+
                   case "radio":
                     return "click";
 
@@ -662,7 +658,7 @@
             for (i = 0; i < nodeList.length; i++) arr.push(nodeList[i]);
             return arr;
         };
-        DomUtils.removeParentButNotChildren = function(nodeToBeRemoved) {
+        DomUtils.removeParentBunNotChildren = function(nodeToBeRemoved) {
             for (;nodeToBeRemoved.firstChild; ) nodeToBeRemoved.parentNode.insertBefore(nodeToBeRemoved.firstChild, nodeToBeRemoved);
             nodeToBeRemoved.parentNode.removeChild(nodeToBeRemoved);
         };
@@ -881,18 +877,20 @@
      */
         MiscUtils.deepCopy = function(obj) {
             var out, i, len, _out, _i;
-            if (!obj) return null;
-            if ("[object Array]" === Object.prototype.toString.call(obj)) {
-                out = [], i = 0, len = obj.length;
-                for (;i < len; i++) out[i] = MiscUtils.deepCopy(obj[i]);
-                return out;
+            if (void 0 !== obj) {
+                if (null === obj) return null;
+                if ("[object Array]" === Object.prototype.toString.call(obj)) {
+                    out = [], i = 0, len = obj.length;
+                    for (;i < len; i++) out[i] = MiscUtils.deepCopy(obj[i]);
+                    return out;
+                }
+                if ("object" === (void 0 === obj ? "undefined" : _typeof(obj))) {
+                    _out = {};
+                    for (_i in obj) _out[_i] = MiscUtils.deepCopy(obj[_i]);
+                    return _out;
+                }
+                return obj;
             }
-            if ("object" === (void 0 === obj ? "undefined" : _typeof(obj))) {
-                _out = {};
-                for (_i in obj) _out[_i] = MiscUtils.deepCopy(obj[_i]);
-                return _out;
-            }
-            return obj;
         };
         /**
      * @param x
@@ -940,6 +938,7 @@
                 delete pageItem.componentProto;
             }
             this.routeNode.parentNode.replaceChild(pageItem.component.node, this.routeNode);
+            DirectiveEngine.runComponents(pageItem.component);
             this.routeNode = pageItem.component.node;
         };
         return Router;
@@ -1012,7 +1011,7 @@
             Component.digestAll();
         };
         Core.run = function() {
-            console.warn("core.run() is deprecated for now");
+            DirectiveEngine.runComponents();
         };
         return Core;
     }();
