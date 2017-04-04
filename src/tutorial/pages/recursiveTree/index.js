@@ -33,8 +33,7 @@ RF.registerComponent('node-item',{
     },
     external: {
         node:null
-    },
-    prp:-1
+    }
 });
 
 RF.applyBindings('#app',{

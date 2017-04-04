@@ -6,7 +6,7 @@
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
     }, ElementPrototype = "undefined" != typeof HTMLElement ? HTMLElement.prototype : Element.prototype;
     if (!ElementPrototype.remove) ElementPrototype.remove = function() {
-        this.parentNode.removeChild(this);
+        this.parentNode && this.parentNode.removeChild(this);
     };
     if (!Object.keys) Object.keys = function(obj) {
         var i, keys = [];
@@ -139,20 +139,21 @@
             this.node = node;
             this.modelView = modelView;
             this.watchers = [];
+            // this.id = MiscUtils.getUID();
+            // this.node.setAttribute('data-component-id',this.id);
             Component.instances.push(this);
         }
         Component.prototype.addChild = function(childComponent) {
             if (!this.children) this.children = [];
             this.children.push(childComponent);
         };
-        // updateModelView(modelView){ // todo need??
-        //     this.modelView = modelView;
-        //     if (this.children) {
-        //         this.children.forEach(c=>{
-        //             c.modelView = modelView;
-        //         });
-        //     }
-        // }
+        Component.prototype.updateModelView = function(modelView) {
+            // todo need??
+            this.modelView = modelView;
+            if (this.children) this.children.forEach(function(c) {
+                c.modelView = modelView;
+            });
+        };
         Component.prototype.addWatcher = function(expression, listenerFn) {
             var watcherFn = ExpressionEngine.getExpressionFn(expression);
             this.watchers.push({
@@ -175,7 +176,15 @@
         Component.prototype.run = function() {
             new DirectiveEngine(this).run();
         };
-        Component.prototype.destroy = function() {};
+        Component.prototype.destroy = function() {
+            // todo not implemented yet!
+            // remove watchers
+            // remove nodes
+            this.node.remove();
+            if (this.children) this.children.forEach(function(c) {
+                c.destroy();
+            });
+        };
         Component.digestAll = function() {
             Component.instances.forEach(function(cmp) {
                 cmp.digest();
@@ -194,20 +203,20 @@
             this.node = node;
             this.modelView = modelView;
         }
-        ComponentProto.prototype.applyProperties = function(target) {
-            var properties = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {}, opts = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {}, strict = opts.strict;
+        ComponentProto.prototype.applyProperties = function(componentName, target) {
+            var properties = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {}, opts = arguments.length > 3 && void 0 !== arguments[3] ? arguments[3] : {}, strict = opts.strict;
             Object.keys(properties).forEach(function(key) {
-                if (strict && !target.hasOwnProperty(key)) throw "can not apply non declared property " + key + " to component " + target.name;
+                if (strict && !target.hasOwnProperty(key)) throw "can not apply non declared property " + key + " to component " + componentName;
                 target[key] = properties[key];
             });
         };
         ComponentProto.prototype.runNewInstance = function(node, properties) {
             var instance, externalProperties = this.modelView.external, modelView = MiscUtils.deepCopy(this.modelView);
             delete modelView.external;
-            this.applyProperties(modelView, properties, {
+            externalProperties && this.applyProperties(this.name, modelView, externalProperties);
+            this.applyProperties(this.name, modelView, properties, {
                 strict: true
             });
-            externalProperties && this.applyProperties(modelView, externalProperties);
             instance = new Component(this.name, node, modelView);
             instance.run();
             return instance;
@@ -277,10 +286,8 @@
             return _this;
         }
         ScopedLoopContainer.prototype._destroyFragment = function(index) {
-            var removedFragment;
-            this.scopedDomFragments[index].node.remove();
-            removedFragment = this.scopedDomFragments.splice(index, 1)[0];
-            removedFragment.destroy();
+            this.scopedDomFragments[index];
+            this.scopedDomFragments.splice(index, 1)[0].destroy();
             this.lastFrafmentsLength--;
         };
         ScopedLoopContainer.prototype.run = function(eachItemName, indexName, iterableObjectName) {
@@ -317,6 +324,7 @@
                     _localModelView = _this3.scopedDomFragments[i].modelView;
                     _localModelView[_this3.eachItemName] = iterableItem;
                     if (_this3.indexName) _localModelView[_this3.indexName] = i;
+                    _this3.scopedDomFragments[i].updateModelView(_localModelView);
                     currNodeInIteration = _this3.scopedDomFragments[i].node;
                     _this3.scopedDomFragments[i].digest();
                 }
@@ -324,7 +332,7 @@
             if (this.lastFrafmentsLength > newArr.length) {
                 l = this.scopedDomFragments.length;
                 for (i = 0, max = this.lastFrafmentsLength - newArr.length; i < max; i++) this._destroyFragment(l - i - 1);
-                this.lastFrafmentsLength = this.scopedDomFragments.length;
+                this.lastFrafmentsLength;
             }
         };
         return ScopedLoopContainer;
@@ -386,10 +394,12 @@
             this._eachElementWithAttr("data-" + eventName, function(el, expression) {
                 var fn = ExpressionEngine.getExpressionFn(expression);
                 DomUtils.addEventListener(el, eventName, function(e) {
-                    e = e || window.e;
-                    e.preventDefault && e.preventDefault();
-                    e.stopPropagation && e.stopPropagation();
-                    e.cancelBubble = true;
+                    if ("keypress" != eventName) {
+                        e = e || window.e;
+                        e.preventDefault && e.preventDefault();
+                        e.stopPropagation && e.stopPropagation();
+                        e.cancelBubble = true;
+                    }
                     ExpressionEngine.runExpressionFn(fn, _this3.component);
                     Component.digestAll();
                 });
@@ -469,16 +479,40 @@
                 });
             });
         };
-        DirectiveEngine.prototype.run = function() {
+        DirectiveEngine.prototype.runComponents = function() {
             var _this10 = this;
+            ComponentProto.instances.forEach(function(componentProto) {
+                var componentNodes, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
+                if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLocaleLowerCase()) domEls.push(_this10.component.node);
+                componentNodes = [];
+                // todo need?
+                domEls.forEach(function(it) {
+                    var dataPropertiesAttr, dataProperties, component, componentNode = componentProto.node.cloneNode(true);
+                    componentNodes.push(componentNode);
+                    it.parentNode.insertBefore(componentNode, it);
+                    dataPropertiesAttr = it.getAttribute("data-properties");
+                    dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
+                    component = componentProto.runNewInstance(componentNode, dataProperties);
+                    component.parent = _this10.component;
+                    component.parent.addChild(component);
+                });
+                domEls.forEach(function(it) {
+                    console.log(it);
+                });
+            });
+        };
+        DirectiveEngine.prototype.run = function() {
+            var _this11 = this;
             this.runDirective_Value();
             this.runDirective_For();
+            this.runComponents();
             this.runTextNodes();
+            this.runDirective_Model();
+            // todo check event sequence in legacy browsers
             [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown" ].forEach(function(eventName) {
-                _this10.runDomEvent(eventName);
+                _this11.runDomEvent(eventName);
             });
             this.runDirective_Bind();
-            this.runDirective_Model();
             this.runDirective_Value();
             this.runDirective_Class();
             this.runDirective_Style();
@@ -613,7 +647,7 @@
             }
         };
         DomUtils.addEventListener = function(el, type, fn) {
-            if (el.addEventListener) el.addEventListener(type, fn); else el.attachEvent("on" + type, fn);
+            if (el.addEventListener) el.addEventListener(type, fn, true); else el.attachEvent("on" + type, fn, true);
         };
         DomUtils.setTextNodeValue = function(el, value) {
             if ("textContent" in el) el.textContent = value; else el.nodeValue = value;
@@ -628,9 +662,16 @@
             for (i = 0; i < nodeList.length; i++) arr.push(nodeList[i]);
             return arr;
         };
-        DomUtils.removeParentBunNotChildren = function(nodeToBeRemoved) {
+        DomUtils.removeParentButNotChildren = function(nodeToBeRemoved) {
             for (;nodeToBeRemoved.firstChild; ) nodeToBeRemoved.parentNode.insertBefore(nodeToBeRemoved.firstChild, nodeToBeRemoved);
             nodeToBeRemoved.parentNode.removeChild(nodeToBeRemoved);
+        };
+        DomUtils.getClosestElWithDataAttr = function(node, dataAttr) {
+            for (;node; ) {
+                if (node === document) return;
+                if (node.hasAttribute(dataAttr)) return node;
+                node = node.parentNode;
+            }
         };
         return DomUtils;
     }();
@@ -684,16 +725,18 @@
                 throw e;
             }
         };
+        ExpressionEngine.executeExpression = function(code, component) {
+            var fn = ExpressionEngine.getExpressionFn(code);
+            return ExpressionEngine.runExpressionFn(fn, component);
+        };
         /**
      * expression = 'user.name' object[field] = value
      */
         ExpressionEngine.setValueToContext = function(context, expression, value) {
-            var code, fn, quotes = "";
-            if ("string" == typeof value) quotes = '"';
-            code = Lexer.convertExpression(expression, "context.{expr}") + "=" + quotes + value + quotes;
+            var fn, code = Lexer.convertExpression(expression, "context.{expr}") + "=value";
             try {
-                fn = new Function("context", code);
-                fn(context);
+                fn = new Function("context", "value", code);
+                fn(context, value);
             } catch (e) {
                 console.error("setting value error");
                 console.error("can not evaluate expression:" + expression);
@@ -750,6 +793,7 @@
         SEMICOLON: ";"
     };
     Token.KEY_WORDS = [ "in", "of" ];
+    // todo null undefined ...
     Token.ALL_SPECIAL_SYMBOLS = Object.keys(Token.SYMBOL).map(function(key) {
         return Token.SYMBOL[key];
     });
@@ -837,6 +881,7 @@
      */
         MiscUtils.deepCopy = function(obj) {
             var out, i, len, _out, _i;
+            if (!obj) return null;
             if ("[object Array]" === Object.prototype.toString.call(obj)) {
                 out = [], i = 0, len = obj.length;
                 for (;i < len; i++) out[i] = MiscUtils.deepCopy(obj[i]);
@@ -859,6 +904,11 @@
             return x && y && "object" === (void 0 === x ? "undefined" : _typeof(x)) && "object" === (void 0 === y ? "undefined" : _typeof(y)) ? Object.keys(x).length === Object.keys(y).length && Object.keys(x).reduce(function(isEqual, key) {
                 return isEqual && MiscUtils.deepEqual(x[key], y[key]);
             }, true) : x === y;
+        };
+        MiscUtils.camelToSnake = function(str) {
+            return str.replace(/([A-Z])/g, function($1) {
+                return "-" + $1.toLowerCase();
+            });
         };
         return MiscUtils;
     }();
@@ -908,7 +958,9 @@
         }
         TemplateLoader._getNodeFromDom = function(templateObj) {
             if (!templateObj.value) throw "template.value must be specified";
-            if (!document.getElementById(templateObj.value)) throw "can not fing dom element with id " + templateObj.value;
+            var node = document.getElementById(templateObj.value);
+            if (!node) throw "can not fing dom element with id " + templateObj.value;
+            return node;
         };
         TemplateLoader._getNodeFromString = function(templateObj) {
             if (!templateObj.value) throw "template string not provided";
@@ -940,7 +992,10 @@
             _classCallCheck(this, Core);
         }
         Core.registerComponent = function(name, modelView) {
-            var node, componentProto, tmpl = TemplateLoader.getNode(modelView.template), domTemplate = tmpl.innerHTML;
+            var tmpl, domTemplate, node, componentProto;
+            name = MiscUtils.camelToSnake(name);
+            tmpl = TemplateLoader.getNode(modelView.template);
+            domTemplate = tmpl.innerHTML;
             tmpl.remove();
             node = document.createElement("div");
             node.innerHTML = domTemplate;
@@ -957,25 +1012,11 @@
             Component.digestAll();
         };
         Core.run = function() {
-            ComponentProto.instances.forEach(function(componentProto) {
-                var domEls = DomUtils.nodeListToArray(document.getElementsByTagName(componentProto.name)), componentNodes = [];
-                domEls.forEach(function(it) {
-                    var dataProperties, componentNode = componentProto.node.cloneNode(true);
-                    componentNodes.push(componentNode);
-                    it.parentNode.insertBefore(componentNode, it);
-                    dataProperties = it.getAttribute("data-properties") || "{}";
-                    dataProperties = ExpressionEngine.getObjectFromString(dataProperties);
-                    componentProto.runNewInstance(componentNode, dataProperties);
-                    it.parentNode.removeChild(it);
-                });
-                componentNodes.forEach(function(node) {
-                    DomUtils.removeParentBunNotChildren(node);
-                });
-            });
+            console.warn("core.run() is deprecated for now");
         };
         return Core;
     }();
-    Core.version = "0.2.1";
+    Core.version = "0.2.2";
     window.RF = Core;
     window.RF.Router = new Router();
 }();

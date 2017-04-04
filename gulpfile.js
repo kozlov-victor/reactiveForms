@@ -48,7 +48,7 @@ gulp.task('engine', ()=> {
         .pipe(uglify({
             output: { // http://lisperator.net/uglifyjs/codegen
                 beautify: debug,
-                comments: debug ? true : /^!|\b(copyright|license)\b|@(preserve|license|cc_on)\b/i,
+                comments: debug ? true : /^!|\b(copyright|license)\b|@(preserve|license|cc_on)\b/i
             },
             compress: { // http://lisperator.net/uglifyjs/compress, http://davidwalsh.name/compress-uglify
                 sequences: !debug,
@@ -56,7 +56,7 @@ gulp.task('engine', ()=> {
                 conditionals: !debug,
                 hoist_funs: false,
                 hoist_vars: debug,
-                warnings: debug,
+                warnings: debug
             },
             mangle: !debug,
             outSourceMap: true,

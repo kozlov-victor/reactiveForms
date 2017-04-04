@@ -12,7 +12,6 @@ class ScopedLoopContainer extends Component {
 
     _destroyFragment(index){
         let currFragment = this.scopedDomFragments[index];
-        currFragment.node.remove();
         let removedFragment = this.scopedDomFragments.splice(index,1)[0];
         removedFragment.destroy();
         this.lastFrafmentsLength--;
@@ -59,6 +58,7 @@ class ScopedLoopContainer extends Component {
                 let localModelView = this.scopedDomFragments[i].modelView;
                 localModelView[this.eachItemName] = iterableItem;
                 if (this.indexName) localModelView[this.indexName] = i;
+                this.scopedDomFragments[i].updateModelView(localModelView);
 
                 currNodeInIteration = this.scopedDomFragments[i].node;
                 this.scopedDomFragments[i].digest();
@@ -71,7 +71,7 @@ class ScopedLoopContainer extends Component {
             for (let i=0,max=this.lastFrafmentsLength-newArr.length;i<max;i++) {
                 this._destroyFragment(l-i-1);
             }
-            this.lastFrafmentsLength=this.scopedDomFragments.length;
+            this.lastFrafmentsLength
         }
 
     }

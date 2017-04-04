@@ -180,31 +180,42 @@ class DirectiveEngine {
         });
     };
 
-    static runComponents(rootComponent){
+    runComponents(){
         ComponentProto.instances.forEach(componentProto=>{
-            let domEls =  DomUtils.nodeListToArray(document.getElementsByTagName(componentProto.name));
-            let componentNodes = [];
+            let domEls =  DomUtils.nodeListToArray(this.component.node.getElementsByTagName(componentProto.name));
+            if (this.component.node.tagName.toLowerCase()==componentProto.name.toLocaleLowerCase())
+                domEls.push(this.component.node);
+            let componentNodes = []; // todo need?
             domEls.forEach(it=>{
+                //if (it.getAttribute('data-_processed')) return;
+                //it.setAttribute('data-_processed','1');
                 let componentNode = componentProto.node.cloneNode(true);
                 componentNodes.push(componentNode);
                 it.parentNode.insertBefore(componentNode,it);
                 let dataPropertiesAttr = it.getAttribute('data-properties');
                 let dataProperties = dataPropertiesAttr?
-                    ExpressionEngine.executeExpression(dataPropertiesAttr,rootComponent):{};
-                componentProto.runNewInstance(componentNode,dataProperties);
-                it.parentNode.removeChild(it);
+                    ExpressionEngine.executeExpression(dataPropertiesAttr,this.component):{};
+                let component = componentProto.runNewInstance(componentNode,dataProperties);
+                component.parent = this.component;
+                component.parent.addChild(component);
+                //it.parentNode.removeChild(it);
             });
-            componentNodes.forEach((node)=>{
-                DomUtils.removeParentBunNotChildren(node);
+            domEls.forEach(it=>{
+                console.log(it);
+                //it.remove();
             });
+            //componentNodes.forEach((node)=>{
+            //    DomUtils.removeParentButNotChildren(node);
+            //});
         });
     }
 
     run(){
         this.runDirective_Value();
         this.runDirective_For();
+        this.runComponents();
         this.runTextNodes();
-        this.runDirective_Model(); // todo проверить, не  нарушилась ли последовательность событий
+        this.runDirective_Model(); // todo check event sequence in legacy browsers
         [   'click','blur','focus',
             'submit','change',
             'keypress','keyup','keydown'

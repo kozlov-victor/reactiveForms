@@ -26,7 +26,7 @@ class Core{
     }
 
     static run(){
-        DirectiveEngine.runComponents();
+        console.warn('core.run() is deprecated for now');
     }
 
 }

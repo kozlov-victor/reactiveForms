@@ -19,14 +19,14 @@ class Component {
         this.children.push(childComponent);
     }
 
-    // updateModelView(modelView){ // todo need??
-    //     this.modelView = modelView;
-    //     if (this.children) {
-    //         this.children.forEach(c=>{
-    //             c.modelView = modelView;
-    //         });
-    //     }
-    // }
+     updateModelView(modelView){ // todo need??
+         this.modelView = modelView;
+         if (this.children) {
+             this.children.forEach(c=>{
+                 c.modelView = modelView;
+             });
+         }
+     }
 
     addWatcher(expression, listenerFn) {
         let watcherFn = ExpressionEngine.getExpressionFn(expression);
@@ -49,7 +49,7 @@ class Component {
             }
             watcher.last = newValue;
         });
-        // if (this.children) {
+        // if (this.children) { // todo need??
         //     this.children.forEach(c=>{
         //         c.digest();
         //     });
@@ -62,6 +62,14 @@ class Component {
 
     destroy(){
         // todo not implemented yet!
+        // remove watchers
+        // remove nodes
+        this.node.remove();
+         if (this.children) {
+             this.children.forEach(c=>{
+                 c.destroy();
+             });
+         }
     }
 
     static digestAll() {

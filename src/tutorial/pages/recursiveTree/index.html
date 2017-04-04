@@ -1,14 +1,13 @@
 
 <div id="nodeItemTmpl">
-    nodeItemTmpl {{prp}}
+    {{node.name}}
 </div>
 
 <div id="app">
 
     <node-item
-        data-for="i in [1,2,3]"
-        data-properties="{prp:i}">
-        {{i}}
+        data-for="node in app.nodes"
+        data-properties="{node:node}">
     </node-item>
 
 </div>

@@ -174,7 +174,7 @@ class DomUtils {
         return arr;
     }
 
-    static removeParentBunNotChildren(nodeToBeRemoved){
+    static removeParentButNotChildren(nodeToBeRemoved){
         while (nodeToBeRemoved.firstChild) {
             nodeToBeRemoved.parentNode.insertBefore(nodeToBeRemoved.firstChild,
                 nodeToBeRemoved);
