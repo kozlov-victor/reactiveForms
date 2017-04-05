@@ -55,7 +55,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-'+eventName,(el,expression)=>{
             let fn = ExpressionEngine.getExpressionFn(expression);
             DomUtils.addEventListener(el,eventName,e=>{
-                if (eventName!='keypress') {
+                if (eventName!='keypress') { // todo need?
                     e = e || window.e;
                     e.preventDefault && e.preventDefault();
                     e.stopPropagation && e.stopPropagation();
@@ -198,14 +198,13 @@ class DirectiveEngine {
                 let component = componentProto.runNewInstance(componentNode,dataProperties);
                 component.parent = this.component;
                 component.parent.addChild(component);
-                //it.parentNode.removeChild(it);
             });
             domEls.forEach(it=>{
                 //it.remove();
             });
-            //componentNodes.forEach((node)=>{
-            //    DomUtils.removeParentButNotChildren(node);
-            //});
+            componentNodes.forEach((node)=>{
+                DomUtils.removeParentButNotChildren(node);
+            });
         });
     }
 

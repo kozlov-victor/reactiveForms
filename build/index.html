@@ -759,12 +759,12 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
         Текущий фрукт<span class="token punctuation">:</span> {{currentFruit<span class="token punctuation">.</span>name}}
     <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
     <span class="token operator">&lt;</span><span class="token keyword">select</span> data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"currentFruit.name"</span><span class="token operator">></span>
-        <span class="token operator">&lt;</span>option data<span class="token operator">-</span>value<span class="token operator">=</span><span class="token string">"item.name"</span> data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"item in fruits"</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>option data<span class="token operator">-</span>value<span class="token operator">=</span><span class="token string">"item.name"</span> data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"item,index in fruits"</span><span class="token operator">></span>
             {{item<span class="token punctuation">.</span>name}}
         <span class="token operator">&lt;</span><span class="token operator">/</span>option<span class="token operator">></span>
     <span class="token operator">&lt;</span><span class="token operator">/</span><span class="token keyword">select</span><span class="token operator">></span>
     <span class="token operator">&lt;</span>table<span class="token operator">></span>
-        <span class="token operator">&lt;</span>tr class<span class="token operator">=</span><span class="token string">"pointer"</span> title<span class="token operator">=</span><span class="token string">"применить"</span> data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"setCurrentFruit(index)"</span> data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"item in fruits"</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>tr class<span class="token operator">=</span><span class="token string">"pointer"</span> title<span class="token operator">=</span><span class="token string">"применить"</span> data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"setCurrentFruit(index)"</span> data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"item,index in fruits"</span><span class="token operator">></span>
             <span class="token operator">&lt;</span>td<span class="token operator">></span>{{item<span class="token punctuation">.</span>name}}<span class="token operator">&lt;</span><span class="token operator">/</span>td<span class="token operator">></span>
             <span class="token operator">&lt;</span>td<span class="token operator">></span><span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"remove(index)"</span><span class="token operator">></span><span class="token operator">-</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>td<span class="token operator">></span>
         <span class="token operator">&lt;</span><span class="token operator">/</span>tr<span class="token operator">></span>
@@ -975,18 +975,18 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
             
 <span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"nodeItemTmpl"</span><span class="token operator">></span>
     {{node<span class="token punctuation">.</span>name}}
-    <span class="token operator">&lt;</span>node<span class="token operator">-</span>item
-            data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"node in node.children"</span>
-            data<span class="token operator">-</span>properties<span class="token operator">=</span><span class="token string">"{node:node}"</span><span class="token operator">></span>
-    <span class="token operator">&lt;</span><span class="token operator">/</span>node<span class="token operator">-</span>item<span class="token operator">></span>
+    <span class="token operator">&lt;</span>ul data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"node in node.children"</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>node<span class="token operator">-</span>item data<span class="token operator">-</span>properties<span class="token operator">=</span><span class="token string">"{node:node}"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>node<span class="token operator">-</span>item<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>ul<span class="token operator">></span>
 <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
 
 <span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"app"</span><span class="token operator">></span>
 
-    <span class="token operator">&lt;</span>node<span class="token operator">-</span>item
-        data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"node in app.nodes"</span>
-        data<span class="token operator">-</span>properties<span class="token operator">=</span><span class="token string">"{node:node}"</span><span class="token operator">></span>
-    <span class="token operator">&lt;</span><span class="token operator">/</span>node<span class="token operator">-</span>item<span class="token operator">></span>
+    <span class="token operator">&lt;</span>ul<span class="token operator">></span>
+        <span class="token operator">&lt;</span>li data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"node in app.nodes"</span><span class="token operator">></span>
+            <span class="token operator">&lt;</span>node<span class="token operator">-</span>item data<span class="token operator">-</span>properties<span class="token operator">=</span><span class="token string">"{node:node}"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>node<span class="token operator">-</span>item<span class="token operator">></span>
+        <span class="token operator">&lt;</span><span class="token operator">/</span>li<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>ul<span class="token operator">></span>
 
 <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
 

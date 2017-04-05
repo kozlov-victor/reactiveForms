@@ -121,7 +121,6 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
-        self;
     }();
     _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
@@ -312,39 +311,20 @@
             var l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [], currNodeInIteration = (arguments[1], 
             this.anchor);
             newArr.forEach(function(iterableItem, i) {
-                var localModelView, possibleComponentProto, node, scopedDomFragment, dataPropertiesAttr, dataProperties, _node, _scopedDomFragment, _localModelView;
+                var localModelView, node, scopedDomFragment, _localModelView;
                 if (!_this3.scopedDomFragments[i]) {
                     localModelView = {};
                     localModelView[_this3.eachItemName] = iterableItem;
                     if (_this3.indexName) localModelView[_this3.indexName] = i;
-                    possibleComponentProto = ComponentProto.getByName(_this3.node.tagName.toLowerCase());
-                    if (possibleComponentProto) {
-                        node = possibleComponentProto.node.cloneNode(true);
-                        scopedDomFragment = new ScopedDomFragment(node, localModelView);
-                        dataPropertiesAttr = _this3.node.getAttribute("data-properties");
-                        dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, scopedDomFragment) : {};
-                        Object.keys(dataProperties).forEach(function(key) {
-                            localModelView[key] = dataProperties[key];
-                        });
-                        currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
-                        scopedDomFragment.parent = _this3.parent;
-                        scopedDomFragment.parent.addChild(scopedDomFragment);
-                        scopedDomFragment.node.setAttribute("data-_processed", "1");
-                        new DirectiveEngine(scopedDomFragment).run();
-                        currNodeInIteration = node;
-                        _this3.scopedDomFragments.push(scopedDomFragment);
-                        _this3.lastFrafmentsLength++;
-                    } else {
-                        _node = _this3.node.cloneNode(true);
-                        _scopedDomFragment = new ScopedDomFragment(_node, localModelView);
-                        currNodeInIteration.parentNode.insertBefore(_node, currNodeInIteration.nextSibling);
-                        _scopedDomFragment.parent = _this3.parent;
-                        _scopedDomFragment.parent.addChild(_scopedDomFragment);
-                        new DirectiveEngine(_scopedDomFragment).run();
-                        currNodeInIteration = _node;
-                        _this3.scopedDomFragments.push(_scopedDomFragment);
-                        _this3.lastFrafmentsLength++;
-                    }
+                    node = _this3.node.cloneNode(true);
+                    scopedDomFragment = new ScopedDomFragment(node, localModelView);
+                    currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
+                    scopedDomFragment.parent = _this3.parent;
+                    scopedDomFragment.parent.addChild(scopedDomFragment);
+                    new DirectiveEngine(scopedDomFragment).run();
+                    currNodeInIteration = node;
+                    _this3.scopedDomFragments.push(scopedDomFragment);
+                    _this3.lastFrafmentsLength++;
                 } else {
                     _localModelView = _this3.scopedDomFragments[i].modelView;
                     _localModelView[_this3.eachItemName] = iterableItem;
@@ -357,7 +337,6 @@
             if (this.lastFrafmentsLength > newArr.length) {
                 l = this.scopedDomFragments.length;
                 for (i = 0, max = this.lastFrafmentsLength - newArr.length; i < max; i++) this._destroyFragment(l - i - 1);
-                this.lastFrafmentsLength;
             }
         };
         return ScopedLoopContainer;
@@ -420,6 +399,7 @@
                 var fn = ExpressionEngine.getExpressionFn(expression);
                 DomUtils.addEventListener(el, eventName, function(e) {
                     if ("keypress" != eventName) {
+                        // todo need?
                         e = e || window.e;
                         e.preventDefault && e.preventDefault();
                         e.stopPropagation && e.stopPropagation();
@@ -524,6 +504,9 @@
                     }
                 });
                 domEls.forEach(function(it) {});
+                componentNodes.forEach(function(node) {
+                    DomUtils.removeParentButNotChildren(node);
+                });
             });
         };
         DirectiveEngine.prototype.run = function() {
@@ -610,9 +593,6 @@
                 break;
 
               case "select":
-                el.value = value;
-                break;
-
               case "textarea":
                 el.value = value;
             }
@@ -641,8 +621,6 @@
                 break;
 
               case "select":
-                return el.value;
-
               case "textarea":
                 return el.value;
             }
@@ -654,8 +632,6 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
-                    return "click";
-
                   case "radio":
                     return "click";
 
@@ -679,7 +655,7 @@
             }
         };
         DomUtils.addEventListener = function(el, type, fn) {
-            if (el.addEventListener) el.addEventListener(type, fn, true); else el.attachEvent("on" + type, fn, true);
+            if (el.addEventListener) el.addEventListener(type, fn); else el.attachEvent("on" + type, fn, true);
         };
         DomUtils.setTextNodeValue = function(el, value) {
             if ("textContent" in el) el.textContent = value; else el.nodeValue = value;

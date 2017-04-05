@@ -142,7 +142,7 @@ class DomUtils {
     }
 
     static addEventListener(el,type,fn){
-        if (el.addEventListener) el.addEventListener(type,fn,true);
+        if (el.addEventListener) el.addEventListener(type,fn);
         else el.attachEvent('on'+type,fn,true);
     }
 

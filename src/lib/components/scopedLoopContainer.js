@@ -1,5 +1,4 @@
 
-
 class ScopedLoopContainer extends Component {
 
     constructor(node,modelView){
@@ -35,7 +34,6 @@ class ScopedLoopContainer extends Component {
     }
 
     _processIterations(newArr = [],oldArr){
-
         let currNodeInIteration = this.anchor;
         newArr.forEach((iterableItem,i)=>{
 
@@ -45,38 +43,17 @@ class ScopedLoopContainer extends Component {
                 localModelView[this.eachItemName] = iterableItem;
                 if (this.indexName) localModelView[this.indexName] = i;
 
-                let possibleComponentProto = ComponentProto.getByName(this.node.tagName.toLowerCase());
-                if (possibleComponentProto) {
-                    let node = possibleComponentProto.node.cloneNode(true);
-                    let scopedDomFragment = new ScopedDomFragment(node,localModelView);
-                    let dataPropertiesAttr = this.node.getAttribute('data-properties');
-                    let dataProperties = dataPropertiesAttr?
-                        ExpressionEngine.executeExpression(dataPropertiesAttr,scopedDomFragment):{};
-                    Object.keys(dataProperties).forEach(key=>{
-                        localModelView[key] = dataProperties[key];
-                    });
+                let node = this.node.cloneNode(true);
+                let scopedDomFragment = new ScopedDomFragment(node,localModelView);
+                currNodeInIteration.parentNode.insertBefore(node,currNodeInIteration.nextSibling);
+                scopedDomFragment.parent = this.parent;
+                scopedDomFragment.parent.addChild(scopedDomFragment);
 
-                    currNodeInIteration.parentNode.insertBefore(node,currNodeInIteration.nextSibling);
-                    scopedDomFragment.parent = this.parent;
-                    scopedDomFragment.parent.addChild(scopedDomFragment);
-                    scopedDomFragment.node.setAttribute('data-_processed','1');
-                    new DirectiveEngine(scopedDomFragment).run();
-                    currNodeInIteration = node;
-                    this.scopedDomFragments.push(scopedDomFragment);
-                    this.lastFrafmentsLength++;
+                new DirectiveEngine(scopedDomFragment).run();
+                currNodeInIteration = node;
+                this.scopedDomFragments.push(scopedDomFragment);
+                this.lastFrafmentsLength++;
 
-                } else {
-
-                    let node = this.node.cloneNode(true);
-                    let scopedDomFragment = new ScopedDomFragment(node,localModelView);
-                    currNodeInIteration.parentNode.insertBefore(node,currNodeInIteration.nextSibling);
-                    scopedDomFragment.parent = this.parent;
-                    scopedDomFragment.parent.addChild(scopedDomFragment);
-                    new DirectiveEngine(scopedDomFragment).run();
-                    currNodeInIteration = node;
-                    this.scopedDomFragments.push(scopedDomFragment);
-                    this.lastFrafmentsLength++;
-                }
             } else {
                 let localModelView = this.scopedDomFragments[i].modelView;
                 localModelView[this.eachItemName] = iterableItem;
@@ -94,7 +71,6 @@ class ScopedLoopContainer extends Component {
             for (let i=0,max=this.lastFrafmentsLength-newArr.length;i<max;i++) {
                 this._destroyFragment(l-i-1);
             }
-            this.lastFrafmentsLength
         }
 
     }
