@@ -121,6 +121,7 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
+        self;
     }();
     _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
@@ -291,7 +292,6 @@
             return _this;
         }
         ScopedLoopContainer.prototype._destroyFragment = function(index) {
-            this.scopedDomFragments[index];
             this.scopedDomFragments.splice(index, 1)[0].destroy();
             this.lastFrafmentsLength--;
         };
@@ -487,7 +487,13 @@
         DirectiveEngine.prototype.runComponents = function() {
             var _this10 = this;
             ComponentProto.instances.forEach(function(componentProto) {
-                var domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name)), componentNodes = [];
+                var componentNodes, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
+                if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLocaleLowerCase()) {
+                    console.error("\n                   Can not use data-for attribute at component directly. Use this directive at parent node");
+                    console.error("component node:", _this10.component.node);
+                    throw "Can not use data-for attribute at component";
+                }
+                componentNodes = [];
                 // todo need?
                 domEls.forEach(function(it) {
                     var componentNode, dataPropertiesAttr, dataProperties, component;
@@ -503,7 +509,6 @@
                         component.parent.addChild(component);
                     }
                 });
-                domEls.forEach(function(it) {});
                 componentNodes.forEach(function(node) {
                     DomUtils.removeParentButNotChildren(node);
                 });
@@ -593,6 +598,9 @@
                 break;
 
               case "select":
+                el.value = value;
+                break;
+
               case "textarea":
                 el.value = value;
             }
@@ -621,6 +629,8 @@
                 break;
 
               case "select":
+                return el.value;
+
               case "textarea":
                 return el.value;
             }
@@ -632,6 +642,8 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
+                    return "click";
+
                   case "radio":
                     return "click";
 

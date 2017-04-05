@@ -10,7 +10,6 @@ class ScopedLoopContainer extends Component {
     }
 
     _destroyFragment(index){
-        let currFragment = this.scopedDomFragments[index];
         let removedFragment = this.scopedDomFragments.splice(index,1)[0];
         removedFragment.destroy();
         this.lastFrafmentsLength--;
@@ -34,6 +33,7 @@ class ScopedLoopContainer extends Component {
     }
 
     _processIterations(newArr = [],oldArr){
+
         let currNodeInIteration = this.anchor;
         newArr.forEach((iterableItem,i)=>{
 
