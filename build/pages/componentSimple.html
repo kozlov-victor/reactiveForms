@@ -46,8 +46,11 @@ button:active,input:active {
         <button data-click="dec()">-</button>
     </div>
 </div>
-<counter-component></counter-component>
-<counter-component></counter-component>
+<div id="app">
+    <counter-component></counter-component>
+    <counter-component></counter-component>
+</div>
+
 
 
     <script>
@@ -65,6 +68,7 @@ RF.registerComponent('counter-component',{
         this.counter--;
     }
 });
+RF.applyBindings('#app');
 RF.run();
     </script>
 </body>

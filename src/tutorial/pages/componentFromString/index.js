@@ -18,4 +18,5 @@ RF.registerComponent('counter-component',{
         this.counter--;
     }
 });
+RF.applyBindings('#app');
 RF.run();

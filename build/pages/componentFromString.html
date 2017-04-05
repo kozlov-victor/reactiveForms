@@ -39,8 +39,11 @@ button:active,input:active {
         border: 1px solid black;
     }
 </style>
-<counter-component></counter-component>
-<counter-component></counter-component>
+<div id="app">
+    <counter-component></counter-component>
+    <counter-component></counter-component>
+</div>
+
 
 
     <script>
@@ -64,6 +67,7 @@ RF.registerComponent('counter-component',{
         this.counter--;
     }
 });
+RF.applyBindings('#app');
 RF.run();
     </script>
 </body>
