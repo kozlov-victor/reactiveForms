@@ -12,7 +12,7 @@
             margin: 5px;
         }
         .success {
-            background-color: #829066;
+            background-color: #c4b7ec;
         }
         .error {
             background-color: #d1232f;
@@ -86,14 +86,14 @@
             Lexer.convertExpression("error.isFatal==false;","scope.{expr}"),
             "scope.error.isFatal==false;"
         );
-//        assertEqual( // todo implement
-//            Lexer.convertExpression("object.field[0].value","scope.{expr}"),
-//            "scope.object.field[0].value"
-//        );
-//        assertEqual( // todo implement
-//            Lexer.convertExpression("object.field = null","getVal('{expr}')"),
-//            "scope.object.field = null"
-//        );
+        assertEqual(
+            Lexer.convertExpression("object.field[0].value","scope.{expr}"),
+            "scope.object.field[0].value"
+        );
+        assertEqual(
+            Lexer.convertExpression("object.field   =null","scope.{expr}"), // tabs before =
+            "scope.object.field=null"
+        );
         assertEqual(
             Lexer.convertExpression('app.removeInternal(i,j)','scope.{expr}'),
             "scope.app.removeInternal(scope.i,scope.j)"

@@ -1,6 +1,4 @@
 
-// todo resolve expression error at app.task.taskCases[0].text
-
 class Token {
     constructor(type,val){
         this.tokenType = type;
@@ -32,7 +30,7 @@ Token.SYMBOL = {
     SEMICOLON:';'
 };
 
-Token.KEY_WORDS = ['in','of']; // todo null undefined ...
+Token.KEY_WORDS = ['in','of','null','undefined'];
 
 Token.ALL_SPECIAL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});
 
@@ -110,11 +108,13 @@ class Lexer {
                 let next = tokens[i+1];
                 if (next && (next.tokenValue == Token.SYMBOL.COLON))
                     t.tokenType = Token.TYPE.OBJECT_KEY;
+                if (t.tokenValue && t.tokenValue.startsWith('.'))
+                    t.tokenType = Token.TYPE.STRING; // resolve expression error at app.task.taskCases[0].text
             }
 
         });
         if (!isEndWithSemicolon) tokens.pop();
-        //console.log(JSON.stringify(tokens));
+        console.log(JSON.stringify(tokens));
         return tokens;
     }
 

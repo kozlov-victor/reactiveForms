@@ -13,13 +13,13 @@
             margin: 5px;
         }
         .success {
-            background-color: #829066;
+            background-color: #c4b7ec;
         }
         .error {
             background-color: #d1232f;
         }
     </style>
-    <script type="text/ecmascript-6">
+    <script>
         let toStr = (a)=>{
             if (typeof a == 'object') return JSON.stringify(a);
             return a.toString();
@@ -66,10 +66,14 @@
         exec("['red','green','blue']",{}),
         ['red','green','blue']
     );
-//    assertEqual( // todo
-//        exec("['red','green','blue'].length",{}),
-//        ['red','green','blue'].length
-//    );
+    assertEqual(
+        exec("['red','green','blue'].length",{}),
+        ['red','green','blue'].length
+    );
+    assertEqual(
+        exec("[{value:'value42'}][0].value",{}),
+        'value42'
+    );
     assertEqual(
         exec("invokeFn()",{invokeFn: function(){return 42}}),
         42
@@ -89,6 +93,15 @@
         }),
         {var1:1,var2:41}
     );
+    assertEqual( // todo "object.field = null"
+        exec("user.name = null",{
+            user: {
+                name: 'userName'
+            }
+        }),
+        null
+    );
+
 </script>
 </body>
 </html>
