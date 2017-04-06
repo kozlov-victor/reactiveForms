@@ -114,7 +114,7 @@ class Lexer {
 
         });
         if (!isEndWithSemicolon) tokens.pop();
-        console.log(JSON.stringify(tokens));
+        //console.log(JSON.stringify(tokens));
         return tokens;
     }
 

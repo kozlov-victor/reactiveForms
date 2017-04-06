@@ -60,6 +60,9 @@
     if (!String.prototype.trim) String.prototype.trim = function() {
         return this.replace(/^\s+|\s+$/g, "");
     };
+    if (!String.prototype.startsWith) String.prototype.startsWith = function(str) {
+        return !this.indexOf(str);
+    };
     if (!Object.create) Object.create = function(o, props) {
         function F() {}
         F.prototype = o;
@@ -489,7 +492,7 @@
             ComponentProto.instances.forEach(function(componentProto) {
                 var componentNodes, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
                 if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLocaleLowerCase()) {
-                    console.error("\n                   Can not use data-for attribute at component directly. Use this directive at parent node");
+                    console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
                     console.error("component node:", _this10.component.node);
                     throw "Can not use data-for attribute at component";
                 }
@@ -784,7 +787,6 @@
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
-    // todo resolve expression error at app.task.taskCases[0].text
     Token = function Token(type, val) {
         _classCallCheck(this, Token);
         this.tokenType = type;
@@ -812,8 +814,7 @@
         EXCLAMATION: "!",
         SEMICOLON: ";"
     };
-    Token.KEY_WORDS = [ "in", "of" ];
-    // todo null undefined ...
+    Token.KEY_WORDS = [ "in", "of", "null", "undefined" ];
     Token.ALL_SPECIAL_SYMBOLS = Object.keys(Token.SYMBOL).map(function(key) {
         return Token.SYMBOL[key];
     });
@@ -867,6 +868,7 @@
                 if (t && t.tokenType == Token.TYPE.VARIABLE) {
                     var next = tokens[i + 1];
                     if (next && next.tokenValue == Token.SYMBOL.COLON) t.tokenType = Token.TYPE.OBJECT_KEY;
+                    if (t.tokenValue && t.tokenValue.startsWith(".")) t.tokenType = Token.TYPE.STRING;
                 }
             });
             if (!isEndWithSemicolon) tokens.pop();
