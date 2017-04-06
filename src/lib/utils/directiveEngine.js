@@ -55,10 +55,10 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-'+eventName,(el,expression)=>{
             let fn = ExpressionEngine.getExpressionFn(expression);
             DomUtils.addEventListener(el,eventName,e=>{
-                if (eventName!='keypress') { // todo need?
+                if (['keypress','keydown'].indexOf(eventName)==-1) { // todo need?
                     e = e || window.e;
-                    e.preventDefault && e.preventDefault();
-                    e.stopPropagation && e.stopPropagation();
+                    e.preventDefault();
+                    e.stopPropagation();
                     e.cancelBubble = true;
                 }
                 ExpressionEngine.runExpressionFn(fn,this.component);
@@ -215,7 +215,8 @@ class DirectiveEngine {
         this.runComponents();
         this.runTextNodes();
         this.runDirective_Model(); // todo check event sequence in legacy browsers
-        [   'click','blur','focus',
+        [
+            'click','blur','focus',
             'submit','change',
             'keypress','keyup','keydown'
 

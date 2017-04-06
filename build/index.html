@@ -218,6 +218,116 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
     </section>
 </li>
 <li>
+    <h3>События браузера</h3>
+    <section>
+        <div data-html>
+            
+<span class="token operator">&lt;</span>form id<span class="token operator">=</span><span class="token string">"bind_change"</span><span class="token operator">></span>
+    change<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"app.model"</span> data<span class="token operator">-</span>change<span class="token operator">=</span><span class="token string">"modelToResult()"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>div<span class="token operator">></span>
+        {{app<span class="token punctuation">.</span>result}}
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>form<span class="token operator">></span>
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>form id<span class="token operator">=</span><span class="token string">"bind_click"</span><span class="token operator">></span>
+    click<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"app.model"</span> data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"modelToResult()"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>div<span class="token operator">></span>
+        {{app<span class="token punctuation">.</span>result}}
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>form<span class="token operator">></span>
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>form id<span class="token operator">=</span><span class="token string">"bind_blur"</span><span class="token operator">></span>
+    blur<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"app.model"</span> data<span class="token operator">-</span>blur<span class="token operator">=</span><span class="token string">"modelToResult()"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>div<span class="token operator">></span>
+        {{app<span class="token punctuation">.</span>result}}
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>form<span class="token operator">></span>
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>form id<span class="token operator">=</span><span class="token string">"bind_focus"</span><span class="token operator">></span>
+    focus<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"app.model"</span> data<span class="token operator">-</span>focus<span class="token operator">=</span><span class="token string">"modelToResult()"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>div<span class="token operator">></span>
+        {{app<span class="token punctuation">.</span>result}}
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>form<span class="token operator">></span>
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>form data<span class="token operator">-</span>submit<span class="token operator">=</span><span class="token string">"modelToResult()"</span> id<span class="token operator">=</span><span class="token string">"bind_submit"</span><span class="token operator">></span>
+    submit<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"app.model"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>div<span class="token operator">></span>
+        {{app<span class="token punctuation">.</span>result}}
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+    <span class="token operator">&lt;</span>input type<span class="token operator">=</span><span class="token string">"submit"</span> value<span class="token operator">=</span><span class="token string">"submit"</span><span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>form<span class="token operator">></span>
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>form id<span class="token operator">=</span><span class="token string">"bind_keypress"</span><span class="token operator">></span>
+    keypress<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"app.model"</span> data<span class="token operator">-</span>keypress<span class="token operator">=</span><span class="token string">"modelToResult()"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>div<span class="token operator">></span>
+        {{app<span class="token punctuation">.</span>result}}
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>form<span class="token operator">></span>
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>form id<span class="token operator">=</span><span class="token string">"bind_keyup"</span><span class="token operator">></span>
+    keyup<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"app.model"</span> data<span class="token operator">-</span>keyup<span class="token operator">=</span><span class="token string">"modelToResult()"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>div<span class="token operator">></span>
+        {{app<span class="token punctuation">.</span>result}}
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>form<span class="token operator">></span>
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>form id<span class="token operator">=</span><span class="token string">"bind_keydown"</span><span class="token operator">></span>
+    keydown<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"app.model"</span> data<span class="token operator">-</span>keydown<span class="token operator">=</span><span class="token string">"modelToResult()"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>div<span class="token operator">></span>
+        {{app<span class="token punctuation">.</span>result}}
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>form<span class="token operator">></span>
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+        </div>
+
+        <code data-js>
+            var evnts <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token string">'change'</span><span class="token punctuation">,</span>
+    <span class="token string">'click'</span><span class="token punctuation">,</span>
+    <span class="token string">'blur'</span><span class="token punctuation">,</span>
+    <span class="token string">'focus'</span><span class="token punctuation">,</span>
+    <span class="token string">'submit'</span><span class="token punctuation">,</span>
+    <span class="token string">'keypress'</span><span class="token punctuation">,</span>
+    <span class="token string">'keyup'</span><span class="token punctuation">,</span>
+    <span class="token string">'keydown'</span>
+<span class="token punctuation">]</span><span class="token comment" spellcheck="true">;</span>
+
+
+<span class="token keyword">for</span> <span class="token punctuation">(</span>var i<span class="token operator">=</span><span class="token number">0</span><span class="token comment" spellcheck="true">;i&lt;evnts.length;i++) {</span>
+    var e <span class="token operator">=</span> evnts<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token comment" spellcheck="true">;</span>
+    RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#bind_'</span><span class="token operator">+</span>e<span class="token punctuation">,</span>{
+        app<span class="token punctuation">:</span> {
+            model<span class="token punctuation">:</span> <span class="token string">'appModel'</span><span class="token punctuation">,</span>
+            result<span class="token punctuation">:</span><span class="token string">'appResult'</span>
+        }<span class="token punctuation">,</span>
+        modelToResult<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
+            this<span class="token punctuation">.</span>app<span class="token punctuation">.</span>result <span class="token operator">=</span> this<span class="token punctuation">.</span>app<span class="token punctuation">.</span>model<span class="token comment" spellcheck="true">;</span>
+        }
+    }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+}
+        </code>
+        <div>
+            <button onclick="
+            var f = document.getElementById('events');
+            f.src = 'pages/events.html';
+            f.style.display = '';
+        ">Выполнить</button>
+        </div>
+        <div>
+            <iframe frameborder="none" style="display: none;" id="events"></iframe>
+        </div>
+    </section>
+</li>
+<li>
     <h3>Текущее состояние компонета или скоупа</h3>
     <section>
         <div data-html>
@@ -977,7 +1087,7 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
     </section>
 </li>
 <li>
-    <h3>Вложенные циклы</h3>
+    <h3>Рекурсивные шаблоны (древовидная структура)</h3>
     <section>
         <div data-html>
             

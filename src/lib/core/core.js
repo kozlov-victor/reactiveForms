@@ -14,9 +14,13 @@ class Core{
         return componentProto;
     }
 
-    static applyBindings(domElement,modelView){
-        if (typeof domElement == 'string') domElement = document.querySelector(domElement);
-        if (!domElement) throw "can not apply bindings: root element not defined";
+    static applyBindings(domElementSelector,modelView){
+        if (!domElementSelector) throw `ca not applyBindings: element selector not provided`;
+        if (typeof domElementSelector!='string') throw (
+            `element selector parameter mast me a string,
+            but ${typeof domElementSelector} found}`);
+        let domElement = document.querySelector(domElementSelector);
+        if (!domElement) throw `can not apply bindings: root element with selector ${domElementSelector} not defined`;
         let fragment = new ScopedDomFragment(domElement,modelView);
         fragment.run();
     };

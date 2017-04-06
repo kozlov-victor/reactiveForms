@@ -121,7 +121,6 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
-        self;
     }();
     _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
@@ -398,11 +397,11 @@
             this._eachElementWithAttr("data-" + eventName, function(el, expression) {
                 var fn = ExpressionEngine.getExpressionFn(expression);
                 DomUtils.addEventListener(el, eventName, function(e) {
-                    if ("keypress" != eventName) {
+                    if ([ "keypress", "keydown" ].indexOf(eventName) == -1) {
                         // todo need?
                         e = e || window.e;
-                        e.preventDefault && e.preventDefault();
-                        e.stopPropagation && e.stopPropagation();
+                        e.preventDefault();
+                        e.stopPropagation();
                         e.cancelBubble = true;
                     }
                     ExpressionEngine.runExpressionFn(fn, _this3.component);
@@ -489,7 +488,7 @@
             ComponentProto.instances.forEach(function(componentProto) {
                 var componentNodes, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
                 if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLocaleLowerCase()) {
-                    console.error("\n                   Can not use data-for attribute at component directly. Use this directive at parent node");
+                    console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
                     console.error("component node:", _this10.component.node);
                     throw "Can not use data-for attribute at component";
                 }
@@ -598,9 +597,6 @@
                 break;
 
               case "select":
-                el.value = value;
-                break;
-
               case "textarea":
                 el.value = value;
             }
@@ -629,8 +625,6 @@
                 break;
 
               case "select":
-                return el.value;
-
               case "textarea":
                 return el.value;
             }
@@ -642,8 +636,6 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
-                    return "click";
-
                   case "radio":
                     return "click";
 
@@ -667,7 +659,7 @@
             }
         };
         DomUtils.addEventListener = function(el, type, fn) {
-            if (el.addEventListener) el.addEventListener(type, fn); else el.attachEvent("on" + type, fn, true);
+            if (el.addEventListener) el.addEventListener(type, fn); else el.attachEvent("on" + type, fn);
         };
         DomUtils.setTextNodeValue = function(el, value) {
             if ("textContent" in el) el.textContent = value; else el.nodeValue = value;
@@ -784,7 +776,6 @@
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
-    // todo resolve expression error at app.task.taskCases[0].text
     Token = function Token(type, val) {
         _classCallCheck(this, Token);
         this.tokenType = type;
@@ -812,8 +803,7 @@
         EXCLAMATION: "!",
         SEMICOLON: ";"
     };
-    Token.KEY_WORDS = [ "in", "of" ];
-    // todo null undefined ...
+    Token.KEY_WORDS = [ "in", "of", "null", "undefined" ];
     Token.ALL_SPECIAL_SYMBOLS = Object.keys(Token.SYMBOL).map(function(key) {
         return Token.SYMBOL[key];
     });
@@ -867,6 +857,7 @@
                 if (t && t.tokenType == Token.TYPE.VARIABLE) {
                     var next = tokens[i + 1];
                     if (next && next.tokenValue == Token.SYMBOL.COLON) t.tokenType = Token.TYPE.OBJECT_KEY;
+                    if (t.tokenValue && t.tokenValue.startsWith(".")) t.tokenType = Token.TYPE.STRING;
                 }
             });
             if (!isEndWithSemicolon) tokens.pop();
@@ -1006,6 +997,11 @@
         };
         return TemplateLoader;
     }();
+    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+        return typeof obj;
+    } : function(obj) {
+        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
@@ -1025,10 +1021,14 @@
             ComponentProto.instances.push(componentProto);
             return componentProto;
         };
-        Core.applyBindings = function(domElement, modelView) {
-            if ("string" == typeof domElement) domElement = document.querySelector(domElement);
-            if (!domElement) throw "can not apply bindings: root element not defined";
-            new ScopedDomFragment(domElement, modelView).run();
+        Core.applyBindings = function(domElementSelector, modelView) {
+            var domElement, fragment;
+            if (!domElementSelector) throw "ca not applyBindings: element selector not provided";
+            if ("string" != typeof domElementSelector) throw "element selector parameter mast me a string,\n            but " + (void 0 === domElementSelector ? "undefined" : _typeof(domElementSelector)) + " found}";
+            domElement = document.querySelector(domElementSelector);
+            if (!domElement) throw "can not apply bindings: root element with selector " + domElementSelector + " not defined";
+            fragment = new ScopedDomFragment(domElement, modelView);
+            fragment.run();
         };
         Core.digest = function() {
             Component.digestAll();

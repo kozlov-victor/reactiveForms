@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <style>
+        
+button, input[type=text] {
+    display: block;
+    margin: 0 auto 3px;
+    width: 80%;
+    background-color: #00dcff;
+    border: none;
+    padding: 3px;
+}
+
+button.inline-block {
+    display: inline-block;
+    width: auto;
+}
+
+button {
+    color: white;
+}
+
+button:active,input:active {
+    outline: 1px solid blue;
+}
+    </style>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+<form id="bind_change">
+    change:
+    <input data-model="app.model" data-change="modelToResult()">
+    <div>
+        {{app.result}}
+    </div>
+</form>
+<hr/>
+<form id="bind_click">
+    click:
+    <input data-model="app.model" data-click="modelToResult()">
+    <div>
+        {{app.result}}
+    </div>
+</form>
+<hr/>
+<form id="bind_blur">
+    blur:
+    <input data-model="app.model" data-blur="modelToResult()">
+    <div>
+        {{app.result}}
+    </div>
+</form>
+<hr/>
+<form id="bind_focus">
+    focus:
+    <input data-model="app.model" data-focus="modelToResult()">
+    <div>
+        {{app.result}}
+    </div>
+</form>
+<hr/>
+<form data-submit="modelToResult()" id="bind_submit">
+    submit:
+    <input data-model="app.model">
+    <div>
+        {{app.result}}
+    </div>
+    <input type="submit" value="submit">
+</form>
+<hr/>
+<form id="bind_keypress">
+    keypress:
+    <input data-model="app.model" data-keypress="modelToResult()">
+    <div>
+        {{app.result}}
+    </div>
+</form>
+<hr/>
+<form id="bind_keyup">
+    keyup:
+    <input data-model="app.model" data-keyup="modelToResult()">
+    <div>
+        {{app.result}}
+    </div>
+</form>
+<hr/>
+<form id="bind_keydown">
+    keydown:
+    <input data-model="app.model" data-keydown="modelToResult()">
+    <div>
+        {{app.result}}
+    </div>
+</form>
+<hr/>
+
+    <script>
+        var evnts = [
+    'change',
+    'click',
+    'blur',
+    'focus',
+    'submit',
+    'keypress',
+    'keyup',
+    'keydown'
+];
+
+
+for (var i=0;i<evnts.length;i++) {
+    var e = evnts[i];
+    RF.applyBindings('#bind_'+e,{
+        app: {
+            model: 'appModel',
+            result:'appResult'
+        },
+        modelToResult: function(){
+            this.app.result = this.app.model;
+        }
+    });
+}
+    </script>
+</body>
+</html>

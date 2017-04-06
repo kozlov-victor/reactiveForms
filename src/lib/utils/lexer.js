@@ -88,10 +88,6 @@ class Lexer {
                     let type;
                     if(isNumber(char)) type = Token.TYPE.DIGIT;
                     else if (charInArr(char,['"',"'"])) type = Token.TYPE.STRING;
-                    // else if (
-                    //     lastChar==Token.SYMBOL.L_CURLY ||
-                    //     lastChar==Token.SYMBOL.COMMA
-                    // ) type = Token.TYPE.OBJECT_KEY;
                     else type = Token.TYPE.VARIABLE;
                     t = new Token(type,char);
                     tokens.push(t);
@@ -114,7 +110,7 @@ class Lexer {
 
         });
         if (!isEndWithSemicolon) tokens.pop();
-        console.log(JSON.stringify(tokens));
+        //console.log(JSON.stringify(tokens));
         return tokens;
     }
 
