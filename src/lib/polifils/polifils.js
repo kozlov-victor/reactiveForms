@@ -120,6 +120,12 @@ if(!String.prototype.trim){
     };
 }
 
+if(!String.prototype.startsWith){
+    String.prototype.startsWith = function (str) {
+        return !this.indexOf(str);
+    }
+}
+
 if (!Object.create) {
     Object.create = function(o, props) {
         function F() {}
