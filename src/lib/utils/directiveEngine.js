@@ -199,9 +199,10 @@ class DirectiveEngine {
                 let dataPropertiesAttr = it.getAttribute('data-properties');
                 let dataProperties = dataPropertiesAttr?
                     ExpressionEngine.executeExpression(dataPropertiesAttr,this.component):{};
-                let component = componentProto.runNewInstance(componentNode,dataProperties);
+                let component = componentProto.newInstance(componentNode,dataProperties);
                 component.parent = this.component;
                 component.parent.addChild(component);
+                component.run();
             });
             componentNodes.forEach((node)=>{
                 DomUtils.removeParentButNotChildren(node);

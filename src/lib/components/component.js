@@ -1,8 +1,6 @@
-
-
 class Component {
 
-    constructor(name,node,modelView){
+    constructor(name, node, modelView) {
         this.parent = null;
         this.children = null;
         this.name = name;
@@ -19,14 +17,17 @@ class Component {
         this.children.push(childComponent);
     }
 
-     updateModelView(modelView){ // todo need??
-         this.modelView = modelView;
-         if (this.children) {
-             this.children.forEach(c=>{
-                 c.modelView = modelView;
-             });
-         }
-     }
+    updateModelView(modelView) {
+        this.modelView = modelView;
+        if (this.children) {
+            this.children.forEach(c => {
+                c.modelView = modelView;
+            });
+        }
+    }
+
+    onShow(){} // todo move to modelview class
+
 
     addWatcher(expression, listenerFn) {
         let watcherFn = ExpressionEngine.getExpressionFn(expression);
@@ -35,16 +36,17 @@ class Component {
             watcherFn,
             listenerFn
         });
-        listenerFn(ExpressionEngine.runExpressionFn(watcherFn,this));
+        listenerFn(ExpressionEngine.runExpressionFn(watcherFn, this));
     }
-    digest(){
-        this.watchers.forEach(watcher=> {
-            let newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn,this);
-            if (typeof newValue =='object') {
+
+    digest() {
+        this.watchers.forEach(watcher => {
+            let newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, this);
+            if (typeof newValue == 'object') {
                 newValue = MiscUtils.deepCopy(newValue);
             }
             let oldValue = watcher.last;
-            if (!MiscUtils.deepEqual(newValue,oldValue)) {
+            if (!MiscUtils.deepEqual(newValue, oldValue)) {
                 watcher.listenerFn(newValue, oldValue);
             }
             watcher.last = newValue;
@@ -60,20 +62,20 @@ class Component {
         new DirectiveEngine(this).run();
     }
 
-    destroy(){
+    destroy() {
         // todo not implemented yet!
         // remove watchers
         // remove nodes
         this.node.remove();
-         if (this.children) {
-             this.children.forEach(c=>{
-                 c.destroy();
-             });
-         }
+        if (this.children) {
+            this.children.forEach(c => {
+                c.destroy();
+            });
+        }
     }
 
     static digestAll() {
-        Component.instances.forEach(cmp=> {
+        Component.instances.forEach(cmp => {
             cmp.digest();
         });
     }

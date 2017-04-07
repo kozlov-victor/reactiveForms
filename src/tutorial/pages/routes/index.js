@@ -49,4 +49,5 @@ RF.Router.setup({
     'page2': page2,
     'page3': page3
 });
+
 RF.Router.navigateTo('page1');

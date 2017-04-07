@@ -1,0 +1,20 @@
+
+<div style="display: none;">
+
+    <div id="pageMain">
+        <button
+            data-click="app.navigateTo(pageIndex)"
+            data-for="pageIndex in app.pages">
+                {{pageIndex}}
+        </button>
+    </div>
+
+    <div id="pageDetail">
+        Нажата кнопка {{pageIndex}}
+        <button data-click="app.goBack()">Назад</button>
+    </div>
+
+</div>
+
+
+<div data-route=""></div>

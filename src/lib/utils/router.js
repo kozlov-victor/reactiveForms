@@ -6,20 +6,24 @@ class HashRouterStrategy { // todo complete
     }
 
     static goBack(){
-        // todo
+        if (window.history) history.back();
     }
 
     static _check(hash) {
         let isMatch = false;
+        hash = hash.substr(1);
         Object.keys(Router._pages).some(key=>{
+
+            let routeParams = {};
+            let keys = key.match(/:([^\/]+)/g);
             let match = hash.match(new RegExp(key.replace(/:([^\/]+)/g, "([^\/]*)")));
             if (match) {
                 match.shift();
-                let routeParams = {};
                 match.forEach(function (value, i) {
-                    routeParams[key.replace(":", "")] = value;
+                    routeParams[keys[i].replace(":", "")] = value;
                 });
                 isMatch = true;
+                __showPage(key,routeParams);
                 return true;
             }
         });
@@ -27,6 +31,7 @@ class HashRouterStrategy { // todo complete
 
     }
     static setup(){
+        location.hash && HashRouterStrategy._check(location.hash);
         window.addEventListener('hashchange',function(){
             HashRouterStrategy._check(location.hash);
         });
@@ -36,6 +41,7 @@ class HashRouterStrategy { // todo complete
 class ManualRouterStrategy {
 
     static navigateTo(route,params){
+        if (!Router._pages[route]) throw `${route} not registered, set up router correctly`;
         __showPage(route,params);
         ManualRouterStrategy.history.push({route,params});
     }
@@ -68,16 +74,21 @@ class RouterStrategyProvider {
 }
 
 let routeNode = null;
-let __showPage = (pageName)=>{
+let __showPage = (pageName,params)=>{
     let pageItem = Router._pages[pageName];
-    if (!pageItem) throw `${pageName} not registered, set up router correctly`;
+    if (!pageItem) throw `no page with name ${pageName} registered`;
     if (!pageItem.component) {
         let componentNode = pageItem.componentProto.node.cloneNode(true);
-        pageItem.component = pageItem.componentProto.runNewInstance(componentNode,{});
+        pageItem.component = pageItem.componentProto.newInstance(componentNode,{});
+        pageItem.component.modelView.onShow && pageItem.component.modelView.onShow(params);
+        pageItem.component.run();
         delete pageItem.componentProto;
+    } else {
+        pageItem.component.modelView.onShow && pageItem.component.modelView.onShow(params);
     }
     routeNode.parentNode.replaceChild(pageItem.component.node,routeNode);
     routeNode = pageItem.component.node;
+    Component.digestAll();
 };
 
 class Router {

@@ -16,15 +16,13 @@ class ComponentProto{
         });
     }
 
-    runNewInstance(node,properties){
+    newInstance(node, properties){
         let externalProperties = this.modelView.external;
         let modelView = MiscUtils.deepCopy(this.modelView);
         delete modelView.external;
         externalProperties && this.applyProperties(this.name,modelView,externalProperties);
         this.applyProperties(this.name,modelView,properties,{strict:true});
-        let instance = new Component(this.name,node,modelView);
-        instance.run();
-        return instance;
+        return new Component(this.name,node,modelView);
     }
 
     static getByName(name){

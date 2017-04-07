@@ -124,6 +124,7 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
+        self;
     }();
     _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
@@ -151,12 +152,13 @@
             this.children.push(childComponent);
         };
         Component.prototype.updateModelView = function(modelView) {
-            // todo need??
             this.modelView = modelView;
             if (this.children) this.children.forEach(function(c) {
                 c.modelView = modelView;
             });
         };
+        Component.prototype.onShow = function() {};
+        // todo move to modelview class
         Component.prototype.addWatcher = function(expression, listenerFn) {
             var watcherFn = ExpressionEngine.getExpressionFn(expression);
             this.watchers.push({
@@ -213,16 +215,14 @@
                 target[key] = properties[key];
             });
         };
-        ComponentProto.prototype.runNewInstance = function(node, properties) {
-            var instance, externalProperties = this.modelView.external, modelView = MiscUtils.deepCopy(this.modelView);
+        ComponentProto.prototype.newInstance = function(node, properties) {
+            var externalProperties = this.modelView.external, modelView = MiscUtils.deepCopy(this.modelView);
             delete modelView.external;
             externalProperties && this.applyProperties(this.name, modelView, externalProperties);
             this.applyProperties(this.name, modelView, properties, {
                 strict: true
             });
-            instance = new Component(this.name, node, modelView);
-            instance.run();
-            return instance;
+            return new Component(this.name, node, modelView);
         };
         ComponentProto.getByName = function(name) {
             return ComponentProto.instances.filter(function(it) {
@@ -505,9 +505,10 @@
                         it.parentNode.insertBefore(componentNode, it);
                         dataPropertiesAttr = it.getAttribute("data-properties");
                         dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
-                        component = componentProto.runNewInstance(componentNode, dataProperties);
+                        component = componentProto.newInstance(componentNode, dataProperties);
                         component.parent = _this10.component;
                         component.parent.addChild(component);
+                        component.run();
                     }
                 });
                 componentNodes.forEach(function(node) {
@@ -599,6 +600,9 @@
                 break;
 
               case "select":
+                el.value = value;
+                break;
+
               case "textarea":
                 el.value = value;
             }
@@ -627,6 +631,8 @@
                 break;
 
               case "select":
+                return el.value;
+
               case "textarea":
                 return el.value;
             }
@@ -638,6 +644,8 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
+                    return "click";
+
                   case "radio":
                     return "click";
 
@@ -935,29 +943,33 @@
             _classCallCheck(this, HashRouterStrategy);
         }
         // todo complete
-        HashRouterStrategy.onMatch = function(route, params) {};
-        HashRouterStrategy.check = function(hash) {
-            var i, max, keys = void 0, match = void 0, routeParams = void 0, isMatch = false;
-            for (i = 0, max = this.routes.length; i < max; i++) {
-                routeParams = {};
-                keys = this.routes[i].path.match(/:([^\/]+)/g);
-                match = hash.match(new RegExp(this.routes[i].path.replace(/:([^\/]+)/g, "([^/]*)")));
+        HashRouterStrategy.navigateTo = function(route, params) {
+            location.hash = route;
+        };
+        HashRouterStrategy.goBack = function() {
+            if (window.history) history.back();
+        };
+        HashRouterStrategy._check = function(hash) {
+            var isMatch = false;
+            hash = hash.substr(1);
+            Object.keys(Router._pages).some(function(key) {
+                var routeParams = {}, keys = key.match(/:([^\/]+)/g), match = hash.match(new RegExp(key.replace(/:([^\/]+)/g, "([^/]*)")));
                 if (match) {
                     match.shift();
                     match.forEach(function(value, i) {
                         routeParams[keys[i].replace(":", "")] = value;
                     });
-                    HashRouterStrategy.onMatch();
                     isMatch = true;
-                    break;
+                    __showPage(key, routeParams);
+                    return true;
                 }
-            }
-            if (!isMatch) ;
+            });
+            if (!isMatch) throw "page with path " + hash + " not registered, set up router correctly";
         };
-        HashRouterStrategy.setup = function(pages) {
-            HashRouterStrategy.pages = pages;
+        HashRouterStrategy.setup = function() {
+            location.hash && HashRouterStrategy._check(location.hash);
             window.addEventListener("hashchange", function() {
-                Router.check(location.hash);
+                HashRouterStrategy._check(location.hash);
             });
         };
         return HashRouterStrategy;
@@ -967,13 +979,14 @@
             _classCallCheck(this, ManualRouterStrategy);
         }
         ManualRouterStrategy.navigateTo = function(route, params) {
+            if (!Router._pages[route]) throw route + " not registered, set up router correctly";
             __showPage(route, params);
             ManualRouterStrategy.history.push({
                 route: route,
                 params: params
             });
         };
-        ManualRouterStrategy.setup = function(pages) {};
+        ManualRouterStrategy.setup = function() {};
         ManualRouterStrategy.goBack = function() {
             ManualRouterStrategy.history.pop();
             var state = ManualRouterStrategy.history[ManualRouterStrategy.history.length - 1];
@@ -1001,16 +1014,19 @@
         return RouterStrategyProvider;
     }();
     routeNode = null;
-    __showPage = function(pageName) {
+    __showPage = function(pageName, params) {
         var componentNode, pageItem = Router._pages[pageName];
-        if (!pageItem) throw pageName + " not registered, set up router correctly";
+        if (!pageItem) throw "no page with name " + pageName + " registered";
         if (!pageItem.component) {
             componentNode = pageItem.componentProto.node.cloneNode(true);
-            pageItem.component = pageItem.componentProto.runNewInstance(componentNode, {});
+            pageItem.component = pageItem.componentProto.newInstance(componentNode, {});
+            pageItem.component.modelView.onShow && pageItem.component.modelView.onShow(params);
+            pageItem.component.run();
             delete pageItem.componentProto;
-        }
+        } else pageItem.component.modelView.onShow && pageItem.component.modelView.onShow(params);
         routeNode.parentNode.replaceChild(pageItem.component.node, routeNode);
         routeNode = pageItem.component.node;
+        Component.digestAll();
     };
     Router = function() {
         function Router() {
@@ -1028,6 +1044,7 @@
                     component: null
                 };
             });
+            Router._strategy.setup();
         };
         Router.navigateTo = function(pageName, params) {
             Router._strategy.navigateTo(pageName, params);

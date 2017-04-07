@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RunCode</title>
+    <style>
+        
+button, input[type=text] {
+    margin: 0 auto 3px;
+    background-color: #00dcff;
+    border: none;
+    padding: 3px;
+}
+
+button.inline-block {
+    display: inline-block;
+    width: auto;
+}
+
+button {
+    color: white;
+}
+
+button:active,input:active {
+    outline: 1px solid blue;
+}
+    </style>
+    <script src="../reactiveForms.js"></script>
+</head>
+<body>
+
+    
+<div style="display: none;">
+
+    <div id="pageMain">
+        <button
+            data-click="app.navigateTo(pageIndex)"
+            data-for="pageIndex in app.pages">
+                {{pageIndex}}
+        </button>
+    </div>
+
+    <div id="pageDetail">
+        Нажата кнопка {{pageIndex}}
+        <button data-click="app.goBack()">Назад</button>
+    </div>
+
+</div>
+
+
+<div data-route=""></div>
+
+    <script>
+        
+
+var app = {
+    pages:[1,2,3,4,5],
+    goBack: function(){
+        RF.Router.goBack();
+    },
+    navigateTo: function(pageIndex){
+        RF.Router.navigateTo('pageDetail/'+pageIndex);
+    }
+};
+
+var pageMain = RF.registerComponent('page1',{
+    template: {
+        type: 'dom',
+        value: 'pageMain'
+    },
+    external: {
+        app: app
+    }
+});
+
+var pageDetail = RF.registerComponent('page1',{
+    template: {
+        type: 'dom',
+        value: 'pageDetail'
+    },
+    pageIndex:-1,
+    onShow: function(params){
+        this.pageIndex = params.pageIndex;
+    },
+    external: {
+        app: app
+    }
+});
+
+RF.Router.setup({
+    'pageMain': pageMain,
+    'pageDetail/:pageIndex': pageDetail
+},RF.Router.STRATEGY.HASH);
+
+RF.Router.navigateTo('pageMain');
+
+    </script>
+</body>
+</html>
