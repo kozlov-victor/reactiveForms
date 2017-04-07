@@ -1,35 +1,34 @@
 
 class HashRouterStrategy { // todo complete
 
-    static onMatch(route,params){
-
+    static navigateTo(route,params){
+        location.hash = route;
     }
 
-    static check(hash) {
-        let keys, match, routeParams;
+    static goBack(){
+        // todo
+    }
+
+    static _check(hash) {
         let isMatch = false;
-        for (let i = 0, max = this.routes.length; i < max; i++) {
-            routeParams = {};
-            keys = this.routes[i].path.match(/:([^\/]+)/g);
-            match = hash.match(new RegExp(this.routes[i].path.replace(/:([^\/]+)/g, "([^\/]*)")));
+        Object.keys(Router._pages).some(key=>{
+            let match = hash.match(new RegExp(key.replace(/:([^\/]+)/g, "([^\/]*)")));
             if (match) {
                 match.shift();
+                let routeParams = {};
                 match.forEach(function (value, i) {
-                    routeParams[keys[i].replace(":", "")] = value;
+                    routeParams[key.replace(":", "")] = value;
                 });
-                HashRouterStrategy.onMatch();
                 isMatch = true;
-                break;
+                return true;
             }
-        }
-        if (!isMatch) {
-        }
+        });
+        if (!isMatch) throw `page with path ${hash} not registered, set up router correctly`;
 
     }
-    static setup(pages){
-        HashRouterStrategy.pages = pages;
+    static setup(){
         window.addEventListener('hashchange',function(){
-            Router.check(location.hash);
+            HashRouterStrategy._check(location.hash);
         });
     };
 }
@@ -41,7 +40,7 @@ class ManualRouterStrategy {
         ManualRouterStrategy.history.push({route,params});
     }
 
-    static setup(pages){};
+    static setup(){};
 
     static goBack(){
         ManualRouterStrategy.history.pop();
@@ -94,6 +93,7 @@ class Router {
                 component: null
             };
         });
+        Router._strategy.setup();
     }
 
     static navigateTo(pageName,params){
