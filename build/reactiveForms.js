@@ -1,6 +1,6 @@
 !function() {
     "use strict";
-    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DirectiveEngine, DomUtils, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, MiscUtils, Router, TemplateLoader, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DirectiveEngine, DomUtils, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, MiscUtils, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, __showPage, Router, TemplateLoader, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
@@ -401,7 +401,6 @@
                 var fn = ExpressionEngine.getExpressionFn(expression);
                 DomUtils.addEventListener(el, eventName, function(e) {
                     if ([ "keypress", "keydown" ].indexOf(eventName) == -1) {
-                        // todo need?
                         e = e || window.e;
                         e.preventDefault();
                         e.stopPropagation();
@@ -931,35 +930,119 @@
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
+    HashRouterStrategy = function() {
+        function HashRouterStrategy() {
+            _classCallCheck(this, HashRouterStrategy);
+        }
+        // todo complete
+        HashRouterStrategy.onMatch = function(route, params) {};
+        HashRouterStrategy.check = function(hash) {
+            var i, max, keys = void 0, match = void 0, routeParams = void 0, isMatch = false;
+            for (i = 0, max = this.routes.length; i < max; i++) {
+                routeParams = {};
+                keys = this.routes[i].path.match(/:([^\/]+)/g);
+                match = hash.match(new RegExp(this.routes[i].path.replace(/:([^\/]+)/g, "([^/]*)")));
+                if (match) {
+                    match.shift();
+                    match.forEach(function(value, i) {
+                        routeParams[keys[i].replace(":", "")] = value;
+                    });
+                    HashRouterStrategy.onMatch();
+                    isMatch = true;
+                    break;
+                }
+            }
+            if (!isMatch) ;
+        };
+        HashRouterStrategy.setup = function(pages) {
+            HashRouterStrategy.pages = pages;
+            window.addEventListener("hashchange", function() {
+                Router.check(location.hash);
+            });
+        };
+        return HashRouterStrategy;
+    }();
+    ManualRouterStrategy = function() {
+        function ManualRouterStrategy() {
+            _classCallCheck(this, ManualRouterStrategy);
+        }
+        ManualRouterStrategy.navigateTo = function(route, params) {
+            __showPage(route, params);
+            ManualRouterStrategy.history.push({
+                route: route,
+                params: params
+            });
+        };
+        ManualRouterStrategy.setup = function(pages) {};
+        ManualRouterStrategy.goBack = function() {
+            ManualRouterStrategy.history.pop();
+            var state = ManualRouterStrategy.history[ManualRouterStrategy.history.length - 1];
+            if (state) __showPage(state.route, state.params);
+        };
+        return ManualRouterStrategy;
+    }();
+    ManualRouterStrategy.history = [];
+    RouterStrategyProvider = function() {
+        function RouterStrategyProvider() {
+            _classCallCheck(this, RouterStrategyProvider);
+        }
+        RouterStrategyProvider.getRouterStrategy = function(strategyName) {
+            switch (strategyName) {
+              case Router.STRATEGY.MANUAL:
+                return ManualRouterStrategy;
+
+              case Router.STRATEGY.HASH:
+                return HashRouterStrategy;
+
+              default:
+                throw "cat not find strategy with strategyName " + strategyName;
+            }
+        };
+        return RouterStrategyProvider;
+    }();
+    routeNode = null;
+    __showPage = function(pageName) {
+        var componentNode, pageItem = Router._pages[pageName];
+        if (!pageItem) throw pageName + " not registered, set up router correctly";
+        if (!pageItem.component) {
+            componentNode = pageItem.componentProto.node.cloneNode(true);
+            pageItem.component = pageItem.componentProto.runNewInstance(componentNode, {});
+            delete pageItem.componentProto;
+        }
+        routeNode.parentNode.replaceChild(pageItem.component.node, routeNode);
+        routeNode = pageItem.component.node;
+    };
     Router = function() {
         function Router() {
             _classCallCheck(this, Router);
-            this._pages = {};
         }
-        Router.prototype.setup = function(keyValues) {
-            var _this = this, routePlaceholderNode = document.querySelector("[data-route]");
+        Router.setup = function(keyValues) {
+            var routePlaceholderNode, strategyName = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : Router.STRATEGY.MANUAL;
+            Router._strategy = RouterStrategyProvider.getRouterStrategy(strategyName);
+            routePlaceholderNode = document.querySelector("[data-route]");
             if (!routePlaceholderNode) throw "can not run Route: element with data-route attribute not found";
-            this.routeNode = routePlaceholderNode.parentNode.appendChild(document.createElement("div"));
+            routeNode = routePlaceholderNode.parentNode.appendChild(document.createElement("div"));
             Object.keys(keyValues).forEach(function(key) {
-                _this._pages[key] = {
+                Router._pages[key] = {
                     componentProto: keyValues[key],
                     component: null
                 };
             });
         };
-        Router.prototype.navigateTo = function(pageName) {
-            var componentNode, pageItem = this._pages[pageName];
-            if (!pageItem) throw pageName + " not registered, set up router correctly";
-            if (!pageItem.component) {
-                componentNode = pageItem.componentProto.node.cloneNode(true);
-                pageItem.component = pageItem.componentProto.runNewInstance(componentNode, {});
-                delete pageItem.componentProto;
-            }
-            this.routeNode.parentNode.replaceChild(pageItem.component.node, this.routeNode);
-            this.routeNode = pageItem.component.node;
+        Router.navigateTo = function(pageName, params) {
+            Router._strategy.navigateTo(pageName, params);
+        };
+        Router.goBack = function() {
+            Router._strategy.goBack();
         };
         return Router;
     }();
+    Router._pages = {};
+    Router._strategy = null;
+    Router.STRATEGY = {
+        MANUAL: 0,
+        HASH: 1
+    };
     _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
@@ -1041,7 +1124,7 @@
         };
         return Core;
     }();
-    Core.version = "0.2.2";
+    Core.version = "0.4.0";
     window.RF = Core;
-    window.RF.Router = new Router();
+    window.RF.Router = Router;
 }();

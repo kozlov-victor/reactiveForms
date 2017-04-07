@@ -1187,7 +1187,7 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
             уровень кармы <span class="token operator">&lt;</span>br<span class="token operator">/</span><span class="token operator">></span><span class="token operator">&lt;</span>input data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"app.user.carmaLevel"</span><span class="token operator">></span>
         <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
         <span class="token operator">&lt;</span>div<span class="token operator">></span>
-            <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.navigateTo(1)"</span><span class="token operator">></span>Назад<span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+            <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.goBack()"</span><span class="token operator">></span>Назад<span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
             <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.navigateTo(3)"</span><span class="token operator">></span>Далее<span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
         <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
     <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
@@ -1197,7 +1197,7 @@ RF<span class="token punctuation">.</span><span class="token function">run</span
         <span class="token operator">&lt;</span>br<span class="token operator">/</span><span class="token operator">></span>
         Уровень кармы {{app<span class="token punctuation">.</span>user<span class="token punctuation">.</span>carmaLevel}}
         <span class="token operator">&lt;</span>div<span class="token operator">></span>
-            <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.navigateTo(2)"</span><span class="token operator">></span>Назад<span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+            <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"app.goBack()"</span><span class="token operator">></span>Назад<span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
         <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
     <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
 
@@ -1218,6 +1218,9 @@ var app <span class="token operator">=</span> {
     }<span class="token punctuation">,</span>
     navigateTo<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span>index<span class="token punctuation">)</span>{
         RF<span class="token punctuation">.</span>Router<span class="token punctuation">.</span><span class="token function">navigateTo</span><span class="token punctuation">(</span><span class="token string">'page'</span><span class="token operator">+</span>index<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+    }<span class="token punctuation">,</span>
+    goBack<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
+        RF<span class="token punctuation">.</span>Router<span class="token punctuation">.</span><span class="token function">goBack</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
     }
 }<span class="token comment" spellcheck="true">;</span>
 
@@ -1254,7 +1257,7 @@ var page3 <span class="token operator">=</span> RF<span class="token punctuation
 RF<span class="token punctuation">.</span>Router<span class="token punctuation">.</span><span class="token function">setup</span><span class="token punctuation">(</span>{
     <span class="token string">'page1'</span><span class="token punctuation">:</span> page1<span class="token punctuation">,</span>
     <span class="token string">'page2'</span><span class="token punctuation">:</span> page2<span class="token punctuation">,</span>
-    <span class="token string">'page3'</span><span class="token punctuation">:</span> page3<span class="token punctuation">,</span>
+    <span class="token string">'page3'</span><span class="token punctuation">:</span> page3
 }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
 RF<span class="token punctuation">.</span>Router<span class="token punctuation">.</span><span class="token function">navigateTo</span><span class="token punctuation">(</span><span class="token string">'page1'</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
 

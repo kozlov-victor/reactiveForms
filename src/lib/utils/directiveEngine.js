@@ -55,7 +55,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-'+eventName,(el,expression)=>{
             let fn = ExpressionEngine.getExpressionFn(expression);
             DomUtils.addEventListener(el,eventName,e=>{
-                if (['keypress','keydown'].indexOf(eventName)==-1) { // todo need?
+                if (['keypress','keydown'].indexOf(eventName)==-1) {
                     e = e || window.e;
                     e.preventDefault();
                     e.stopPropagation();

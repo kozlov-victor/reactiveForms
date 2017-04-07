@@ -47,7 +47,7 @@ button:active,input:active {
             уровень кармы <br/><input data-model="app.user.carmaLevel">
         </div>
         <div>
-            <button data-click="app.navigateTo(1)">Назад</button>
+            <button data-click="app.goBack()">Назад</button>
             <button data-click="app.navigateTo(3)">Далее</button>
         </div>
     </div>
@@ -57,7 +57,7 @@ button:active,input:active {
         <br/>
         Уровень кармы {{app.user.carmaLevel}}
         <div>
-            <button data-click="app.navigateTo(2)">Назад</button>
+            <button data-click="app.goBack()">Назад</button>
         </div>
     </div>
 
@@ -77,6 +77,9 @@ var app = {
     },
     navigateTo: function(index){
         RF.Router.navigateTo('page'+index);
+    },
+    goBack: function(){
+        RF.Router.goBack();
     }
 };
 
@@ -113,7 +116,7 @@ var page3 = RF.registerComponent('page3',{
 RF.Router.setup({
     'page1': page1,
     'page2': page2,
-    'page3': page3,
+    'page3': page3
 });
 RF.Router.navigateTo('page1');
 

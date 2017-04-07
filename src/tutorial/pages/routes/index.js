@@ -8,6 +8,9 @@ var app = {
     },
     navigateTo: function(index){
         RF.Router.navigateTo('page'+index);
+    },
+    goBack: function(){
+        RF.Router.goBack();
     }
 };
 
@@ -44,6 +47,6 @@ var page3 = RF.registerComponent('page3',{
 RF.Router.setup({
     'page1': page1,
     'page2': page2,
-    'page3': page3,
+    'page3': page3
 });
 RF.Router.navigateTo('page1');
