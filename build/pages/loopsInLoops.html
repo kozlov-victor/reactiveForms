@@ -36,7 +36,7 @@ button:active,input:active {
         <li data-for="b,i in app.bundles">
             {{i+1}}. {{b.name}} <button data-click="app.removeExternal(i)">remove({{i}})</button>
             <ul>
-                <li data-for="d,j in b.data">
+                <li data-click="r()" data-for="d,j in b.data">
                      {{j+1}}. {{d.slot}}
                     <button data-click="app.removeInternal(i,j)">remove({{i}},{{j}})</button>
                 </li>
@@ -169,9 +169,24 @@ app.changeGlobal = function(){
 };
 
 RF.applyBindings('#app',{
-    app:app
+    app:app,
+    r:function(){
+
+    }
 });
-RF.run();
     </script>
+
+    <script>
+        window.onload = function(){
+            var style = getComputedStyle(document.documentElement);
+            window.top.postMessage({
+                fromEditor:true,
+                page: location.search.substr(1),
+                height:parseInt(style.height),
+                width:parseInt(style.width)
+            },'*');
+        };
+    </script>
+
 </body>
 </html>

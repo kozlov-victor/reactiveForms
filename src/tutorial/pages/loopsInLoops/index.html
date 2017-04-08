@@ -5,7 +5,7 @@
         <li data-for="b,i in app.bundles">
             {{i+1}}. {{b.name}} <button data-click="app.removeExternal(i)">remove({{i}})</button>
             <ul>
-                <li data-for="d,j in b.data">
+                <li data-click="r()" data-for="d,j in b.data">
                      {{j+1}}. {{d.slot}}
                     <button data-click="app.removeInternal(i,j)">remove({{i}},{{j}})</button>
                 </li>

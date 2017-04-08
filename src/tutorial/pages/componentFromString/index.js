@@ -19,4 +19,3 @@ RF.registerComponent('counter-component',{
     }
 });
 RF.applyBindings('#app');
-RF.run();

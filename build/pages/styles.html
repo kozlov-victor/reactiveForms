@@ -62,5 +62,18 @@ RF.applyBindings('#app',{
     }
 });
     </script>
+
+    <script>
+        window.onload = function(){
+            var style = getComputedStyle(document.documentElement);
+            window.top.postMessage({
+                fromEditor:true,
+                page: location.search.substr(1),
+                height:parseInt(style.height),
+                width:parseInt(style.width)
+            },'*');
+        };
+    </script>
+
 </body>
 </html>

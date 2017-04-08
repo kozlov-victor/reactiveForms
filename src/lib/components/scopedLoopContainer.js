@@ -2,7 +2,12 @@
 class ScopedLoopContainer extends Component {
 
     constructor(node,modelView){
-        super(null,node,modelView,undefined);
+        super(null,node,modelView);
+
+
+        if (node.getAttribute('data-for'))
+            throw `can not use data-for attribute at component directly. Use this directive at parent node`;
+
         this.scopedDomFragments = [];
         this.lastFrafmentsLength = 0;
         this.node = node;
@@ -20,7 +25,7 @@ class ScopedLoopContainer extends Component {
         this.eachItemName = eachItemName;
         this.indexName = indexName;
 
-        this.anchor = document.createComment(`loop: ${eachItemName} in ${iterableObjectName}`);
+        this.anchor = document.createComment(`component-id: ${this.id}; loop: ${eachItemName} in ${iterableObjectName}`);
         this.node.parentNode.insertBefore(this.anchor,this.node.nextSibling);
         this.node.remove();
         this.node = this.node.cloneNode(true);
@@ -28,6 +33,10 @@ class ScopedLoopContainer extends Component {
         this.addWatcher(
             iterableObjectName,
             (newArr,oldArr)=>{
+                if (newArr && newArr[0] && this.parent && this.parent.modelView['node']) {
+                    // check for false positive triggers in recursive loops
+                    if (MiscUtils.deepEqual(newArr[0],this.parent.modelView['node'])) return;
+                }
                 this._processIterations(newArr,oldArr);
             });
     }
@@ -49,7 +58,7 @@ class ScopedLoopContainer extends Component {
                 scopedDomFragment.parent = this.parent;
                 scopedDomFragment.parent.addChild(scopedDomFragment);
 
-                new DirectiveEngine(scopedDomFragment).run();
+                scopedDomFragment.run();
                 currNodeInIteration = node;
                 this.scopedDomFragments.push(scopedDomFragment);
                 this.lastFrafmentsLength++;
@@ -58,7 +67,7 @@ class ScopedLoopContainer extends Component {
                 let localModelView = this.scopedDomFragments[i].modelView;
                 localModelView[this.eachItemName] = iterableItem;
                 if (this.indexName) localModelView[this.indexName] = i;
-                this.scopedDomFragments[i].updateModelView(localModelView);
+                //this.scopedDomFragments[i].updateModelView(localModelView);
 
                 currNodeInIteration = this.scopedDomFragments[i].node;
                 this.scopedDomFragments[i].digest();

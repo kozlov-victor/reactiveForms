@@ -28,4 +28,3 @@ RF.registerComponent('counter-component',{
 RF.applyBindings('#application',{
     model: applicationModel
 });
-RF.run();

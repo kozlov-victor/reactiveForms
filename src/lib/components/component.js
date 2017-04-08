@@ -7,8 +7,11 @@ class Component {
         this.node = node;
         this.modelView = modelView;
         this.watchers = [];
-        // this.id = MiscUtils.getUID();
-        // this.node.setAttribute('data-component-id',this.id);
+        this.id = MiscUtils.getUID();
+        this.node.setAttribute('data-component-id',this.id);
+        DomUtils.nodeListToArray(this.node.querySelectorAll('*')).forEach(el=>{
+            el.setAttribute('data-component-id',this.id);
+        });
         Component.instances.push(this);
     }
 
@@ -18,10 +21,12 @@ class Component {
     }
 
     updateModelView(modelView) {
+        //MiscUtils.superficialCopy(this.modelView,modelView);
         this.modelView = modelView;
         if (this.children) {
             this.children.forEach(c => {
-                c.modelView = modelView;
+                //c.modelView = modelView;
+                //MiscUtils.superficialCopy(c.modelView,modelView);
             });
         }
     }
@@ -78,6 +83,17 @@ class Component {
         Component.instances.forEach(cmp => {
             cmp.digest();
         });
+    }
+
+    static getComponentById(id){
+        let res = null;
+        Component.instances.some(cmp => {
+            if (cmp.id==id) {
+                res = cmp;
+                return true;
+            }
+        });
+        return res;
     }
 }
 Component.instances = [];

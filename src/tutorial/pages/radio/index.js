@@ -4,4 +4,3 @@ RF.applyBindings('#app',{
         isSuperMan: 'YES'
     }
 });
-RF.run();

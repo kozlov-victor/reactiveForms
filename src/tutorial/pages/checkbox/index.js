@@ -6,4 +6,3 @@ RF.applyBindings('#app',{
         isDisabled: false
     }
 });
-RF.run();

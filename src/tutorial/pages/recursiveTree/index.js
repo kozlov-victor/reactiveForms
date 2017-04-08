@@ -20,16 +20,41 @@ app.nodes = [
                 name:'node_2_1'
             },
             {
-                name:'node_2_2'
+                name:'node_2_2',
+                children: [
+                    {name:'node_2_2_1'},
+                    {
+                        name:'node_2_2_2',
+                        children: [
+                            {name:'node_2_2_2_1'},
+                            {
+                                name:'node_2_2_2_2'
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     }
 ];
 
+// app.nodes = [
+//     {
+//         name:1,
+//         children: [
+//             {name:2}
+//         ]
+//     }
+// ];
+
 RF.registerComponent('node-item',{
     template: {
         type:'dom',
         value:'nodeItemTmpl'
+    },
+    collapsed: false,
+    triggerCollapse: function(){
+        this.collapsed = !this.collapsed;
     },
     external: {
         node:null
@@ -39,4 +64,3 @@ RF.registerComponent('node-item',{
 RF.applyBindings('#app',{
     app:app
 });
-RF.run();

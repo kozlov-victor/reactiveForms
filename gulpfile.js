@@ -15,11 +15,14 @@ const uglify = require('gulp-uglify');
 
 const through = require("through2");
 
-const customFn = function gulpIife(opts) {
+const customTask = fn=> {
     return through.obj(function (file, encoding, callback) {
         let contents = String(file.contents);
         let result = contents;
         // custom processing
+        result = fn(contents);
+        //
+
         file.contents = Buffer(result);
 
         if (file.sourceMap) {
@@ -43,7 +46,10 @@ gulp.task('engine', ()=> {
             presets: [ ["es2015", {"loose": true}] ]
         }))
         .pipe(concat('reactiveForms.js'))
-        //.pipe(customFn())
+        .pipe(customTask((code)=>{
+            let packageJson = JSON.parse(fs.readFileSync('package.json'));
+            return code.replace('{{version}}',packageJson.version);
+        }))
         .pipe(iife())
         .pipe(uglify({
             output: { // http://lisperator.net/uglifyjs/codegen

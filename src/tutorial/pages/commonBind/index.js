@@ -4,4 +4,3 @@ RF.applyBindings('#app',{
         name: 'defaultUserName'
     }
 });
-RF.run();

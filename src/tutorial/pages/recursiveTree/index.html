@@ -1,16 +1,20 @@
 
 <div id="nodeItemTmpl">
-    {{node.name}}
-    <ul data-for="node in node.children">
-        <node-item data-properties="{node:node}"></node-item>
+    <span data-click="triggerCollapse()">
+        {{node.name}}
+    </span>
+    <ul data-style="{display:collapsed?'none':''}">
+        <li data-for="item in node.children">
+            <node-item data-properties="{node:item}"></node-item>
+        </li>
     </ul>
 </div>
 
 <div id="app">
 
     <ul>
-        <li>
-            <node-item data-for="node in app.nodes" data-properties="{node:node}"></node-item>
+        <li data-for="item in app.nodes">
+            <node-item data-properties="{node:item}"></node-item>
         </li>
     </ul>
 

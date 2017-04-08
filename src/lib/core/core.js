@@ -29,13 +29,17 @@ class Core{
         Component.digestAll();
     }
 
+    static getComponentById(id){
+        return Component.getComponentById(id);
+    }
+
     static run(){
         console.warn('core.run() is deprecated for now');
     }
 
 }
 
-Core.version = '0.4.0';
+Core.version = '{{version}}';
 
 window.RF = Core;
 window.RF.Router = Router;

@@ -1,6 +1,6 @@
 !function() {
     "use strict";
-    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DirectiveEngine, DomUtils, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, MiscUtils, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, __showPage, Router, TemplateLoader, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DirectiveEngine, DomUtils, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, MiscUtils, cnt, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, __showPage, Router, TemplateLoader, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
@@ -136,6 +136,7 @@
     }
     Component = function() {
         function Component(name, node, modelView) {
+            var _this = this;
             _classCallCheck(this, Component);
             this.parent = null;
             this.children = null;
@@ -143,8 +144,11 @@
             this.node = node;
             this.modelView = modelView;
             this.watchers = [];
-            // this.id = MiscUtils.getUID();
-            // this.node.setAttribute('data-component-id',this.id);
+            this.id = MiscUtils.getUID();
+            this.node.setAttribute("data-component-id", this.id);
+            DomUtils.nodeListToArray(this.node.querySelectorAll("*")).forEach(function(el) {
+                el.setAttribute("data-component-id", _this.id);
+            });
             Component.instances.push(this);
         }
         Component.prototype.addChild = function(childComponent) {
@@ -152,10 +156,9 @@
             this.children.push(childComponent);
         };
         Component.prototype.updateModelView = function(modelView) {
+            //MiscUtils.superficialCopy(this.modelView,modelView);
             this.modelView = modelView;
-            if (this.children) this.children.forEach(function(c) {
-                c.modelView = modelView;
-            });
+            if (this.children) this.children.forEach(function(c) {});
         };
         Component.prototype.onShow = function() {};
         // todo move to modelview class
@@ -169,9 +172,9 @@
             listenerFn(ExpressionEngine.runExpressionFn(watcherFn, this));
         };
         Component.prototype.digest = function() {
-            var _this = this;
+            var _this2 = this;
             this.watchers.forEach(function(watcher) {
-                var oldValue, newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this);
+                var oldValue, newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this2);
                 if ("object" == (void 0 === newValue ? "undefined" : _typeof(newValue))) newValue = MiscUtils.deepCopy(newValue);
                 oldValue = watcher.last;
                 if (!MiscUtils.deepEqual(newValue, oldValue)) watcher.listenerFn(newValue, oldValue);
@@ -194,6 +197,16 @@
             Component.instances.forEach(function(cmp) {
                 cmp.digest();
             });
+        };
+        Component.getComponentById = function(id) {
+            var res = null;
+            Component.instances.some(function(cmp) {
+                if (cmp.id == id) {
+                    res = cmp;
+                    return true;
+                }
+            });
+            return res;
         };
         return Component;
     }();
@@ -286,7 +299,8 @@
         _inherits(ScopedLoopContainer, _Component);
         function ScopedLoopContainer(node, modelView) {
             _classCallCheck(this, ScopedLoopContainer);
-            var _this = _possibleConstructorReturn(this, _Component.call(this, null, node, modelView, void 0));
+            var _this = _possibleConstructorReturn(this, _Component.call(this, null, node, modelView));
+            if (node.getAttribute("data-for")) throw "can not use data-for attribute at component directly. Use this directive at parent node";
             _this.scopedDomFragments = [];
             _this.lastFrafmentsLength = 0;
             _this.node = node;
@@ -301,11 +315,13 @@
             var _this2 = this;
             this.eachItemName = eachItemName;
             this.indexName = indexName;
-            this.anchor = document.createComment("loop: " + eachItemName + " in " + iterableObjectName);
+            this.anchor = document.createComment("component-id: " + this.id + "; loop: " + eachItemName + " in " + iterableObjectName);
             this.node.parentNode.insertBefore(this.anchor, this.node.nextSibling);
             this.node.remove();
             this.node = this.node.cloneNode(true);
             this.addWatcher(iterableObjectName, function(newArr, oldArr) {
+                if (newArr && newArr[0] && _this2.parent && _this2.parent.modelView.node) // check for false positive triggers in recursive loops
+                if (MiscUtils.deepEqual(newArr[0], _this2.parent.modelView.node)) return;
                 _this2._processIterations(newArr, oldArr);
             });
         };
@@ -323,7 +339,7 @@
                     currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
                     scopedDomFragment.parent = _this3.parent;
                     scopedDomFragment.parent.addChild(scopedDomFragment);
-                    new DirectiveEngine(scopedDomFragment).run();
+                    scopedDomFragment.run();
                     currNodeInIteration = node;
                     _this3.scopedDomFragments.push(scopedDomFragment);
                     _this3.lastFrafmentsLength++;
@@ -331,7 +347,7 @@
                     _localModelView = _this3.scopedDomFragments[i].modelView;
                     _localModelView[_this3.eachItemName] = iterableItem;
                     if (_this3.indexName) _localModelView[_this3.indexName] = i;
-                    _this3.scopedDomFragments[i].updateModelView(_localModelView);
+                    //this.scopedDomFragments[i].updateModelView(localModelView);
                     currNodeInIteration = _this3.scopedDomFragments[i].node;
                     _this3.scopedDomFragments[i].digest();
                 }
@@ -489,13 +505,12 @@
             var _this10 = this;
             ComponentProto.instances.forEach(function(componentProto) {
                 var componentNodes, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
-                if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLocaleLowerCase()) {
+                if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
                     console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
                     console.error("component node:", _this10.component.node);
                     throw "Can not use data-for attribute at component";
                 }
                 componentNodes = [];
-                // todo need?
                 domEls.forEach(function(it) {
                     var componentNode, dataPropertiesAttr, dataProperties, component;
                     if (!it.getAttribute("data-_processed")) {
@@ -506,9 +521,10 @@
                         dataPropertiesAttr = it.getAttribute("data-properties");
                         dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
                         component = componentProto.newInstance(componentNode, dataProperties);
+                        component.run();
                         component.parent = _this10.component;
                         component.parent.addChild(component);
-                        component.run();
+                        it.parentNode.removeChild(it);
                     }
                 });
                 componentNodes.forEach(function(node) {
@@ -531,6 +547,8 @@
             this.runDirective_Value();
             this.runDirective_Class();
             this.runDirective_Style();
+            // todo this.runDirective_Show();
+            // todo this.runDirective_Hide();
             this.runDirective_Disabled();
             this.runDirective_If();
         };
@@ -917,6 +935,11 @@
                 return obj;
             }
         };
+        MiscUtils.superficialCopy = function(a, b) {
+            if (a && b) Object.keys(b).forEach(function(key) {
+                a[key] = b[key];
+            });
+        };
         /**
      * @param x
      * @param y
@@ -933,8 +956,12 @@
                 return "-" + $1.toLowerCase();
             });
         };
+        MiscUtils.getUID = function() {
+            return cnt++;
+        };
         return MiscUtils;
     }();
+    cnt = 0;
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
@@ -1136,12 +1163,15 @@
         Core.digest = function() {
             Component.digestAll();
         };
+        Core.getComponentById = function(id) {
+            return Component.getComponentById(id);
+        };
         Core.run = function() {
             console.warn("core.run() is deprecated for now");
         };
         return Core;
     }();
-    Core.version = "0.4.0";
+    Core.version = "0.5.1";
     window.RF = Core;
     window.RF.Router = Router;
 }();

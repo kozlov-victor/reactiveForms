@@ -6,4 +6,3 @@ RF.applyBindings('#app',{
         sex: 'M'
     }
 });
-RF.run();

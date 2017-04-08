@@ -14,4 +14,3 @@ RF.applyBindings('#app',{
         this.currentFruit = this.fruits[index];
     }
 });
-RF.run();

@@ -31,17 +31,21 @@ button:active,input:active {
 
     
 <div id="nodeItemTmpl">
-    {{node.name}}
-    <ul data-for="node in node.children">
-        <node-item data-properties="{node:node}"></node-item>
+    <span data-click="triggerCollapse()">
+        {{node.name}}
+    </span>
+    <ul data-style="{display:collapsed?'none':''}">
+        <li data-for="item in node.children">
+            <node-item data-properties="{node:item}"></node-item>
+        </li>
     </ul>
 </div>
 
 <div id="app">
 
     <ul>
-        <li>
-            <node-item data-for="node in app.nodes" data-properties="{node:node}"></node-item>
+        <li data-for="item in app.nodes">
+            <node-item data-properties="{node:item}"></node-item>
         </li>
     </ul>
 
@@ -72,16 +76,41 @@ app.nodes = [
                 name:'node_2_1'
             },
             {
-                name:'node_2_2'
+                name:'node_2_2',
+                children: [
+                    {name:'node_2_2_1'},
+                    {
+                        name:'node_2_2_2',
+                        children: [
+                            {name:'node_2_2_2_1'},
+                            {
+                                name:'node_2_2_2_2'
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     }
 ];
 
+// app.nodes = [
+//     {
+//         name:1,
+//         children: [
+//             {name:2}
+//         ]
+//     }
+// ];
+
 RF.registerComponent('node-item',{
     template: {
         type:'dom',
         value:'nodeItemTmpl'
+    },
+    collapsed: false,
+    triggerCollapse: function(){
+        this.collapsed = !this.collapsed;
     },
     external: {
         node:null
@@ -91,7 +120,19 @@ RF.registerComponent('node-item',{
 RF.applyBindings('#app',{
     app:app
 });
-RF.run();
     </script>
+
+    <script>
+        window.onload = function(){
+            var style = getComputedStyle(document.documentElement);
+            window.top.postMessage({
+                fromEditor:true,
+                page: location.search.substr(1),
+                height:parseInt(style.height),
+                width:parseInt(style.width)
+            },'*');
+        };
+    </script>
+
 </body>
 </html>

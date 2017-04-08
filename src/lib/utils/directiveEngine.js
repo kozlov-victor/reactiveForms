@@ -183,13 +183,13 @@ class DirectiveEngine {
     runComponents(){
         ComponentProto.instances.forEach(componentProto=>{
             let domEls =  DomUtils.nodeListToArray(this.component.node.getElementsByTagName(componentProto.name));
-            if (this.component.node.tagName.toLowerCase()==componentProto.name.toLocaleLowerCase()) {
+            if (this.component.node.tagName.toLowerCase()==componentProto.name.toLowerCase()) {
                 console.error(`
                    Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node`);
                 console.error('component node:',this.component.node);
                 throw "Can not use data-for attribute at component"
             }
-            let componentNodes = []; // todo need?
+            let componentNodes = [];
             domEls.forEach(it=>{
                 if (it.getAttribute('data-_processed')) return;
                 it.setAttribute('data-_processed','1');
@@ -200,9 +200,10 @@ class DirectiveEngine {
                 let dataProperties = dataPropertiesAttr?
                     ExpressionEngine.executeExpression(dataPropertiesAttr,this.component):{};
                 let component = componentProto.newInstance(componentNode,dataProperties);
+                component.run();
                 component.parent = this.component;
                 component.parent.addChild(component);
-                component.run();
+                it.parentNode.removeChild(it);
             });
             componentNodes.forEach((node)=>{
                 DomUtils.removeParentButNotChildren(node);
@@ -228,6 +229,8 @@ class DirectiveEngine {
         this.runDirective_Value();
         this.runDirective_Class();
         this.runDirective_Style();
+        // todo this.runDirective_Show();
+        // todo this.runDirective_Hide();
         this.runDirective_Disabled();
         this.runDirective_If();
     }

@@ -30,13 +30,22 @@
         }
         iframe {
             border: 1px solid black;
-            min-height: 300px;
         }
 
 
     </style>
 
     {{css}}
+
+    <script>
+        window.addEventListener('message',function(msg){
+            var data = msg.data;
+            if (!data.fromEditor) return;
+            var frame = document.getElementById(data.page);
+            frame.style.height = data.height+25+'px';
+            frame.style.width = data.width+'px';
+        });
+    </script>
 
 </head>
 <body>

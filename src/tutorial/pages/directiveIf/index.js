@@ -8,4 +8,3 @@ RF.applyBindings('#app',{
         this.user.numOfClicks++;
     }
 });
-RF.run();

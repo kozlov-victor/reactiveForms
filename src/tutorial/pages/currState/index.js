@@ -7,4 +7,3 @@ RF.applyBindings('#app',{
         console.log(this);
     }
 });
-RF.run();

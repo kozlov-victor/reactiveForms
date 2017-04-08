@@ -26,6 +26,13 @@ class MiscUtils {
         return obj;
     }
 
+    static superficialCopy(a,b){
+        if (!(a && b)) return;
+        Object.keys(b).forEach(key=>{
+            a[key] = b[key];
+        })
+    }
+
     /**
      * @param x
      * @param y
@@ -44,5 +51,12 @@ class MiscUtils {
         return str.replace(/([A-Z])/g, function($1){return "-"+$1.toLowerCase();});
     }
 
+    static getUID(){
+        return cnt++;
+    }
+
 }
+
+
+let cnt = 0;
 
