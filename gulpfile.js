@@ -78,6 +78,7 @@ gulp.task('tutor', ()=> {
     let pageNames = fs.getDirListSync('src/tutorial/pages');
     let res = [];
     let css = fs.readFileSync(`src/tutorial/tmpl/prism.css`);
+    let headers = fs.readFileSync(`src/tutorial/tmpl/headers.html`);
     pageNames.forEach((page,index)=>{
         let html = fs.readFileSync(`src/tutorial/pages/${page}/index.html`);
         let js = fs.readFileSync(`src/tutorial/pages/${page}/index.js`);
@@ -85,7 +86,7 @@ gulp.task('tutor', ()=> {
 
         let runCodeTmpl = fs.readFileSync(`src/tutorial/tmpl/runCode.html`);
         runCodeTmpl = parametrize(runCodeTmpl,{
-            html,js,css,
+            html,js,css,headers,
             salt:new Date().getTime()
         });
         fs.createFolderSync('build/pages');
@@ -106,6 +107,7 @@ gulp.task('tutor', ()=> {
     res.sort((a,b)=>{return a.meta.order-b.meta.order});
     let tmpl = fs.readFileSync('src/tutorial/tmpl/index.html');
     tmpl = parametrize(tmpl,{
+        headers,
         html: res.map(it=>{return it.resCode}).join(''),
         css:`<style>${css}</style>`
     });
