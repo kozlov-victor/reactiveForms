@@ -7,7 +7,9 @@ let _getValByPath = function(component, path) {
         if (res!==undefined) res = res[key];
     });
     if (res!==undefined) res = res[lastKey];
-    if (res===undefined && component.parent) return _getValByPath(component.parent,path);
+    if (!component.disableParentScopeEvaluation && res===undefined && component.parent) {
+        return _getValByPath(component.parent,path);
+    }
     else {
         if (res && res.call) {
             return function() {

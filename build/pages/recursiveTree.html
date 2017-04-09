@@ -25,14 +25,14 @@ button:active,input:active {
     outline: 1px solid blue;
 }
     </style>
-    <script src="../reactiveForms.js"></script>
+    <script src="../reactiveForms.js?1491721524884"></script>
 </head>
 <body>
 
     
 <div id="nodeItemTmpl">
     <span data-click="triggerCollapse()">
-        {{node.name}}
+        {{collapsed?'+':'-'}} {{node.name}}
     </span>
     <ul data-style="{display:collapsed?'none':''}">
         <li data-for="item in node.children">
@@ -94,21 +94,12 @@ app.nodes = [
     }
 ];
 
-// app.nodes = [
-//     {
-//         name:1,
-//         children: [
-//             {name:2}
-//         ]
-//     }
-// ];
-
 RF.registerComponent('node-item',{
     template: {
         type:'dom',
         value:'nodeItemTmpl'
     },
-    collapsed: false,
+    collapsed: true,
     triggerCollapse: function(){
         this.collapsed = !this.collapsed;
     },

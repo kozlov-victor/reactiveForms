@@ -38,21 +38,12 @@ app.nodes = [
     }
 ];
 
-// app.nodes = [
-//     {
-//         name:1,
-//         children: [
-//             {name:2}
-//         ]
-//     }
-// ];
-
 RF.registerComponent('node-item',{
     template: {
         type:'dom',
         value:'nodeItemTmpl'
     },
-    collapsed: false,
+    collapsed: true,
     triggerCollapse: function(){
         this.collapsed = !this.collapsed;
     },

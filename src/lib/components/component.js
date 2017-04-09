@@ -3,6 +3,7 @@ class Component {
     constructor(name, node, modelView) {
         this.parent = null;
         this.children = null;
+        this.disableParentScopeEvaluation = false;
         this.name = name;
         this.node = node;
         this.modelView = modelView;

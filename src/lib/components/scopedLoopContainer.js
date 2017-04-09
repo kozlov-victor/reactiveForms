@@ -33,10 +33,6 @@ class ScopedLoopContainer extends Component {
         this.addWatcher(
             iterableObjectName,
             (newArr,oldArr)=>{
-                if (newArr && newArr[0] && this.parent && this.parent.modelView['node']) {
-                    // check for false positive triggers in recursive loops
-                    if (MiscUtils.deepEqual(newArr[0],this.parent.modelView['node'])) return;
-                }
                 this._processIterations(newArr,oldArr);
             });
     }

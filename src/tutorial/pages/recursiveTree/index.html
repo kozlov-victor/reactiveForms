@@ -1,7 +1,7 @@
 
 <div id="nodeItemTmpl">
     <span data-click="triggerCollapse()">
-        {{node.name}}
+        {{collapsed?'+':'-'}} {{node.name}}
     </span>
     <ul data-style="{display:collapsed?'none':''}">
         <li data-for="item in node.children">

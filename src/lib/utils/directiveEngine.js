@@ -203,6 +203,7 @@ class DirectiveEngine {
                 component.run();
                 component.parent = this.component;
                 component.parent.addChild(component);
+                component.disableParentScopeEvaluation = true; // avoid recursion in Component
                 it.parentNode.removeChild(it);
             });
             componentNodes.forEach((node)=>{

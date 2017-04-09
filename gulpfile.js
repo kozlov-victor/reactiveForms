@@ -83,7 +83,10 @@ gulp.task('tutor', ()=> {
         let css = fs.readFileSync(`src/tutorial/tmpl/common.css`);
 
         let runCodeTmpl = fs.readFileSync(`src/tutorial/tmpl/runCode.html`);
-        runCodeTmpl = parametrize(runCodeTmpl,{html,js,css});
+        runCodeTmpl = parametrize(runCodeTmpl,{
+            html,js,css,
+            salt:new Date().getTime()
+        });
         fs.createFolderSync('build/pages');
         fs.writeFileSync(`build/pages/${page}.html`,runCodeTmpl);
 

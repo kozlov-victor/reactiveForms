@@ -140,6 +140,7 @@
             _classCallCheck(this, Component);
             this.parent = null;
             this.children = null;
+            this.disableParentScopeEvaluation = false;
             this.name = name;
             this.node = node;
             this.modelView = modelView;
@@ -320,8 +321,6 @@
             this.node.remove();
             this.node = this.node.cloneNode(true);
             this.addWatcher(iterableObjectName, function(newArr, oldArr) {
-                if (newArr && newArr[0] && _this2.parent && _this2.parent.modelView.node) // check for false positive triggers in recursive loops
-                if (MiscUtils.deepEqual(newArr[0], _this2.parent.modelView.node)) return;
                 _this2._processIterations(newArr, oldArr);
             });
         };
@@ -524,6 +523,8 @@
                         component.run();
                         component.parent = _this10.component;
                         component.parent.addChild(component);
+                        component.disableParentScopeEvaluation = true;
+                        // avoid recursion in Component
                         it.parentNode.removeChild(it);
                     }
                 });
@@ -724,7 +725,7 @@
             if (void 0 !== res) res = res[key];
         });
         if (void 0 !== res) res = res[lastKey];
-        if (void 0 === res && component.parent) return _getValByPath(component.parent, path); else if (res && res.call) return function() {
+        if (!component.disableParentScopeEvaluation && void 0 === res && component.parent) return _getValByPath(component.parent, path); else if (res && res.call) return function() {
             return res.apply(component.modelView, Array.prototype.slice.call(arguments));
         }; else return res;
     };
