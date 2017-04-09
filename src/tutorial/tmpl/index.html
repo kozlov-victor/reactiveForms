@@ -14,18 +14,19 @@
         code {
             white-space: pre;
         }
-        [data-js] {
+        [data-js],[data-html] {
             font-family: monospace;
+            padding: 5px;
+            overflow-x: auto;
+        }
+        [data-js] {
             display: block;
             background-color: #fffaf5;
-            padding: 5px;
         }
         [data-html] {
-            font-family: monospace;
             white-space: pre;
             border: none;
             width: 100%;
-            padding: 5px;
             background-color: #f4f7f7;
         }
         iframe {
@@ -66,6 +67,8 @@
 <body>
 
 <h1>ReactiveForms tutorial</h1>
+
+<h3>Текущая версия: {{version}}</h3>
 
 <ol>
     {{html}}

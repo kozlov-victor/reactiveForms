@@ -79,6 +79,7 @@ gulp.task('tutor', ()=> {
     let res = [];
     let css = fs.readFileSync(`src/tutorial/tmpl/prism.css`);
     let headers = fs.readFileSync(`src/tutorial/tmpl/headers.html`);
+    let packageJson = JSON.parse(fs.readFileSync('package.json'));
     pageNames.forEach((page,index)=>{
         let html = fs.readFileSync(`src/tutorial/pages/${page}/index.html`);
         let js = fs.readFileSync(`src/tutorial/pages/${page}/index.js`);
@@ -108,6 +109,7 @@ gulp.task('tutor', ()=> {
     let tmpl = fs.readFileSync('src/tutorial/tmpl/index.html');
     tmpl = parametrize(tmpl,{
         headers,
+        version: packageJson.version,
         html: res.map(it=>{return it.resCode}).join(''),
         css:`<style>${css}</style>`
     });
