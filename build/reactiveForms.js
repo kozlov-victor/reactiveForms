@@ -25,6 +25,18 @@
         for (;k < len; k++) if (k in t) value = callback(value, t[k], k, t);
         return value;
     };
+    // Production steps of ECMA-262, Edition 5, 15.4.4.17
+    // Reference: http://es5.github.io/#x15.4.4.17
+    if (!Array.prototype.some) Array.prototype.some = function(fun) {
+        var t, len, thisArg, i;
+        if (null == this) throw new TypeError("Array.prototype.some called on null or undefined");
+        if ("function" != typeof fun) throw new TypeError();
+        t = Object(this);
+        len = t.length >>> 0;
+        thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+        for (i = 0; i < len; i++) if (i in t && fun.call(thisArg, t[i], i, t)) return true;
+        return false;
+    };
     if ("function" != typeof Array.prototype.forEach) Array.prototype.forEach = function(callback, thisArg) {
         if ("number" == typeof this.length) if ("function" == typeof callback) if ("object" == _typeof(this)) for (var i = 0; i < this.length; i++) if (i in this) callback.call(thisArg || this, this[i], i, this); else return;
     };
@@ -415,14 +427,16 @@
             this._eachElementWithAttr("data-" + eventName, function(el, expression) {
                 var fn = ExpressionEngine.getExpressionFn(expression);
                 DomUtils.addEventListener(el, eventName, function(e) {
-                    if ([ "keypress", "keydown" ].indexOf(eventName) == -1) {
+                    var shouldPreventDefault = [ "keypress", "keydown" ].indexOf(eventName) == -1;
+                    if (shouldPreventDefault) {
                         e = e || window.e;
-                        e.preventDefault();
-                        e.stopPropagation();
+                        e.preventDefault && e.preventDefault();
+                        e.stopPropagation && e.stopPropagation();
                         e.cancelBubble = true;
                     }
                     ExpressionEngine.runExpressionFn(fn, _this3.component);
                     Component.digestAll();
+                    if (shouldPreventDefault) return false;
                 });
             });
         };
@@ -996,7 +1010,7 @@
         };
         HashRouterStrategy.setup = function() {
             location.hash && HashRouterStrategy._check(location.hash);
-            window.addEventListener("hashchange", function() {
+            DomUtils.addEventListener(window, "hashchange", function() {
                 HashRouterStrategy._check(location.hash);
             });
         };

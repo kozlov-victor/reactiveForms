@@ -31,6 +31,9 @@
         iframe {
             border: 1px solid black;
         }
+        .inline {
+            display: inline;
+        }
 
 
     </style>
@@ -177,13 +180,25 @@ pre[class*="language-"] {
 </style>
 
     <script>
-        window.addEventListener('message',function(msg){
-            var data = msg.data;
-            if (!data.fromEditor) return;
-            var frame = document.getElementById(data.page);
-            frame.style.height = data.height+25+'px';
-            frame.style.width = data.width+'px';
-        });
+        (function(){
+            var processMessage = function(msg){
+                var data = msg.data;
+                if (!data.fromEditor) return;
+                var frame = document.getElementById(data.page);
+                frame.style.height = data.height+25+'px';
+                frame.style.width = data.width+'px';
+            };
+            if (window.addEventListener) {
+                window.addEventListener('message',function(msg){
+                    processMessage(msg);
+                });
+            } else {
+                window.attachEvent('onmessage',function(msg){
+                    processMessage(msg);
+                })
+            }
+        })();
+
     </script>
 
 </head>
@@ -215,10 +230,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('commonBind');
-            f.src = 'pages/commonBind.html?commonBind';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('commonBind');
+                    f.src = 'pages/commonBind.html?commonBind';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/commonBind.html?commonBind" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="commonBind"></iframe>
@@ -325,10 +344,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('events');
-            f.src = 'pages/events.html?events';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('events');
+                    f.src = 'pages/events.html?events';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/events.html?events" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="events"></iframe>
@@ -363,10 +386,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('currState');
-            f.src = 'pages/currState.html?currState';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('currState');
+                    f.src = 'pages/currState.html?currState';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/currState.html?currState" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="currState"></iframe>
@@ -408,10 +435,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('directiveIf');
-            f.src = 'pages/directiveIf.html?directiveIf';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('directiveIf');
+                    f.src = 'pages/directiveIf.html?directiveIf';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/directiveIf.html?directiveIf" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="directiveIf"></iframe>
@@ -453,10 +484,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('checkbox');
-            f.src = 'pages/checkbox.html?checkbox';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('checkbox');
+                    f.src = 'pages/checkbox.html?checkbox';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/checkbox.html?checkbox" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="checkbox"></iframe>
@@ -497,10 +532,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('select');
-            f.src = 'pages/select.html?select';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('select');
+                    f.src = 'pages/select.html?select';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/select.html?select" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="select"></iframe>
@@ -539,10 +578,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('radio');
-            f.src = 'pages/radio.html?radio';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('radio');
+                    f.src = 'pages/radio.html?radio';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/radio.html?radio" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="radio"></iframe>
@@ -587,10 +630,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('classes');
-            f.src = 'pages/classes.html?classes';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('classes');
+                    f.src = 'pages/classes.html?classes';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/classes.html?classes" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="classes"></iframe>
@@ -637,10 +684,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('styles');
-            f.src = 'pages/styles.html?styles';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('styles');
+                    f.src = 'pages/styles.html?styles';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/styles.html?styles" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="styles"></iframe>
@@ -693,10 +744,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('componentSimple');
-            f.src = 'pages/componentSimple.html?componentSimple';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('componentSimple');
+                    f.src = 'pages/componentSimple.html?componentSimple';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/componentSimple.html?componentSimple" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="componentSimple"></iframe>
@@ -748,10 +803,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('componentFromString');
-            f.src = 'pages/componentFromString.html?componentFromString';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('componentFromString');
+                    f.src = 'pages/componentFromString.html?componentFromString';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/componentFromString.html?componentFromString" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="componentFromString"></iframe>
@@ -850,10 +909,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('componentComplex');
-            f.src = 'pages/componentComplex.html?componentComplex';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('componentComplex');
+                    f.src = 'pages/componentComplex.html?componentComplex';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/componentComplex.html?componentComplex" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="componentComplex"></iframe>
@@ -913,10 +976,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('loops');
-            f.src = 'pages/loops.html?loops';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('loops');
+                    f.src = 'pages/loops.html?loops';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/loops.html?loops" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="loops"></iframe>
@@ -1076,10 +1143,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('loopsInLoops');
-            f.src = 'pages/loopsInLoops.html?loopsInLoops';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('loopsInLoops');
+                    f.src = 'pages/loopsInLoops.html?loopsInLoops';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/loopsInLoops.html?loopsInLoops" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="loopsInLoops"></iframe>
@@ -1095,7 +1166,7 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
     <span class="token operator">&lt;</span>span data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"triggerCollapse()"</span><span class="token operator">></span>
         {{collapsed<span class="token operator">?</span><span class="token string">'+'</span><span class="token punctuation">:</span><span class="token string">'-'</span>}} {{node<span class="token punctuation">.</span>name}}
     <span class="token operator">&lt;</span><span class="token operator">/</span>span<span class="token operator">></span>
-    <span class="token operator">&lt;</span>ul data<span class="token operator">-</span>style<span class="token operator">=</span><span class="token string">"{display:collapsed?'none':''}"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>ul data<span class="token operator">-</span><span class="token keyword">if</span><span class="token operator">=</span><span class="token string">"!collapsed"</span><span class="token operator">></span>
         <span class="token operator">&lt;</span>li data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"item in node.children"</span><span class="token operator">></span>
             <span class="token operator">&lt;</span>node<span class="token operator">-</span>item data<span class="token operator">-</span>properties<span class="token operator">=</span><span class="token string">"{node:item}"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>node<span class="token operator">-</span>item<span class="token operator">></span>
         <span class="token operator">&lt;</span><span class="token operator">/</span>li<span class="token operator">></span>
@@ -1176,10 +1247,14 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('recursiveTree');
-            f.src = 'pages/recursiveTree.html?recursiveTree';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('recursiveTree');
+                    f.src = 'pages/recursiveTree.html?recursiveTree';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/recursiveTree.html?recursiveTree" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="recursiveTree"></iframe>
@@ -1284,10 +1359,14 @@ RF<span class="token punctuation">.</span>Router<span class="token punctuation">
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('routes');
-            f.src = 'pages/routes.html?routes';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('routes');
+                    f.src = 'pages/routes.html?routes';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/routes.html?routes" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="routes"></iframe>
@@ -1368,10 +1447,14 @@ RF<span class="token punctuation">.</span>Router<span class="token punctuation">
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('routesHash');
-            f.src = 'pages/routesHash.html?routesHash';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('routesHash');
+                    f.src = 'pages/routesHash.html?routesHash';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/routesHash.html?routesHash" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="routesHash"></iframe>

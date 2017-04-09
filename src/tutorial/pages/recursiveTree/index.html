@@ -3,7 +3,7 @@
     <span data-click="triggerCollapse()">
         {{collapsed?'+':'-'}} {{node.name}}
     </span>
-    <ul data-style="{display:collapsed?'none':''}">
+    <ul data-if="!collapsed">
         <li data-for="item in node.children">
             <node-item data-properties="{node:item}"></node-item>
         </li>

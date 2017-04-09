@@ -7,9 +7,12 @@
         
 button, input[type=text] {
     margin: 0 auto 3px;
+    padding: 3px;
+}
+
+button {
     background-color: #00dcff;
     border: none;
-    padding: 3px;
 }
 
 button.inline-block {
@@ -25,7 +28,7 @@ button:active,input:active {
     outline: 1px solid blue;
 }
     </style>
-    <script src="../reactiveForms.js?1491721524854"></script>
+    <script src="../reactiveForms.js?1491724484096"></script>
 </head>
 <body>
 
@@ -60,7 +63,14 @@ RF.applyBindings('#app',{
 
     <script>
         window.onload = function(){
-            var style = getComputedStyle(document.documentElement);
+            var getStyle = function (el) {
+                if (typeof getComputedStyle !== 'undefined') {
+                    return getComputedStyle(el);
+                } else {
+                    return el.currentStyle;
+                }
+            };
+            var style = getStyle(document.documentElement);
             window.top.postMessage({
                 fromEditor:true,
                 page: location.search.substr(1),

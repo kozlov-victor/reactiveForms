@@ -36,9 +36,10 @@ gulp.task('engine', ()=> {
     let debug = !argv.prod;
     return (
         gulp.src([
-            'src/lib/polifils/polifils.js',
+            'src/lib/polifils/*.js',
             'src/lib/components/*.js',
             'src/lib/utils/*.js',
+            'src/lib/engines/*.js',
             'src/lib/core/core.js'
         ])
         .pipe(babel({

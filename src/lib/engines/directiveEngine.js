@@ -55,14 +55,16 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-'+eventName,(el,expression)=>{
             let fn = ExpressionEngine.getExpressionFn(expression);
             DomUtils.addEventListener(el,eventName,e=>{
-                if (['keypress','keydown'].indexOf(eventName)==-1) {
+                let shouldPreventDefault = ['keypress','keydown'].indexOf(eventName)==-1;
+                if (shouldPreventDefault) {
                     e = e || window.e;
-                    e.preventDefault();
-                    e.stopPropagation();
+                    e.preventDefault && e.preventDefault();
+                    e.stopPropagation && e.stopPropagation();
                     e.cancelBubble = true;
                 }
                 ExpressionEngine.runExpressionFn(fn,this.component);
                 Component.digestAll();
+                if (shouldPreventDefault) return false;
             });
         });
     };

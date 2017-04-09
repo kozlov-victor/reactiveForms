@@ -7,9 +7,12 @@
         
 button, input[type=text] {
     margin: 0 auto 3px;
+    padding: 3px;
+}
+
+button {
     background-color: #00dcff;
     border: none;
-    padding: 3px;
 }
 
 button.inline-block {
@@ -25,7 +28,7 @@ button:active,input:active {
     outline: 1px solid blue;
 }
     </style>
-    <script src="../reactiveForms.js?1491721524884"></script>
+    <script src="../reactiveForms.js?1491724484132"></script>
 </head>
 <body>
 
@@ -34,7 +37,7 @@ button:active,input:active {
     <span data-click="triggerCollapse()">
         {{collapsed?'+':'-'}} {{node.name}}
     </span>
-    <ul data-style="{display:collapsed?'none':''}">
+    <ul data-if="!collapsed">
         <li data-for="item in node.children">
             <node-item data-properties="{node:item}"></node-item>
         </li>
@@ -115,7 +118,14 @@ RF.applyBindings('#app',{
 
     <script>
         window.onload = function(){
-            var style = getComputedStyle(document.documentElement);
+            var getStyle = function (el) {
+                if (typeof getComputedStyle !== 'undefined') {
+                    return getComputedStyle(el);
+                } else {
+                    return el.currentStyle;
+                }
+            };
+            var style = getStyle(document.documentElement);
             window.top.postMessage({
                 fromEditor:true,
                 page: location.search.substr(1),

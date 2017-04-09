@@ -50,6 +50,34 @@ if (!Array.prototype.reduce) {
     };
 }
 
+// Production steps of ECMA-262, Edition 5, 15.4.4.17
+// Reference: http://es5.github.io/#x15.4.4.17
+if (!Array.prototype.some) {
+    Array.prototype.some = function(fun/*, thisArg*/) {
+        'use strict';
+
+        if (this == null) {
+            throw new TypeError('Array.prototype.some called on null or undefined');
+        }
+
+        if (typeof fun !== 'function') {
+            throw new TypeError();
+        }
+
+        let t = Object(this);
+        let len = t.length >>> 0;
+
+        let thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+        for (let i = 0; i < len; i++) {
+            if (i in t && fun.call(thisArg, t[i], i, t)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+}
+
 if (typeof Array.prototype.forEach != 'function') {
     Array.prototype.forEach = function(callback, thisArg) {
         if (typeof this.length != 'number') return;

@@ -10,10 +10,14 @@
         </code>
         <div>
             <button onclick="
-            var f = document.getElementById('{{id}}');
-            f.src = 'pages/{{page}}.html?{{page}}';
-            f.style.display = '';
-        ">Выполнить</button>
+                    var f = document.getElementById('{{id}}');
+                    f.src = 'pages/{{page}}.html?{{page}}';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/{{page}}.html?{{page}}" target="_blank">
+                <button> В новом окне > </button>
+            </form>
         </div>
         <div>
             <iframe frameborder="none" style="display: none;" id="{{id}}"></iframe>

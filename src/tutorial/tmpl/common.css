@@ -1,9 +1,12 @@
 
 button, input[type=text] {
     margin: 0 auto 3px;
+    padding: 3px;
+}
+
+button {
     background-color: #00dcff;
     border: none;
-    padding: 3px;
 }
 
 button.inline-block {

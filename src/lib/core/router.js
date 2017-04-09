@@ -32,7 +32,7 @@ class HashRouterStrategy { // todo complete
     }
     static setup(){
         location.hash && HashRouterStrategy._check(location.hash);
-        window.addEventListener('hashchange',function(){
+        DomUtils.addEventListener(window,'hashchange',function(){
             HashRouterStrategy._check(location.hash);
         });
     };
