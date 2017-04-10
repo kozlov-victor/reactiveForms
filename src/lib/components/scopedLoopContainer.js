@@ -50,6 +50,7 @@ class ScopedLoopContainer extends Component {
 
                 let node = this.node.cloneNode(true);
                 let scopedDomFragment = new ScopedDomFragment(node,localModelView);
+                // todo Cannot read property 'insertBefore' of null
                 currNodeInIteration.parentNode.insertBefore(node,currNodeInIteration.nextSibling);
                 scopedDomFragment.parent = this.parent;
                 scopedDomFragment.parent.addChild(scopedDomFragment);
