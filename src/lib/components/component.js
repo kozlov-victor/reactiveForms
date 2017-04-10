@@ -48,14 +48,12 @@ class Component {
     digest() {
         this.watchers.forEach(watcher => {
             let newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, this);
-            if (typeof newValue == 'object') {
-                newValue = MiscUtils.deepCopy(newValue);
-            }
             let oldValue = watcher.last;
-            if (!MiscUtils.deepEqual(newValue, oldValue)) {
+            let newValDeepCopy = MiscUtils.deepCopy(newValue);
+            if (!MiscUtils.deepEqual(newValDeepCopy,oldValue)) {
                 watcher.listenerFn(newValue, oldValue);
             }
-            watcher.last = newValue;
+            watcher.last = newValDeepCopy;
         });
         // if (this.children) { // todo need??
         //     this.children.forEach(c=>{

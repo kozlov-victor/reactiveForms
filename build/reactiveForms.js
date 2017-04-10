@@ -138,11 +138,6 @@
         };
         self;
     }();
-    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
-        return typeof obj;
-    } : function(obj) {
-        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
@@ -188,11 +183,9 @@
         Component.prototype.digest = function() {
             var _this2 = this;
             this.watchers.forEach(function(watcher) {
-                var oldValue, newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this2);
-                if ("object" == (void 0 === newValue ? "undefined" : _typeof(newValue))) newValue = MiscUtils.deepCopy(newValue);
-                oldValue = watcher.last;
-                if (!MiscUtils.deepEqual(newValue, oldValue)) watcher.listenerFn(newValue, oldValue);
-                watcher.last = newValue;
+                var newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this2), oldValue = watcher.last, newValDeepCopy = MiscUtils.deepCopy(newValue);
+                if (!MiscUtils.deepEqual(newValDeepCopy, oldValue)) watcher.listenerFn(newValue, oldValue);
+                watcher.last = newValDeepCopy;
             });
         };
         Component.prototype.run = function() {
@@ -714,14 +707,14 @@
         };
         DirectiveEngine.prototype.runDirective_Value = function() {};
         DirectiveEngine.prototype._runDirective_Model_OfSelect = function(selectEl, modelExpression) {
-            var component, val, selectedEl = DomUtils.nodeListToArray(selectEl.querySelectorAll("option")).filter(function(opt) {
+            var dataValueAttr, component, val, selectedEl = DomUtils.nodeListToArray(selectEl.querySelectorAll("option")).filter(function(opt) {
                 return opt.selected;
             })[0];
             if (selectedEl) {
+                dataValueAttr = selectedEl.getAttribute("data-value");
                 component = void 0, val = void 0;
                 component = Component.getComponentById(selectedEl.getAttribute("data-component-id"));
-                if (component) val = ExpressionEngine.executeExpression(selectedEl.getAttribute("data-value"), component);
-                if (!val) val = selectedEl.getAttribute("value");
+                if (component && dataValueAttr) val = ExpressionEngine.executeExpression(dataValueAttr, component); else val = selectedEl.getAttribute("value");
                 ExpressionEngine.setValueToContext(this.component.modelView, modelExpression, val);
             }
         };
@@ -741,8 +734,13 @@
                 _this5.component.addWatcher(expression, function(value) {
                     if ("select" == el.tagName.toLowerCase()) {
                         if (!DomUtils.nodeListToArray(el.querySelectorAll("option")).some(function(opt) {
-                            var componentId = opt.getAttribute("data-component-id"), component = Component.getComponentById(componentId), modelItemExpression = opt.getAttribute("data-value"), modelItem = ExpressionEngine.executeExpression(modelItemExpression, component);
-                            if (MiscUtils.deepEqual(modelItem, value)) return opt.selected = true;
+                            var componentId, component, modelItem, modelItemExpression = opt.getAttribute("data-value");
+                            if (modelItemExpression) {
+                                componentId = opt.getAttribute("data-component-id");
+                                component = Component.getComponentById(componentId);
+                                modelItem = ExpressionEngine.executeExpression(modelItemExpression, component);
+                                if (modelItem == value) return opt.selected = true; else return;
+                            }
                         })) el.value = value;
                     } else if (DomUtils.getInputValue(el) !== value) DomUtils.setInputValue(el, value);
                 });

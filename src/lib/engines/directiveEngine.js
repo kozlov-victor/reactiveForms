@@ -102,12 +102,13 @@ class DirectiveEngine {
             nodeListToArray(selectEl.querySelectorAll('option')).
         filter(opt=>{return opt.selected})[0];
         if (!selectedEl) return;
+        let dataValueAttr = selectedEl.getAttribute('data-value');
         let component, val;
         component = Component.getComponentById(selectedEl.getAttribute('data-component-id'));
-        if (component) {
-            val = ExpressionEngine.executeExpression(selectedEl.getAttribute('data-value'),component);
+        if (component && dataValueAttr) {
+            val = ExpressionEngine.executeExpression(dataValueAttr,component);
         }
-        if (!val) {
+        else {
             val = selectedEl.getAttribute('value');
         }
         ExpressionEngine.setValueToContext(this.component.modelView,modelExpression,val);
@@ -137,11 +138,12 @@ class DirectiveEngine {
                 value=>{
                     if (el.tagName.toLowerCase()=='select') {
                         let isModelSet = DomUtils.nodeListToArray(el.querySelectorAll('option')).some(opt=>{
+                            let modelItemExpression = opt.getAttribute('data-value');
+                            if (!modelItemExpression) return;
                             let componentId = opt.getAttribute('data-component-id');
                             let component = Component.getComponentById(componentId);
-                            let modelItemExpression = opt.getAttribute('data-value');
                             let modelItem = ExpressionEngine.executeExpression(modelItemExpression,component);
-                            if (MiscUtils.deepEqual(modelItem,value)) {
+                            if (modelItem==value) {
                                 return opt.selected = true;
                             }
                         });
