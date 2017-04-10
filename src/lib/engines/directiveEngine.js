@@ -43,7 +43,7 @@ class DirectiveEngine {
         DomUtils.processScopedTextNodes(this.component.node).forEach(it=>{
             this.component.addWatcher(
                 it.expression,
-                function(value){
+                value=>{
                     if (typeof value == 'object') value = JSON.stringify(value);
                     DomUtils.setTextNodeValue(it.node,value);
                 }
@@ -75,7 +75,7 @@ class DirectiveEngine {
             ExpressionEngine.runExpressionFn(fn,this.component);
             this.component.addWatcher(
                 expression,
-                function(value){
+                value=>{
                     DomUtils.setTextNodeValue(el,value);
                 }
             )
@@ -83,36 +83,74 @@ class DirectiveEngine {
     };
 
     runDirective_Value(){
-        let el = this.component.node;
-        let expression = el.getAttribute('data-value');
-        if (!expression) return;
-        if (el.tagName.toLowerCase()!='option') throw 'data-value attribute supported only by <option>, use data-model instead';
-        let fn = ExpressionEngine.getExpressionFn(expression);
-        ExpressionEngine.runExpressionFn(fn,this.component);
-        this.component.addWatcher(
-            expression,
-            function(value){
-                el.value = value;
-            }
-        )
+        // let el = this.component.node;
+        // let expression = el.getAttribute('data-value');
+        // if (!expression) return;
+        // if (el.tagName.toLowerCase()!='option') throw 'data-value attribute supported only by <option>, use data-model instead';
+        // let fn = ExpressionEngine.getExpressionFn(expression);
+        // ExpressionEngine.runExpressionFn(fn,this.component);
+        // this.component.addWatcher(
+        //     expression,
+        //     function(value){
+        //         el.value = value;
+        //     }
+        // )
+    }
+
+    _runDirective_Model_OfSelect(selectEl,modelExpression){ // todo multiple
+        let selectedEl = DomUtils.
+            nodeListToArray(selectEl.querySelectorAll('option')).
+        filter(opt=>{return opt.selected})[0];
+        if (!selectedEl) return;
+        let component, val;
+        component = Component.getComponentById(selectedEl.getAttribute('data-component-id'));
+        if (component) {
+            val = ExpressionEngine.executeExpression(selectedEl.getAttribute('data-value'),component);
+        }
+        if (!val) {
+            val = selectedEl.getAttribute('value');
+        }
+        ExpressionEngine.setValueToContext(this.component.modelView,modelExpression,val);
     }
 
     runDirective_Model(){
         this._eachElementWithAttr('data-model',(el,expression)=>{
             if (el.getAttribute('type')=='radio' && !el.getAttribute('name'))
-                el.setAttribute('name',el.getAttribute('_data-model'));
+                el.setAttribute('name',expression);
             let eventNames = DomUtils.getDefaultInputChangeEvents(el);
             eventNames.split(',').forEach(eventName=>{
-                DomUtils.addEventListener(el,eventName,()=>{
-                    ExpressionEngine.setValueToContext(this.component.modelView,expression,DomUtils.getInputValue(el));
-                    Component.digestAll();
-                });
+                if (el.tagName.toLowerCase()=='select') {
+                    DomUtils.addEventListener(el,eventName,()=>{
+                        this._runDirective_Model_OfSelect(el,expression);
+                        Component.digestAll();
+                    });
+                } else {
+                    DomUtils.addEventListener(el,eventName,()=>{
+                        ExpressionEngine.setValueToContext(this.component.modelView,expression,DomUtils.getInputValue(el));
+                        Component.digestAll();
+                    });
+                }
+
             });
             this.component.addWatcher(
                 expression,
-                function(value){
-                    if (DomUtils.getInputValue(el)!==value)
-                        DomUtils.setInputValue(el,value);
+                value=>{
+                    if (el.tagName.toLowerCase()=='select') {
+                        let isModelSet = DomUtils.nodeListToArray(el.querySelectorAll('option')).some(opt=>{
+                            let componentId = opt.getAttribute('data-component-id');
+                            let component = Component.getComponentById(componentId);
+                            let modelItemExpression = opt.getAttribute('data-value');
+                            let modelItem = ExpressionEngine.executeExpression(modelItemExpression,component);
+                            if (MiscUtils.deepEqual(modelItem,value)) {
+                                return opt.selected = true;
+                            }
+                        });
+                        if (!isModelSet) el.value = value;
+                    } else {
+                        if (DomUtils.getInputValue(el)!==value)
+                            DomUtils.setInputValue(el,value);
+                    }
+
                 }
             )
         });
@@ -122,7 +160,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-class',(el,expression)=>{
             this.component.addWatcher(
                 expression,
-                function(classNameOrObj){
+                classNameOrObj=>{
                     if (typeof classNameOrObj === 'object') {
                         for (let key in classNameOrObj) {
                             if (!classNameOrObj.hasOwnProperty(key)) continue;
@@ -141,7 +179,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-style',(el,expression)=>{
             this.component.addWatcher(
                 expression,
-                function(styleObject){
+                styleObject=>{
                     for (let key in styleObject) {
                         if (!styleObject.hasOwnProperty(key)) continue;
                         el.style[key] = styleObject[key]?styleObject[key]:'';
@@ -155,7 +193,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-disabled',(el,expression)=>{
             this.component.addWatcher(
                 expression,
-                function(value){
+                value=>{
                     if (value) el.setAttribute('disabled','disabled');
                     else el.removeAttribute('disabled');
                 }
@@ -169,7 +207,7 @@ class DirectiveEngine {
             el.parentNode.insertBefore(comment,el);
             this.component.addWatcher(
                 expression,
-                function(val){
+                val=>{
                     if (val) {
                         if (!el.parentElement) {
                             comment.parentNode.insertBefore(el,comment.nextSibling);

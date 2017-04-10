@@ -40,7 +40,8 @@ gulp.task('engine', ()=> {
             'src/lib/components/*.js',
             'src/lib/utils/*.js',
             'src/lib/engines/*.js',
-            'src/lib/core/core.js'
+            'src/lib/core/*.js',
+            'src/lib/main.js'
         ])
         .pipe(babel({
             //presets: ['es2015'],

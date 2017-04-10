@@ -10,7 +10,7 @@ RF.applyBindings('#app',{
     remove: function(i){
         this.fruits.splice(i,1);
     },
-    setCurrentFruit: function(index){
-        this.currentFruit = this.fruits[index];
+    setCurrentFruit: function(currentFr){
+        this.currentFruit = currentFr;
     }
 });

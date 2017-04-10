@@ -21,7 +21,7 @@ class Component {
         this.children.push(childComponent);
     }
 
-    updateModelView(modelView) {
+    updateModelView(modelView) { // todo remove
         //MiscUtils.superficialCopy(this.modelView,modelView);
         this.modelView = modelView;
         if (this.children) {
