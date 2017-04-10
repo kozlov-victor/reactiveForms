@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+<meta
+    name ="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>RunCode</title>
+    <style>
+        
+button, input[type=text] {
+    margin: 0 auto 3px;
+    padding: 3px;
+}
+
+button {
+    background-color: #00dcff;
+    border: none;
+}
+
+button.inline-block {
+    display: inline-block;
+    width: auto;
+}
+
+button {
+    color: white;
+}
+
+button:active,input:active {
+    outline: 1px solid blue;
+}
+    </style>
+    <script src="../reactiveForms.js?1491857501770"></script>
+</head>
+<body>
+
+    
+
+<style>
+    .counter {
+        display: inline-block;
+        border: 1px solid black;
+    }
+</style>
+
+
+
+
+    <script>
+        
+RF.registerComponent('counter-component',{
+    template: {
+        type: 'dom',
+        value: 'counterTmpl'
+    }
+});
+RF.applyBindings('#app');
+    </script>
+
+    <script>
+        window.onload = function(){
+            var getStyle = function (el) {
+                if (typeof getComputedStyle !== 'undefined') {
+                    return getComputedStyle(el);
+                } else {
+                    return el.currentStyle;
+                }
+            };
+            var style = getStyle(document.documentElement);
+            window.top.postMessage({
+                fromEditor:true,
+                page: location.search.substr(1),
+                height:parseInt(style.height),
+                width:parseInt(style.width)
+            },'*');
+        };
+    </script>
+
+</body>
+</html>
