@@ -9,6 +9,7 @@ class Component {
         this.modelView = modelView;
         this.watchers = [];
         this.id = MiscUtils.getUID();
+        this.domId = null;
         this.node.setAttribute('data-component-id',this.id);
         DomUtils.nodeListToArray(this.node.querySelectorAll('*')).forEach(el=>{
             el.setAttribute('data-component-id',this.id);
@@ -88,6 +89,17 @@ class Component {
         let res = null;
         Component.instances.some(cmp => {
             if (cmp.id==id) {
+                res = cmp;
+                return true;
+            }
+        });
+        return res;
+    }
+
+    static getComponentByDomId(domId){
+        let res = null;
+        Component.instances.some(cmp => {
+            if (cmp.domId==domId) {
                 res = cmp;
                 return true;
             }

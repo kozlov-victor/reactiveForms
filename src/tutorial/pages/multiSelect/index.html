@@ -1,0 +1,48 @@
+
+<div id="app">
+    Выбрано:
+    <ul>
+        <li data-for="city,index in selectedCities">
+            {{city.name}} ({{city.id}})<button data-click="removeFromSelected(index)">-</button>
+        </li>
+    </ul>
+    <select multiple data-model="selectedCities">
+        <option data-value="city" data-for="city in dictionary.cities">
+            {{city.name}}
+        </option>
+    </select>
+</div>
+
+<hr/>
+
+<div id="app_2">
+    Выбрано:
+    <ul>
+        <li data-for="number,index in selectedNumbers">
+            {{number}} <button data-click="removeFromSelected(index)">-</button>
+        </li>
+    </ul>
+    <select multiple data-model="selectedNumbers">
+        <option data-value="number" data-for="number in ['one','two','three','four']">
+            {{number}}
+        </option>
+    </select>
+</div>
+
+<hr/>
+
+<div id="app_3">
+    Выбрано:
+    <ul>
+        <li data-for="number,index in selectedNumbers">
+            {{number}} <button data-click="removeFromSelected(index)">-</button>
+        </li>
+    </ul>
+    <select multiple data-model="selectedNumbers">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+    </select>
+</div>

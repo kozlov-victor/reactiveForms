@@ -31,31 +31,112 @@ button:active,input:active {
     outline: 1px solid blue;
 }
     </style>
-    <script src="../reactiveForms.js?1491859616814"></script>
+    <script src="../reactiveForms.js?1491941964324"></script>
 </head>
 <body>
 
     
 
 <style>
-    .counter {
+    .fullscreen {
+        position: fixed;
+        left:0;top:0;right:0;bottom:0;
+        z-index: 100;
+    }
+
+    .shadow {
+        background-color: rgba(0,0,0,0.3);
+    }
+
+    .dialogWrapper {
+        display: table;
+        width: 100%;
+        position: fixed;
+        left:0;top:0;right:0;bottom:0;
+        height: 100%;
+        text-align: center;
+        z-index:200;
+    }
+
+    .dialog {
+        display: table-cell;
+        vertical-align: middle;
+        position: relative;
+        width: 100%;
+    }
+
+    .dialogContent {
         display: inline-block;
-        border: 1px solid black;
+        position: relative;
+        background-color: #f8f8f8;
+        max-height: 90vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        z-index: 300;
+    }
+
+    .dialogClose {
+        text-align: right;
+        background-color: #bdbdbd;
+        border-bottom: 1px solid #767676;
+        font-family: monospace;
+        font-size: 22px;
+        padding: 5px;
+        color: #5f6e6f;
     }
 </style>
+
+<div style="display: none;">
+    <div id="popupTmpl">
+        <div class="dialogWrapper" data-if="opened">
+            <div class="fullscreen shadow"></div>
+            <div class="dialog">
+                <div class="dialogContent">
+                    <div class="dialogClose">
+                        <span data-click="close()" class="pointer">X</span>
+                    </div>
+                    <div class="withPadding" data-transclusion="content">
+                        transclusion content here
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="app">
+    <button data-click="openDialog('dialog1')">open dialog 1</button>
+    <popup-dialog id="dialog1">
+        <div data-transclusion="content">
+            dialog one
+        </div>
+    </popup-dialog>
+</div>
 
 
 
 
     <script>
         
-RF.registerComponent('counter-component',{
+RF.registerComponent('popup-dialog',{
     template: {
         type: 'dom',
-        value: 'counterTmpl'
+        value: 'popupTmpl'
+    },
+    opened:false,
+    open: function(){
+        this.opened = true;
+    },
+    close: function(){
+        this.opened = false;
     }
 });
-RF.applyBindings('#app');
+
+RF.applyBindings('#app',{
+    openDialog: function(dialogId){
+        RF.getComponentById(dialogId).open();
+    }
+});
     </script>
 
     <script>

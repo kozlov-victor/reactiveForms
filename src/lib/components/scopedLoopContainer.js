@@ -6,7 +6,7 @@ class ScopedLoopContainer extends Component {
 
 
         if (node.getAttribute('data-for'))
-            throw `can not use data-for attribute at component directly. Use this directive at parent node`;
+            throw `can not use "data-for" attribute at component directly. Use this directive at parent node`;
 
         this.scopedDomFragments = [];
         this.lastFrafmentsLength = 0;

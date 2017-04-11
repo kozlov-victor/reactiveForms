@@ -82,7 +82,7 @@ class DirectiveEngine {
         });
     };
 
-    runDirective_Value(){
+    runDirective_Value(){ // todo remove
         // let el = this.component.node;
         // let expression = el.getAttribute('data-value');
         // if (!expression) return;
@@ -97,21 +97,23 @@ class DirectiveEngine {
         // )
     }
 
-    _runDirective_Model_OfSelect(selectEl,modelExpression){ // todo multiple
-        let selectedEl = DomUtils.
+    _runDirective_Model_OfSelect(selectEl,modelExpression){
+        let isMultiple = selectEl.multiple, val = [];
+        let selectedEls = DomUtils.
             nodeListToArray(selectEl.querySelectorAll('option')).
-        filter(opt=>{return opt.selected})[0];
-        if (!selectedEl) return;
-        let dataValueAttr = selectedEl.getAttribute('data-value');
-        let component, val;
-        component = Component.getComponentById(selectedEl.getAttribute('data-component-id'));
-        if (component && dataValueAttr) {
-            val = ExpressionEngine.executeExpression(dataValueAttr,component);
-        }
-        else {
-            val = selectedEl.getAttribute('value');
-        }
-        ExpressionEngine.setValueToContext(this.component.modelView,modelExpression,val);
+        filter(opt=>{return opt.selected});
+        selectedEls.forEach(selectedEl=>{
+            let dataValueAttr = selectedEl.getAttribute('data-value');
+            let component;
+            component = Component.getComponentById(selectedEl.getAttribute('data-component-id'));
+            if (component && dataValueAttr) {
+                val.push(ExpressionEngine.executeExpression(dataValueAttr,component));
+            }
+            else {
+                val.push(selectedEl.getAttribute('value'));
+            }
+        });
+        ExpressionEngine.setValueToContext(this.component.modelView,modelExpression,isMultiple?val:val[0]);
     }
 
     runDirective_Model(){
@@ -137,14 +139,27 @@ class DirectiveEngine {
                 expression,
                 value=>{
                     if (el.tagName.toLowerCase()=='select') {
-                        let isModelSet = DomUtils.nodeListToArray(el.querySelectorAll('option')).some(opt=>{
+                        let isMultiple = el.multiple;
+                        let isModelSet = false;
+                        DomUtils.nodeListToArray(el.querySelectorAll('option')).some(opt=>{
                             let modelItemExpression = opt.getAttribute('data-value');
                             if (!modelItemExpression) return;
                             let componentId = opt.getAttribute('data-component-id');
                             let component = Component.getComponentById(componentId);
                             let modelItem = ExpressionEngine.executeExpression(modelItemExpression,component);
-                            if (modelItem==value) {
-                                return opt.selected = true;
+                            if (isMultiple) {
+                                if (value.indexOf(modelItem)>-1) {
+                                    isModelSet = true;
+                                    opt.selected = true;
+                                } else {
+                                    opt.selected = false;
+                                }
+                            } else {
+                                if (modelItem==value) {
+                                    opt.selected = true;
+                                    isModelSet = true;
+                                    return true;
+                                }
                             }
                         });
                         if (!isModelSet) el.value = value;
@@ -232,21 +247,35 @@ class DirectiveEngine {
                 throw "Can not use data-for attribute at component"
             }
             let componentNodes = [];
-            domEls.forEach(it=>{
-                if (it.getAttribute('data-_processed')) return;
-                it.setAttribute('data-_processed','1');
+            domEls.forEach(domEl=>{
+
+                if (domEl.getAttribute('data-_processed')) return;
+                domEl.setAttribute('data-_processed','1');
+                let domId = domEl.getAttribute('id');
                 let componentNode = componentProto.node.cloneNode(true);
+                DomUtils.nodeListToArray(componentNode.querySelectorAll('[data-transclusion]')).forEach(transcl=>{
+                    let name = transcl.getAttribute('data-transclusion');
+                    if (!name) {
+                        console.error(componentProto.node);
+                        console.error(transcl);
+                        throw `"data-transclusion attribute can not be empty"`;
+                        // todo
+                    }
+                });
                 componentNodes.push(componentNode);
-                it.parentNode.insertBefore(componentNode,it);
-                let dataPropertiesAttr = it.getAttribute('data-properties');
+                domEl.parentNode.insertBefore(componentNode,domEl);
+
+                let dataPropertiesAttr = domEl.getAttribute('data-properties');
                 let dataProperties = dataPropertiesAttr?
                     ExpressionEngine.executeExpression(dataPropertiesAttr,this.component):{};
                 let component = componentProto.newInstance(componentNode,dataProperties);
+                domId && (component.domId = domId);
+
                 component.run();
                 component.parent = this.component;
                 component.parent.addChild(component);
                 component.disableParentScopeEvaluation = true; // avoid recursion in Component
-                it.parentNode.removeChild(it);
+                domEl.parentNode.removeChild(domEl);
             });
             componentNodes.forEach((node)=>{
                 DomUtils.removeParentButNotChildren(node);

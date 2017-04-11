@@ -30,11 +30,13 @@ class Core{
     }
 
     static getComponentById(id){
-        return Component.getComponentById(id);
+        let cmp = Component.getComponentByDomId(id);
+        if (!cmp) return null;
+        return cmp.modelView;
     }
 
     static run(){
-        console.warn('core.run() is deprecated for now');
+        throw "method not used";
     }
 
 }

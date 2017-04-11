@@ -153,6 +153,7 @@
             this.modelView = modelView;
             this.watchers = [];
             this.id = MiscUtils.getUID();
+            this.domId = null;
             this.node.setAttribute("data-component-id", this.id);
             DomUtils.nodeListToArray(this.node.querySelectorAll("*")).forEach(function(el) {
                 el.setAttribute("data-component-id", _this.id);
@@ -209,6 +210,16 @@
             var res = null;
             Component.instances.some(function(cmp) {
                 if (cmp.id == id) {
+                    res = cmp;
+                    return true;
+                }
+            });
+            return res;
+        };
+        Component.getComponentByDomId = function(domId) {
+            var res = null;
+            Component.instances.some(function(cmp) {
+                if (cmp.domId == domId) {
                     res = cmp;
                     return true;
                 }
@@ -307,7 +318,7 @@
         function ScopedLoopContainer(node, modelView) {
             _classCallCheck(this, ScopedLoopContainer);
             var _this = _possibleConstructorReturn(this, _Component.call(this, null, node, modelView));
-            if (node.getAttribute("data-for")) throw "can not use data-for attribute at component directly. Use this directive at parent node";
+            if (node.getAttribute("data-for")) throw 'can not use "data-for" attribute at component directly. Use this directive at parent node';
             _this.scopedDomFragments = [];
             _this.lastFrafmentsLength = 0;
             _this.node = node;
@@ -341,6 +352,7 @@
                     if (_this3.indexName) localModelView[_this3.indexName] = i;
                     node = _this3.node.cloneNode(true);
                     scopedDomFragment = new ScopedDomFragment(node, localModelView);
+                    // todo Cannot read property 'insertBefore' of null
                     currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
                     scopedDomFragment.parent = _this3.parent;
                     scopedDomFragment.parent.addChild(scopedDomFragment);
@@ -707,16 +719,15 @@
         };
         DirectiveEngine.prototype.runDirective_Value = function() {};
         DirectiveEngine.prototype._runDirective_Model_OfSelect = function(selectEl, modelExpression) {
-            var dataValueAttr, component, val, selectedEl = DomUtils.nodeListToArray(selectEl.querySelectorAll("option")).filter(function(opt) {
+            var isMultiple = selectEl.multiple, val = [];
+            DomUtils.nodeListToArray(selectEl.querySelectorAll("option")).filter(function(opt) {
                 return opt.selected;
-            })[0];
-            if (selectedEl) {
-                dataValueAttr = selectedEl.getAttribute("data-value");
-                component = void 0, val = void 0;
+            }).forEach(function(selectedEl) {
+                var dataValueAttr = selectedEl.getAttribute("data-value"), component = void 0;
                 component = Component.getComponentById(selectedEl.getAttribute("data-component-id"));
-                if (component && dataValueAttr) val = ExpressionEngine.executeExpression(dataValueAttr, component); else val = selectedEl.getAttribute("value");
-                ExpressionEngine.setValueToContext(this.component.modelView, modelExpression, val);
-            }
+                if (component && dataValueAttr) val.push(ExpressionEngine.executeExpression(dataValueAttr, component)); else val.push(selectedEl.getAttribute("value"));
+            });
+            ExpressionEngine.setValueToContext(this.component.modelView, modelExpression, isMultiple ? val : val[0]);
         };
         DirectiveEngine.prototype.runDirective_Model = function() {
             var _this5 = this;
@@ -732,16 +743,27 @@
                     });
                 });
                 _this5.component.addWatcher(expression, function(value) {
+                    var isMultiple, isModelSet;
                     if ("select" == el.tagName.toLowerCase()) {
-                        if (!DomUtils.nodeListToArray(el.querySelectorAll("option")).some(function(opt) {
+                        isMultiple = el.multiple;
+                        isModelSet = false;
+                        DomUtils.nodeListToArray(el.querySelectorAll("option")).some(function(opt) {
                             var componentId, component, modelItem, modelItemExpression = opt.getAttribute("data-value");
                             if (modelItemExpression) {
                                 componentId = opt.getAttribute("data-component-id");
                                 component = Component.getComponentById(componentId);
                                 modelItem = ExpressionEngine.executeExpression(modelItemExpression, component);
-                                if (modelItem == value) return opt.selected = true; else return;
+                                if (isMultiple) if (value.indexOf(modelItem) > -1) {
+                                    isModelSet = true;
+                                    opt.selected = true;
+                                } else opt.selected = false; else if (modelItem == value) {
+                                    opt.selected = true;
+                                    isModelSet = true;
+                                    return true;
+                                }
                             }
-                        })) el.value = value;
+                        });
+                        if (!isModelSet) el.value = value;
                     } else if (DomUtils.getInputValue(el) !== value) DomUtils.setInputValue(el, value);
                 });
             });
@@ -795,15 +817,17 @@
                 }
                 componentNodes = [];
                 domEls.forEach(function(it) {
-                    var componentNode, dataPropertiesAttr, dataProperties, component;
+                    var domId, componentNode, dataPropertiesAttr, dataProperties, component;
                     if (!it.getAttribute("data-_processed")) {
                         it.setAttribute("data-_processed", "1");
+                        domId = it.getAttribute("id");
                         componentNode = componentProto.node.cloneNode(true);
                         componentNodes.push(componentNode);
                         it.parentNode.insertBefore(componentNode, it);
                         dataPropertiesAttr = it.getAttribute("data-properties");
                         dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
                         component = componentProto.newInstance(componentNode, dataProperties);
+                        domId && (component.domId = domId);
                         component.run();
                         component.parent = _this10.component;
                         component.parent.addChild(component);
@@ -1188,10 +1212,11 @@
             Component.digestAll();
         };
         Core.getComponentById = function(id) {
-            return Component.getComponentById(id);
+            var cmp = Component.getComponentByDomId(id);
+            if (!cmp) return null; else return cmp.modelView;
         };
         Core.run = function() {
-            console.warn("core.run() is deprecated for now");
+            throw "method not used";
         };
         return Core;
     }();

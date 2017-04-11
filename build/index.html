@@ -553,6 +553,110 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
     </section>
 </li>
 <li>
+    <h3>Элемент select с множественным выбором</h3>
+    <section>
+        <div data-html>
+            
+<span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"app"</span><span class="token operator">></span>
+    Выбрано<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>ul<span class="token operator">></span>
+        <span class="token operator">&lt;</span>li data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"city,index in selectedCities"</span><span class="token operator">></span>
+            {{city<span class="token punctuation">.</span>name}} <span class="token punctuation">(</span>{{city<span class="token punctuation">.</span>id}}<span class="token punctuation">)</span><span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"removeFromSelected(index)"</span><span class="token operator">></span><span class="token operator">-</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+        <span class="token operator">&lt;</span><span class="token operator">/</span>li<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>ul<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token keyword">select</span> multiple data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"selectedCities"</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>option data<span class="token operator">-</span>value<span class="token operator">=</span><span class="token string">"city"</span> data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"city in dictionary.cities"</span><span class="token operator">></span>
+            {{city<span class="token punctuation">.</span>name}}
+        <span class="token operator">&lt;</span><span class="token operator">/</span>option<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span><span class="token keyword">select</span><span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+
+<span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"app_2"</span><span class="token operator">></span>
+    Выбрано<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>ul<span class="token operator">></span>
+        <span class="token operator">&lt;</span>li data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"number,index in selectedNumbers"</span><span class="token operator">></span>
+            {{number}} <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"removeFromSelected(index)"</span><span class="token operator">></span><span class="token operator">-</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+        <span class="token operator">&lt;</span><span class="token operator">/</span>li<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>ul<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token keyword">select</span> multiple data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"selectedNumbers"</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>option data<span class="token operator">-</span>value<span class="token operator">=</span><span class="token string">"number"</span> data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"number in ['one','two','three','four']"</span><span class="token operator">></span>
+            {{number}}
+        <span class="token operator">&lt;</span><span class="token operator">/</span>option<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span><span class="token keyword">select</span><span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+
+<span class="token operator">&lt;</span>hr<span class="token operator">/</span><span class="token operator">></span>
+
+<span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"app_3"</span><span class="token operator">></span>
+    Выбрано<span class="token punctuation">:</span>
+    <span class="token operator">&lt;</span>ul<span class="token operator">></span>
+        <span class="token operator">&lt;</span>li data<span class="token operator">-</span><span class="token keyword">for</span><span class="token operator">=</span><span class="token string">"number,index in selectedNumbers"</span><span class="token operator">></span>
+            {{number}} <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"removeFromSelected(index)"</span><span class="token operator">></span><span class="token operator">-</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+        <span class="token operator">&lt;</span><span class="token operator">/</span>li<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>ul<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token keyword">select</span> multiple data<span class="token operator">-</span>model<span class="token operator">=</span><span class="token string">"selectedNumbers"</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>option value<span class="token operator">=</span><span class="token string">"1"</span><span class="token operator">></span><span class="token number">1</span><span class="token operator">&lt;</span><span class="token operator">/</span>option<span class="token operator">></span>
+        <span class="token operator">&lt;</span>option value<span class="token operator">=</span><span class="token string">"2"</span><span class="token operator">></span><span class="token number">2</span><span class="token operator">&lt;</span><span class="token operator">/</span>option<span class="token operator">></span>
+        <span class="token operator">&lt;</span>option value<span class="token operator">=</span><span class="token string">"3"</span><span class="token operator">></span><span class="token number">3</span><span class="token operator">&lt;</span><span class="token operator">/</span>option<span class="token operator">></span>
+        <span class="token operator">&lt;</span>option value<span class="token operator">=</span><span class="token string">"4"</span><span class="token operator">></span><span class="token number">4</span><span class="token operator">&lt;</span><span class="token operator">/</span>option<span class="token operator">></span>
+        <span class="token operator">&lt;</span>option value<span class="token operator">=</span><span class="token string">"5"</span><span class="token operator">></span><span class="token number">5</span><span class="token operator">&lt;</span><span class="token operator">/</span>option<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span><span class="token keyword">select</span><span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+        </div>
+
+        <code data-js>
+            
+RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#app'</span><span class="token punctuation">,</span>{
+    dictionary<span class="token punctuation">:</span> {
+        cities<span class="token punctuation">:</span><span class="token punctuation">[</span>
+            {id<span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">,</span>name<span class="token punctuation">:</span><span class="token string">'Киев'</span>}<span class="token punctuation">,</span>
+            {id<span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">,</span>name<span class="token punctuation">:</span><span class="token string">'Львов'</span>}<span class="token punctuation">,</span>
+            {id<span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">,</span>name<span class="token punctuation">:</span><span class="token string">'Житомир'</span>}<span class="token punctuation">,</span>
+            {id<span class="token punctuation">:</span><span class="token number">4</span><span class="token punctuation">,</span>name<span class="token punctuation">:</span><span class="token string">'Ровно'</span>}<span class="token punctuation">,</span>
+            {id<span class="token punctuation">:</span><span class="token number">5</span><span class="token punctuation">,</span>name<span class="token punctuation">:</span><span class="token string">'Тернополь'</span>}<span class="token punctuation">,</span>
+            {id<span class="token punctuation">:</span><span class="token number">6</span><span class="token punctuation">,</span>name<span class="token punctuation">:</span><span class="token string">'Белая Церковь'</span>}
+        <span class="token punctuation">]</span>
+    }<span class="token punctuation">,</span>
+    selectedCities<span class="token punctuation">:</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    removeFromSelected<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span>index<span class="token punctuation">)</span>{
+        this<span class="token punctuation">.</span>selectedCities<span class="token punctuation">.</span><span class="token function">splice</span><span class="token punctuation">(</span>index<span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+    }
+}<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+
+
+RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#app_2'</span><span class="token punctuation">,</span>{
+    selectedNumbers<span class="token punctuation">:</span><span class="token punctuation">[</span><span class="token string">'one'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    removeFromSelected<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span>index<span class="token punctuation">)</span>{
+        this<span class="token punctuation">.</span>selectedNumbers<span class="token punctuation">.</span><span class="token function">splice</span><span class="token punctuation">(</span>index<span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+    }
+}<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+
+RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#app_3'</span><span class="token punctuation">,</span>{
+    selectedNumbers<span class="token punctuation">:</span><span class="token punctuation">[</span><span class="token string">'2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    removeFromSelected<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span>index<span class="token punctuation">)</span>{
+        this<span class="token punctuation">.</span>selectedNumbers<span class="token punctuation">.</span><span class="token function">splice</span><span class="token punctuation">(</span>index<span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+    }
+}<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+        </code>
+        <div>
+            <button onclick="
+                    var f = document.getElementById('multiSelect');
+                    f.src = 'pages/multiSelect.html?multiSelect';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/multiSelect.html?multiSelect" target="_blank">
+                <button> В новом окне > </button>
+            </form>
+        </div>
+        <div>
+            <iframe frameborder="none" style="display: none;" id="multiSelect"></iframe>
+        </div>
+    </section>
+</li>
+<li>
     <h3>Элемент Radio</h3>
     <section>
         <div data-html>
@@ -765,17 +869,86 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
     </section>
 </li>
 <li>
-    <h3>Простой компонент</h3>
+    <h3>Компонент с трансклюзией</h3>
     <section>
         <div data-html>
             
 
 <span class="token operator">&lt;</span>style<span class="token operator">></span>
-    <span class="token punctuation">.</span>counter {
+    <span class="token punctuation">.</span>fullscreen {
+        position<span class="token punctuation">:</span> fixed<span class="token comment" spellcheck="true">;</span>
+        left<span class="token punctuation">:</span><span class="token number">0</span><span class="token comment" spellcheck="true">;top:0;right:0;bottom:0;</span>
+        z<span class="token operator">-</span>index<span class="token punctuation">:</span> <span class="token number">100</span><span class="token comment" spellcheck="true">;</span>
+    }
+
+    <span class="token punctuation">.</span>shadow {
+        background<span class="token operator">-</span>color<span class="token punctuation">:</span> <span class="token function">rgba</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token number">0.3</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+    }
+
+    <span class="token punctuation">.</span>dialogWrapper {
+        display<span class="token punctuation">:</span> table<span class="token comment" spellcheck="true">;</span>
+        width<span class="token punctuation">:</span> <span class="token number">100</span>%<span class="token comment" spellcheck="true">;</span>
+        position<span class="token punctuation">:</span> fixed<span class="token comment" spellcheck="true">;</span>
+        left<span class="token punctuation">:</span><span class="token number">0</span><span class="token comment" spellcheck="true">;top:0;right:0;bottom:0;</span>
+        height<span class="token punctuation">:</span> <span class="token number">100</span>%<span class="token comment" spellcheck="true">;</span>
+        text<span class="token operator">-</span>align<span class="token punctuation">:</span> center<span class="token comment" spellcheck="true">;</span>
+        z<span class="token operator">-</span>index<span class="token punctuation">:</span><span class="token number">200</span><span class="token comment" spellcheck="true">;</span>
+    }
+
+    <span class="token punctuation">.</span>dialog {
+        display<span class="token punctuation">:</span> table<span class="token operator">-</span>cell<span class="token comment" spellcheck="true">;</span>
+        vertical<span class="token operator">-</span>align<span class="token punctuation">:</span> middle<span class="token comment" spellcheck="true">;</span>
+        position<span class="token punctuation">:</span> relative<span class="token comment" spellcheck="true">;</span>
+        width<span class="token punctuation">:</span> <span class="token number">100</span>%<span class="token comment" spellcheck="true">;</span>
+    }
+
+    <span class="token punctuation">.</span>dialogContent {
         display<span class="token punctuation">:</span> inline<span class="token operator">-</span>block<span class="token comment" spellcheck="true">;</span>
-        border<span class="token punctuation">:</span> 1px solid black<span class="token comment" spellcheck="true">;</span>
+        position<span class="token punctuation">:</span> relative<span class="token comment" spellcheck="true">;</span>
+        background<span class="token operator">-</span>color<span class="token punctuation">:</span> #f8f8f8<span class="token comment" spellcheck="true">;</span>
+        max<span class="token operator">-</span>height<span class="token punctuation">:</span> 90vh<span class="token comment" spellcheck="true">;</span>
+        overflow<span class="token operator">-</span>x<span class="token punctuation">:</span> hidden<span class="token comment" spellcheck="true">;</span>
+        overflow<span class="token operator">-</span>y<span class="token punctuation">:</span> auto<span class="token comment" spellcheck="true">;</span>
+        z<span class="token operator">-</span>index<span class="token punctuation">:</span> <span class="token number">300</span><span class="token comment" spellcheck="true">;</span>
+    }
+
+    <span class="token punctuation">.</span>dialogClose {
+        text<span class="token operator">-</span>align<span class="token punctuation">:</span> right<span class="token comment" spellcheck="true">;</span>
+        background<span class="token operator">-</span>color<span class="token punctuation">:</span> #bdbdbd<span class="token comment" spellcheck="true">;</span>
+        border<span class="token operator">-</span>bottom<span class="token punctuation">:</span> 1px solid #<span class="token number">767676</span><span class="token comment" spellcheck="true">;</span>
+        font<span class="token operator">-</span>family<span class="token punctuation">:</span> monospace<span class="token comment" spellcheck="true">;</span>
+        font<span class="token operator">-</span>size<span class="token punctuation">:</span> 22px<span class="token comment" spellcheck="true">;</span>
+        padding<span class="token punctuation">:</span> 5px<span class="token comment" spellcheck="true">;</span>
+        color<span class="token punctuation">:</span> #5f6e6f<span class="token comment" spellcheck="true">;</span>
     }
 <span class="token operator">&lt;</span><span class="token operator">/</span>style<span class="token operator">></span>
+
+<span class="token operator">&lt;</span>div style<span class="token operator">=</span>"display<span class="token punctuation">:</span> none<span class="token comment" spellcheck="true">;"></span>
+    <span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"popupTmpl"</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>div class<span class="token operator">=</span><span class="token string">"dialogWrapper"</span> data<span class="token operator">-</span><span class="token keyword">if</span><span class="token operator">=</span><span class="token string">"opened"</span><span class="token operator">></span>
+            <span class="token operator">&lt;</span>div class<span class="token operator">=</span><span class="token string">"fullscreen shadow"</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+            <span class="token operator">&lt;</span>div class<span class="token operator">=</span><span class="token string">"dialog"</span><span class="token operator">></span>
+                <span class="token operator">&lt;</span>div class<span class="token operator">=</span><span class="token string">"dialogContent"</span><span class="token operator">></span>
+                    <span class="token operator">&lt;</span>div class<span class="token operator">=</span><span class="token string">"dialogClose"</span><span class="token operator">></span>
+                        <span class="token operator">&lt;</span>span data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"close()"</span> class<span class="token operator">=</span><span class="token string">"pointer"</span><span class="token operator">></span>X<span class="token operator">&lt;</span><span class="token operator">/</span>span<span class="token operator">></span>
+                    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+                    <span class="token operator">&lt;</span>div class<span class="token operator">=</span><span class="token string">"withPadding"</span> data<span class="token operator">-</span>transclusion<span class="token operator">=</span><span class="token string">"content"</span><span class="token operator">></span>
+                        transclusion content here
+                    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+                <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+            <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+        <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+
+<span class="token operator">&lt;</span>div id<span class="token operator">=</span><span class="token string">"app"</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>button data<span class="token operator">-</span>click<span class="token operator">=</span><span class="token string">"openDialog('dialog1')"</span><span class="token operator">></span>open dialog <span class="token number">1</span><span class="token operator">&lt;</span><span class="token operator">/</span>button<span class="token operator">></span>
+    <span class="token operator">&lt;</span>popup<span class="token operator">-</span>dialog id<span class="token operator">=</span><span class="token string">"dialog1"</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>div data<span class="token operator">-</span>transclusion<span class="token operator">=</span><span class="token string">"content"</span><span class="token operator">></span>
+            dialog one
+        <span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>popup<span class="token operator">-</span>dialog<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">></span>
 
 
 
@@ -783,13 +956,25 @@ RF<span class="token punctuation">.</span><span class="token function">applyBind
 
         <code data-js>
             
-RF<span class="token punctuation">.</span><span class="token function">registerComponent</span><span class="token punctuation">(</span><span class="token string">'counter-component'</span><span class="token punctuation">,</span>{
+RF<span class="token punctuation">.</span><span class="token function">registerComponent</span><span class="token punctuation">(</span><span class="token string">'popup-dialog'</span><span class="token punctuation">,</span>{
     template<span class="token punctuation">:</span> {
         type<span class="token punctuation">:</span> <span class="token string">'dom'</span><span class="token punctuation">,</span>
-        value<span class="token punctuation">:</span> <span class="token string">'counterTmpl'</span>
+        value<span class="token punctuation">:</span> <span class="token string">'popupTmpl'</span>
+    }<span class="token punctuation">,</span>
+    opened<span class="token punctuation">:</span><span class="token boolean">false</span><span class="token punctuation">,</span>
+    open<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
+        this<span class="token punctuation">.</span>opened <span class="token operator">=</span> <span class="token boolean">true</span><span class="token comment" spellcheck="true">;</span>
+    }<span class="token punctuation">,</span>
+    close<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>{
+        this<span class="token punctuation">.</span>opened <span class="token operator">=</span> <span class="token boolean">false</span><span class="token comment" spellcheck="true">;</span>
     }
 }<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
-RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#app'</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+
+RF<span class="token punctuation">.</span><span class="token function">applyBindings</span><span class="token punctuation">(</span><span class="token string">'#app'</span><span class="token punctuation">,</span>{
+    openDialog<span class="token punctuation">:</span> <span class="token function">function</span><span class="token punctuation">(</span>dialogId<span class="token punctuation">)</span>{
+        RF<span class="token punctuation">.</span><span class="token function">getComponentById</span><span class="token punctuation">(</span>dialogId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
+    }
+}<span class="token punctuation">)</span><span class="token comment" spellcheck="true">;</span>
         </code>
         <div>
             <button onclick="
