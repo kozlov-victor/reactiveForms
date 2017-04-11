@@ -31,23 +31,24 @@ button:active,input:active {
     outline: 1px solid blue;
 }
     </style>
-    <script src="../reactiveForms.js?1491941964324"></script>
+    <script src="../reactiveForms.js?1491947040468"></script>
 </head>
 <body>
 
     
 
 <style>
+    .withPadding {
+        padding: 10px;
+    }
     .fullscreen {
         position: fixed;
         left:0;top:0;right:0;bottom:0;
         z-index: 100;
     }
-
     .shadow {
         background-color: rgba(0,0,0,0.3);
     }
-
     .dialogWrapper {
         display: table;
         width: 100%;
@@ -57,14 +58,12 @@ button:active,input:active {
         text-align: center;
         z-index:200;
     }
-
     .dialog {
         display: table-cell;
         vertical-align: middle;
         position: relative;
         width: 100%;
     }
-
     .dialogContent {
         display: inline-block;
         position: relative;
@@ -74,7 +73,6 @@ button:active,input:active {
         overflow-y: auto;
         z-index: 300;
     }
-
     .dialogClose {
         text-align: right;
         background-color: #bdbdbd;
@@ -93,10 +91,13 @@ button:active,input:active {
             <div class="dialog">
                 <div class="dialogContent">
                     <div class="dialogClose">
+                        <span data-transclusion="title">
+                            this title will be replaced
+                        </span>
                         <span data-click="close()" class="pointer">X</span>
                     </div>
                     <div class="withPadding" data-transclusion="content">
-                        transclusion content here
+                        this content will be replaced
                     </div>
                 </div>
             </div>
@@ -106,9 +107,25 @@ button:active,input:active {
 
 <div id="app">
     <button data-click="openDialog('dialog1')">open dialog 1</button>
+    <button data-click="openDialog('dialog2')">open dialog 2</button>
+
+
+
     <popup-dialog id="dialog1">
+        <div data-transclusion="title">
+            dialog one title
+        </div>
         <div data-transclusion="content">
-            dialog one
+            dialog one content
+        </div>
+    </popup-dialog>
+
+    <popup-dialog id="dialog2">
+        <div data-transclusion="title">
+            dialog two title
+        </div>
+        <div data-transclusion="content">
+            dialog two content
         </div>
     </popup-dialog>
 </div>

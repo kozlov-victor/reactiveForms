@@ -809,22 +809,40 @@
         DirectiveEngine.prototype.runComponents = function() {
             var _this10 = this;
             ComponentProto.instances.forEach(function(componentProto) {
-                var componentNodes, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
+                var componentNodes, toDel, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
                 if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
                     console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
                     console.error("component node:", _this10.component.node);
                     throw "Can not use data-for attribute at component";
                 }
                 componentNodes = [];
-                domEls.forEach(function(it) {
+                toDel = [];
+                domEls.forEach(function(domEl) {
                     var domId, componentNode, dataPropertiesAttr, dataProperties, component;
-                    if (!it.getAttribute("data-_processed")) {
-                        it.setAttribute("data-_processed", "1");
-                        domId = it.getAttribute("id");
+                    if (!domEl.getAttribute("data-_processed")) {
+                        domEl.setAttribute("data-_processed", "1");
+                        domId = domEl.getAttribute("id");
                         componentNode = componentProto.node.cloneNode(true);
+                        DomUtils.nodeListToArray(componentNode.querySelectorAll("[data-transclusion]")).forEach(function(transcl) {
+                            var recipients, name = transcl.getAttribute("data-transclusion");
+                            if (!name) {
+                                console.error(componentProto.node);
+                                console.error(transcl);
+                                throw "data-transclusion attribute can not be empty";
+                            }
+                            recipients = DomUtils.nodeListToArray(domEl.querySelectorAll('[data-transclusion="' + name + '"]'));
+                            if (!recipients.length) {
+                                console.error(domEl);
+                                throw "data-transclusion attribute with name " + name + " defined at template, but not found at component";
+                            }
+                            recipients.forEach(function(rcp) {
+                                toDel.push(rcp);
+                                transcl.innerHTML = rcp.innerHTML;
+                            });
+                        });
                         componentNodes.push(componentNode);
-                        it.parentNode.insertBefore(componentNode, it);
-                        dataPropertiesAttr = it.getAttribute("data-properties");
+                        domEl.parentNode.insertBefore(componentNode, domEl);
+                        dataPropertiesAttr = domEl.getAttribute("data-properties");
                         dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
                         component = componentProto.newInstance(componentNode, dataProperties);
                         domId && (component.domId = domId);
@@ -833,10 +851,13 @@
                         component.parent.addChild(component);
                         component.disableParentScopeEvaluation = true;
                         // avoid recursion in Component
-                        it.parentNode.removeChild(it);
+                        domEl.parentNode.removeChild(domEl);
                     }
                 });
                 componentNodes.forEach(function(node) {
+                    DomUtils.removeParentButNotChildren(node);
+                });
+                toDel.forEach(function(node) {
                     DomUtils.removeParentButNotChildren(node);
                 });
             });

@@ -54,6 +54,9 @@
             <div class="dialog">
                 <div class="dialogContent">
                     <div class="dialogClose">
+                        <span data-transclusion="title">
+                            this title will be replaced
+                        </span>
                         <span data-click="close()" class="pointer">X</span>
                     </div>
                     <div class="withPadding" data-transclusion="content">
@@ -67,9 +70,25 @@
 
 <div id="app">
     <button data-click="openDialog('dialog1')">open dialog 1</button>
+    <button data-click="openDialog('dialog2')">open dialog 2</button>
+
+
+
     <popup-dialog id="dialog1">
+        <div data-transclusion="title">
+            dialog one title
+        </div>
         <div data-transclusion="content">
             dialog one content
+        </div>
+    </popup-dialog>
+
+    <popup-dialog id="dialog2">
+        <div data-transclusion="title">
+            dialog two title
+        </div>
+        <div data-transclusion="content">
+            dialog two content
         </div>
     </popup-dialog>
 </div>

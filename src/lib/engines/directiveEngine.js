@@ -247,6 +247,7 @@ class DirectiveEngine {
                 throw "Can not use data-for attribute at component"
             }
             let componentNodes = [];
+            let toDel = [];
             domEls.forEach(domEl=>{
 
                 if (domEl.getAttribute('data-_processed')) return;
@@ -258,9 +259,17 @@ class DirectiveEngine {
                     if (!name) {
                         console.error(componentProto.node);
                         console.error(transcl);
-                        throw `"data-transclusion attribute can not be empty"`;
-                        // todo
+                        throw `data-transclusion attribute can not be empty`;
                     }
+                    let recipients = DomUtils.nodeListToArray(domEl.querySelectorAll(`[data-transclusion="${name}"]`));
+                    if (!recipients.length) {
+                        console.error(domEl);
+                        throw `data-transclusion attribute with name ${name} defined at template, but not found at component`
+                    }
+                    recipients.forEach(rcp=>{
+                        toDel.push(rcp);
+                        transcl.innerHTML = rcp.innerHTML;
+                    });
                 });
                 componentNodes.push(componentNode);
                 domEl.parentNode.insertBefore(componentNode,domEl);
@@ -278,6 +287,9 @@ class DirectiveEngine {
                 domEl.parentNode.removeChild(domEl);
             });
             componentNodes.forEach((node)=>{
+                DomUtils.removeParentButNotChildren(node);
+            });
+            toDel.forEach((node)=>{
                 DomUtils.removeParentButNotChildren(node);
             });
         });
