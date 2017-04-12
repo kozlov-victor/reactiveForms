@@ -842,7 +842,10 @@
                                 console.error(transcl);
                                 throw "data-transclusion attribute can not be empty";
                             }
-                            recipients = DomUtils.nodeListToArray(domEl.querySelectorAll('[data-transclusion="' + name + '"]'));
+                            recipients = DomUtils.nodeListToArray(domEl.querySelectorAll("[data-transclusion]")).filter(function(el) {
+                                return el.name == name;
+                            });
+                            // querySelectorAll[attr=value] not works correctly in ie8
                             if (!recipients.length) {
                                 console.error(domEl);
                                 throw "data-transclusion attribute with name " + name + " defined at template, but not found at component";

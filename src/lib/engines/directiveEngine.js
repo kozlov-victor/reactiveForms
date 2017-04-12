@@ -271,7 +271,9 @@ class DirectiveEngine {
                         console.error(transcl);
                         throw `data-transclusion attribute can not be empty`;
                     }
-                    let recipients = DomUtils.nodeListToArray(domEl.querySelectorAll(`[data-transclusion="${name}"]`));
+                    let recipients = DomUtils.
+                        nodeListToArray(domEl.querySelectorAll(`[data-transclusion]`)).
+                        filter(el=>{return el.name==name}); // querySelectorAll[attr=value] not works correctly in ie8
                     if (!recipients.length) {
                         console.error(domEl);
                         throw `data-transclusion attribute with name ${name} defined at template, but not found at component`
