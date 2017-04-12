@@ -1,4 +1,12 @@
 
+if (!window.console){
+    window.console = {};
+    window.console.log = window.console.error = window.console.warn =
+        function (msg) {
+            window.status = msg;
+        }
+}
+
 var ElementPrototype = typeof HTMLElement !== "undefined"
     ? HTMLElement.prototype : Element.prototype;
 

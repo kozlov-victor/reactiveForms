@@ -1,10 +1,17 @@
 !function() {
     "use strict";
-    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DomUtils, MiscUtils, cnt, TemplateLoader, DirectiveEngine, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, __showPage, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+    var ElementPrototype, Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DomUtils, MiscUtils, cnt, TemplateLoader, DirectiveEngine, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, __showPage, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    }, ElementPrototype = "undefined" != typeof HTMLElement ? HTMLElement.prototype : Element.prototype;
+    };
+    if (!window.console) {
+        window.console = {};
+        window.console.log = window.console.error = window.console.warn = function(msg) {
+            window.status = msg;
+        };
+    }
+    ElementPrototype = "undefined" != typeof HTMLElement ? HTMLElement.prototype : Element.prototype;
     if (!ElementPrototype.remove) ElementPrototype.remove = function() {
         this.parentNode && this.parentNode.removeChild(this);
     };
