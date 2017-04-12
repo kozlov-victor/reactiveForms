@@ -763,7 +763,12 @@
                                 }
                             }
                         });
-                        if (!isModelSet) el.value = value;
+                        if (!isModelSet) {
+                            el.value = value;
+                            if (isMultiple) DomUtils.nodeListToArray(el.querySelectorAll("option")).forEach(function(opt) {
+                                opt.selected = value.indexOf(opt.getAttribute("value")) > -1;
+                            });
+                        }
                     } else if (DomUtils.getInputValue(el) !== value) DomUtils.setInputValue(el, value);
                 });
             });
@@ -1241,7 +1246,7 @@
         };
         return Core;
     }();
-    Core.version = "0.5.1";
+    Core.version = "0.5.9";
     window.RF = Core;
     window.RF.Router = Router;
 }();

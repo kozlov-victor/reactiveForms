@@ -27,7 +27,6 @@ var pageDetail = RF.registerComponent('page1',{
     },
     pageIndex:-1,
     onShow: function(params){
-        console.log(params);
         this.pageIndex = params.pageIndex;
     },
     external: {

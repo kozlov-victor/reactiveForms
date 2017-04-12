@@ -162,7 +162,17 @@ class DirectiveEngine {
                                 }
                             }
                         });
-                        if (!isModelSet) el.value = value;
+                        if (!isModelSet) {
+                            el.value = value;
+                            if (isMultiple) {
+                                DomUtils.
+                                    nodeListToArray(el.querySelectorAll('option')).
+                                    forEach(opt=>{
+                                        opt.selected = value.indexOf(opt.getAttribute('value'))>-1;
+                                    }
+                                );
+                            }
+                        }
                     } else {
                         if (DomUtils.getInputValue(el)!==value)
                             DomUtils.setInputValue(el,value);
