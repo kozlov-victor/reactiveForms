@@ -5,6 +5,15 @@
             {{html}}
         </div>
 
+        <script>
+            if (!window.console) {
+                window.console = {};
+                window.console.log = function(msg){
+                    window.status = msg.toString();
+                }
+            }
+        </script>
+
         <code data-js>
             {{js}}
         </code>
