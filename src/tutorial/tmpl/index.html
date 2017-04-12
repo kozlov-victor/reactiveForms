@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {{headers}}
+    ${headers}
     <title>ReactiveForms</title>
     <style>
         h3 {
@@ -14,16 +14,16 @@
         code {
             white-space: pre;
         }
-        [data-js],[data-html] {
+        .js,.html {
             font-family: monospace;
             padding: 5px;
             overflow-x: auto;
         }
-        [data-js] {
+        .js {
             display: block;
             background-color: #fffaf5;
         }
-        [data-html] {
+        .html {
             white-space: pre;
             border: none;
             width: 100%;
@@ -39,41 +39,88 @@
 
     </style>
 
-    {{css}}
+    ${css}
 
-    <script>
-        (function(){
-            var processMessage = function(msg){
-                var data = msg.data;
-                if (!data.fromEditor) return;
-                var frame = document.getElementById(data.page);
-                frame.style.height = data.height+25+'px';
-                frame.style.width = data.width+'px';
-            };
-            if (window.addEventListener) {
-                window.addEventListener('message',function(msg){
-                    processMessage(msg);
-                });
-            } else {
-                window.attachEvent('onmessage',function(msg){
-                    processMessage(msg);
-                })
-            }
-        })();
-
-    </script>
+    <script src="reactiveForms.js"></script>
 
 </head>
 <body>
 
-<h1>ReactiveForms tutorial</h1>
 
-<h3>Текущая версия: {{version}}</h3>
+<div id="tutorialItemTmpl">
+    <h3>{{page.title}}</h3>
+    <section>
+        <div class="html" data-html="page.html"></div>
 
-<ol>
-    {{html}}
-</ol>
+        <code class="js" data-html="page.js"></code>
+        <div>
+            <button onclick="
+                    var f = document.getElementById('{{id}}');
+                    f.src = 'pages/{{page}}.html?{{page}}';
+                    f.style.display = '';
+                    return false;
+            "> run > </button>
+            <form class="inline" action="pages/{{page}}.html?{{page}}" target="_blank">
+                <button> В новом окне > </button>
+            </form>
+        </div>
+        <div>
+            <iframe frameborder="none" style="display: none;" id="{{id}}"></iframe>
+        </div>
+    </section>
+</div>
 
 
+<div id="tutorialRoot">
+    <h1>ReactiveForms tutorial</h1>
+    <h3>Текущая версия: {{version}}</h3>
+
+    <ol>
+        <li data-for="page of storage.pages">
+            <tutorial-item data-properties="{page:page}"></tutorial-item>
+        </li>
+    </ol>
+</div>
+
+<script>
+    var storage = {
+        version: '${version}',
+        pages: ${pages},
+        currentPage:'',
+        processMessage: function(data){
+            let page = this.pages.filter(p=>{return p.name==data.page})[0];
+            page.frameHeight = data.height+25+'px';
+            page.frameWidth = data.width+'px';
+            RF.digest();
+        }
+    };
+    RF.registerComponent('tutorial-item',{
+        external: {
+            page:null
+        },
+        template: {
+            type:'dom',
+            value:'tutorialItemTmpl'
+        }
+    });
+    RF.applyBindings('#tutorialRoot',{
+        storage: storage
+    });
+
+    if (window.addEventListener) {
+        window.addEventListener('message',function(msg){
+            var data = msg.data;
+            if (!data.fromEditor) return;
+            storage.processMessage(msg);
+        });
+    } else {
+        window.attachEvent('onmessage',function(msg){
+            var data = msg.data;
+            if (!data.fromEditor) return;
+            storage.processMessage(msg);
+        })
+    }
+
+</script>
 </body>
 </html>

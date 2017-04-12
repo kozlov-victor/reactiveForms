@@ -182,6 +182,38 @@ class DirectiveEngine {
         });
     };
 
+    runDirective_Show(){
+        this._eachElementWithAttr('data-show',(el,expression)=>{
+            let initialStyle = el.style.display || '';
+            this.component.addWatcher(
+                expression,
+                function(val){
+                    if (val) {
+                        el.style.display = initialStyle;
+                    } else {
+                        el.style.display = 'none';
+                    }
+                }
+            );
+        });
+    };
+
+    runDirective_Hide(){
+        this._eachElementWithAttr('data-hide',(el,expression)=>{
+            let initialStyle = el.style.display || '';
+            this.component.addWatcher(
+                expression,
+                function(val){
+                    if (val) {
+                        el.style.display = 'none';
+                    } else {
+                        el.style.display = initialStyle;
+                    }
+                }
+            );
+        });
+    };
+
     runComponents(){
         ComponentProto.instances.forEach(componentProto=>{
             let domEls =  DomUtils.nodeListToArray(this.component.node.getElementsByTagName(componentProto.name));
@@ -232,8 +264,8 @@ class DirectiveEngine {
         this.runDirective_Value();
         this.runDirective_Class();
         this.runDirective_Style();
-        // todo this.runDirective_Show();
-        // todo this.runDirective_Hide();
+        this.runDirective_Show();
+        this.runDirective_Hide();
         this.runDirective_Disabled();
         this.runDirective_If();
     }

@@ -9,13 +9,13 @@
     <div>
         Текущий фрукт: {{currentFruit.name}}
     </div>
-    <select data-model="currentFruit.name">
-        <option data-value="item.name" data-for="item,index in fruits">
+    <select data-model="currentFruit">
+        <option data-value="item" data-for="item,index in fruits">
             {{item.name}}
         </option>
     </select>
     <table>
-        <tr class="pointer" title="применить" data-click="setCurrentFruit(index)" data-for="item,index in fruits">
+        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(index)" data-for="item,index in fruits">
             <td>{{item.name}}</td>
             <td><button data-click="remove(index)">-</button></td>
         </tr>

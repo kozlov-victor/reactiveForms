@@ -40,7 +40,8 @@ gulp.task('engine', ()=> {
             'src/lib/components/*.js',
             'src/lib/utils/*.js',
             'src/lib/engines/*.js',
-            'src/lib/core/core.js'
+            'src/lib/core/*.js',
+            'src/lib/main.js'
         ])
         .pipe(babel({
             //presets: ['es2015'],
@@ -80,6 +81,7 @@ gulp.task('tutor', ()=> {
     let css = fs.readFileSync(`src/tutorial/tmpl/prism.css`);
     let headers = fs.readFileSync(`src/tutorial/tmpl/headers.html`);
     let packageJson = JSON.parse(fs.readFileSync('package.json'));
+    let pages = [];
     pageNames.forEach((page,index)=>{
         let html = fs.readFileSync(`src/tutorial/pages/${page}/index.html`);
         let js = fs.readFileSync(`src/tutorial/pages/${page}/index.js`);
@@ -94,8 +96,7 @@ gulp.task('tutor', ()=> {
         fs.writeFileSync(`build/pages/${page}.html`,runCodeTmpl);
 
         let meta = JSON.parse(fs.readFileSync(`src/tutorial/pages/${page}/meta.json`));
-        let itemTmpl = fs.readFileSync(`src/tutorial/tmpl/item.html`);
-        let resCode = parametrize(itemTmpl,{
+        pages.push({
             title:meta.title,
             html: highlight(html),
             page,
@@ -103,21 +104,20 @@ gulp.task('tutor', ()=> {
             pageNum: meta.order,
             js: highlight(js)
         });
-        res.push({meta,resCode});
     });
-    res.sort((a,b)=>{return a.meta.order-b.meta.order});
+    pages.sort((a,b)=>{return a.pageNum-b.pageNum});
     let tmpl = fs.readFileSync('src/tutorial/tmpl/index.html');
     tmpl = parametrize(tmpl,{
         headers,
         version: packageJson.version,
-        html: res.map(it=>{return it.resCode}).join(''),
-        css:`<style>${css}</style>`
+        css:`<style>${css}</style>`,
+        pages: JSON.stringify(pages)
     });
     fs.writeFileSync('build/index.html',tmpl);
 
     function parametrize(tmpl,params){
         Object.keys(params).forEach(key=>{
-            tmpl = tmpl.split(`{{${key}}}`).join(params[key]);
+            tmpl = tmpl.split(`\${${key}}`).join(params[key]);
         });
         return tmpl;
     }

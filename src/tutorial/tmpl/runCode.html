@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-    {{headers}}
+    ${headers}
     <title>RunCode</title>
     <style>
-        {{css}}
+        ${css}
     </style>
+    <script>
+        if (!window.console) {
+            window.console = {};
+            window.console.log = window.console.error = function(msg){
+                window.status = msg;
+            };
+        }
+    </script>
     <script src="../reactiveForms.js?{{salt}}"></script>
 </head>
 <body>
 
-    {{html}}
+    ${html}
 
     <script>
-        {{js}}
+        ${js}
     </script>
 
     <script>
