@@ -31,7 +31,7 @@ button:active,input:active {
     outline: 1px solid blue;
 }
     </style>
-    <script src="../reactiveForms.js?1492023630154"></script>
+    <script src="../reactiveForms.js?1492023863503"></script>
 </head>
 <body>
 
@@ -75,6 +75,12 @@ RF.applyBindings('#app');
     </script>
 
     <script>
+        if (!window.console) {
+            window.console = {};
+            window.console.log = function(msg){
+                window.status = msg.toString();
+            }
+        }
         window.onload = function(){
             var getStyle = function (el) {
                 if (typeof getComputedStyle !== 'undefined') {

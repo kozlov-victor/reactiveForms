@@ -17,6 +17,12 @@
     </script>
 
     <script>
+        if (!window.console) {
+            window.console = {};
+            window.console.log = function(msg){
+                window.status = msg.toString();
+            }
+        }
         window.onload = function(){
             var getStyle = function (el) {
                 if (typeof getComputedStyle !== 'undefined') {
