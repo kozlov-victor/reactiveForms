@@ -34,15 +34,9 @@ button:active,input:active {
     <script>
         if (!window.console) {
             window.console = {};
-<<<<<<< HEAD
             window.console.log = window.console.error = function(msg){
                 window.status = msg;
             };
-=======
-            window.console.log = function(msg){
-                window.status = msg.toString();
-            }
->>>>>>> 23ab68ce59d8f67fe99ffd3b0238ed8c3ea380b9
         }
     </script>
     <script src="../reactiveForms.js?{{salt}}"></script>
@@ -64,20 +58,12 @@ button:active,input:active {
         Текущий фрукт: {{currentFruit.name}}
     </div>
     <select data-model="currentFruit">
-<<<<<<< HEAD
-        <option data-value="item" data-for="item,index in fruits">
-=======
         <option data-value="item" data-for="item in fruits">
->>>>>>> 23ab68ce59d8f67fe99ffd3b0238ed8c3ea380b9
             {{item.name}}
         </option>
     </select>
     <table>
-<<<<<<< HEAD
-        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(index)" data-for="item,index in fruits">
-=======
-        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(item)" data-for="item,index in fruits">
->>>>>>> 23ab68ce59d8f67fe99ffd3b0238ed8c3ea380b9
+        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(item)" data-for="item in fruits">
             <td>{{item.name}}</td>
             <td><button data-click="remove(index)">-</button></td>
         </tr>
@@ -116,13 +102,15 @@ RF.applyBindings('#app',{
                     return el.currentStyle;
                 }
             };
-            var style = getStyle(document.documentElement);
-            window.top.postMessage({
-                fromEditor:true,
-                page: location.search.substr(1),
-                height:parseInt(style.height),
-                width:parseInt(style.width)
-            },'*');
+            setInterval(function() {
+                var style = getStyle(document.documentElement);
+                window.top.postMessage({
+                    fromEditor:true,
+                    page: location.search.substr(1),
+                    height:parseInt(style.height),
+                    width:parseInt(style.width)
+                },'*');
+            },1000);
         };
     </script>
 

@@ -209,7 +209,11 @@ class DirectiveEngine {
                 styleObject=>{
                     for (let key in styleObject) {
                         if (!styleObject.hasOwnProperty(key)) continue;
-                        el.style[key] = styleObject[key]?styleObject[key]:'';
+                        try {
+                            el.style[key] = styleObject[key]?styleObject[key]:'';
+                        }catch (e){
+                            //ie8 throws error if style is incorrect
+                        }
                     }
                 }
             );
@@ -274,6 +278,33 @@ class DirectiveEngine {
                     } else {
                         el.style.display = initialStyle;
                     }
+                }
+            );
+        });
+    };
+
+    runDirective_Html(){
+        this._eachElementWithAttr('data-html',(el,expression)=>{
+            this.component.addWatcher(
+                expression,
+                function(val){
+                    el.innerHTML = val;
+                }
+            );
+        });
+    };
+
+    runDirective_Attributes(){
+        this._eachElementWithAttr('data-attributes',(el,expression)=>{
+            this.component.addWatcher(
+                expression,
+                function(properties){
+                    Object.keys(properties).forEach(key=>{
+                        let val = properties[key];
+                        if (typeof val == 'boolean')
+                            val?el.setAttribute(key,key):el.removeAttribute(key);
+                        else el.setAttribute(key,val);
+                    })
                 }
             );
         });
@@ -363,6 +394,8 @@ class DirectiveEngine {
         this.runDirective_Show();
         this.runDirective_Hide();
         this.runDirective_Disabled();
+        this.runDirective_Html();
+        this.runDirective_Attributes();
         this.runDirective_If();
     }
 

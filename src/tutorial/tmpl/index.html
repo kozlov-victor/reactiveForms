@@ -41,6 +41,10 @@
 
     ${css}
 
+    <script>
+        document.createElement('tutorial-item'); // ie8 hack
+        document.createElement('section');
+    </script>
     <script src="reactiveForms.js"></script>
 
 </head>
@@ -48,32 +52,41 @@
 
 
 <div id="tutorialItemTmpl">
-    <h3>{{page.title}}</h3>
-    <section>
+    <h3 data-click="storage.togglePage(page)">
+        {{page.isOpened?'-':'+'}}
+        {{page.title}}
+    </h3>
+    <div data-show="page.isOpened">
         <div class="html" data-html="page.html"></div>
-
         <code class="js" data-html="page.js"></code>
         <div>
-            <button onclick="
-                    var f = document.getElementById('{{id}}');
-                    f.src = 'pages/{{page}}.html?{{page}}';
-                    f.style.display = '';
-                    return false;
-            "> run > </button>
-            <form class="inline" action="pages/{{page}}.html?{{page}}" target="_blank">
-                <button> В новом окне > </button>
+            <button data-click="storage.showFrame(page)">
+                run &gt;
+            </button>
+            <form
+                  target="_blank"
+                  class="inline"
+                  data-attributes="{action:'pages/'+page.page+'.html?'+page.page}">
+                <button> В новом окне &gt; </button>
             </form>
         </div>
         <div>
-            <iframe frameborder="none" style="display: none;" id="{{id}}"></iframe>
+            <iframe
+                data-style="{
+                    width: page.frameWith+'px',
+                    height: page.frameHeight + 'px'
+                }"
+                frameborder="none"
+                data-attributes="{src:page.frameUrl}"
+                data-if="page.frameUrl"></iframe>
         </div>
-    </section>
+    </div>
 </div>
 
 
 <div id="tutorialRoot">
     <h1>ReactiveForms tutorial</h1>
-    <h3>Текущая версия: {{version}}</h3>
+    <h3>Текущая версия: {{storage.version}}</h3>
 
     <ol>
         <li data-for="page of storage.pages">
@@ -87,16 +100,26 @@
         version: '${version}',
         pages: ${pages},
         currentPage:'',
+        showFrame: function(page){
+            this.storage.pages.forEach(function(p){ // todo  this.storage.pages >>  this.pages
+                p.frameUrl = '';
+            });
+            page.frameUrl = 'pages/'+page.page+'.html?'+page.page;
+        },
+        togglePage: function(page){
+            page.isOpened = !page.isOpened;
+        },
         processMessage: function(data){
-            let page = this.pages.filter(p=>{return p.name==data.page})[0];
-            page.frameHeight = data.height+25+'px';
-            page.frameWidth = data.width+'px';
+            var page = this.pages.filter(function(p){return p.page==data.page})[0];
+            page.frameHeight = data.height+25;
+            page.frameWidth = data.width;
             RF.digest();
         }
     };
     RF.registerComponent('tutorial-item',{
         external: {
-            page:null
+            page:null,
+            storage: storage
         },
         template: {
             type:'dom',
@@ -111,13 +134,13 @@
         window.addEventListener('message',function(msg){
             var data = msg.data;
             if (!data.fromEditor) return;
-            storage.processMessage(msg);
+            storage.processMessage(msg.data);
         });
     } else {
         window.attachEvent('onmessage',function(msg){
             var data = msg.data;
             if (!data.fromEditor) return;
-            storage.processMessage(msg);
+            storage.processMessage(msg.data);
         })
     }
 
