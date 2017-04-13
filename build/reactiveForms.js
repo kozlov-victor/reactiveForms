@@ -143,7 +143,6 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
-        self;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -447,9 +446,6 @@
                 break;
 
               case "select":
-                el.value = value;
-                break;
-
               case "textarea":
                 el.value = value;
             }
@@ -478,8 +474,6 @@
                 break;
 
               case "select":
-                return el.value;
-
               case "textarea":
                 return el.value;
             }
@@ -491,8 +485,6 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
-                    return "click";
-
                   case "radio":
                     return "click";
 
@@ -818,13 +810,31 @@
                 });
             });
         };
-        DirectiveEngine.prototype.runComponents = function() {
+        DirectiveEngine.prototype.runDirective_Show = function() {
             var _this10 = this;
+            this._eachElementWithAttr("data-show", function(el, expression) {
+                var initialStyle = el.style.display || "";
+                _this10.component.addWatcher(expression, function(val) {
+                    if (val) el.style.display = initialStyle; else el.style.display = "none";
+                });
+            });
+        };
+        DirectiveEngine.prototype.runDirective_Hide = function() {
+            var _this11 = this;
+            this._eachElementWithAttr("data-hide", function(el, expression) {
+                var initialStyle = el.style.display || "";
+                _this11.component.addWatcher(expression, function(val) {
+                    if (val) el.style.display = "none"; else el.style.display = initialStyle;
+                });
+            });
+        };
+        DirectiveEngine.prototype.runComponents = function() {
+            var _this12 = this;
             ComponentProto.instances.forEach(function(componentProto) {
-                var componentNodes, toDel, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
-                if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
+                var componentNodes, toDel, domEls = DomUtils.nodeListToArray(_this12.component.node.getElementsByTagName(componentProto.name));
+                if (_this12.component.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
                     console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
-                    console.error("component node:", _this10.component.node);
+                    console.error("component node:", _this12.component.node);
                     throw "Can not use data-for attribute at component";
                 }
                 componentNodes = [];
@@ -856,11 +866,11 @@
                         componentNodes.push(componentNode);
                         domEl.parentNode.insertBefore(componentNode, domEl);
                         dataPropertiesAttr = domEl.getAttribute("data-properties");
-                        dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
+                        dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this12.component) : {};
                         component = componentProto.newInstance(componentNode, dataProperties);
                         domId && (component.domId = domId);
                         component.run();
-                        component.parent = _this10.component;
+                        component.parent = _this12.component;
                         component.parent.addChild(component);
                         component.disableParentScopeEvaluation = true;
                         // avoid recursion in Component
@@ -876,7 +886,7 @@
             });
         };
         DirectiveEngine.prototype.run = function() {
-            var _this11 = this;
+            var _this13 = this;
             this.runDirective_Value();
             this.runDirective_For();
             this.runComponents();
@@ -884,14 +894,14 @@
             this.runDirective_Model();
             // todo check event sequence in legacy browsers
             [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown" ].forEach(function(eventName) {
-                _this11.runDomEvent(eventName);
+                _this13.runDomEvent(eventName);
             });
             this.runDirective_Bind();
             this.runDirective_Value();
             this.runDirective_Class();
             this.runDirective_Style();
-            // todo this.runDirective_Show();
-            // todo this.runDirective_Hide();
+            this.runDirective_Show();
+            this.runDirective_Hide();
             this.runDirective_Disabled();
             this.runDirective_If();
         };
@@ -1224,7 +1234,6 @@
         Core.registerComponent = function(name, modelView) {
             var tmpl, domTemplate, node, componentProto;
             name = MiscUtils.camelToSnake(name);
-            document.createElement(name);
             tmpl = TemplateLoader.getNode(modelView.template);
             domTemplate = tmpl.innerHTML;
             tmpl.remove();

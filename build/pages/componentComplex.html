@@ -34,12 +34,18 @@ button:active,input:active {
     <script>
         if (!window.console) {
             window.console = {};
+<<<<<<< HEAD
+            window.console.log = window.console.error = function(msg){
+                window.status = msg;
+            };
+=======
             window.console.log = function(msg){
                 window.status = msg.toString();
             }
+>>>>>>> 23ab68ce59d8f67fe99ffd3b0238ed8c3ea380b9
         }
     </script>
-    <script src="../reactiveForms.js?1492031780671"></script>
+    <script src="../reactiveForms.js?{{salt}}"></script>
 </head>
 <body>
 
