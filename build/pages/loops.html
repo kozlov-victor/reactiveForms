@@ -31,7 +31,15 @@ button:active,input:active {
     outline: 1px solid blue;
 }
     </style>
-    <script src="../reactiveForms.js?1491728883310"></script>
+    <script>
+        if (!window.console) {
+            window.console = {};
+            window.console.log = function(msg){
+                window.status = msg.toString();
+            }
+        }
+    </script>
+    <script src="../reactiveForms.js?1492031780731"></script>
 </head>
 <body>
 
@@ -41,18 +49,21 @@ button:active,input:active {
     .pointer {
         cursor: pointer;
     }
+    .selected {
+        outline: 1px solid darkblue;
+    }
 </style>
 <div id="app">
     <div>
         Текущий фрукт: {{currentFruit.name}}
     </div>
-    <select data-model="currentFruit.name">
-        <option data-value="item.name" data-for="item,index in fruits">
+    <select data-model="currentFruit">
+        <option data-value="item" data-for="item in fruits">
             {{item.name}}
         </option>
     </select>
     <table>
-        <tr class="pointer" title="применить" data-click="setCurrentFruit(index)" data-for="item,index in fruits">
+        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(item)" data-for="item,index in fruits">
             <td>{{item.name}}</td>
             <td><button data-click="remove(index)">-</button></td>
         </tr>
@@ -76,8 +87,8 @@ RF.applyBindings('#app',{
     remove: function(i){
         this.fruits.splice(i,1);
     },
-    setCurrentFruit: function(index){
-        this.currentFruit = this.fruits[index];
+    setCurrentFruit: function(currentFr){
+        this.currentFruit = currentFr;
     }
 });
     </script>

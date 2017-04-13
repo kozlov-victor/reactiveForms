@@ -1,10 +1,17 @@
 !function() {
     "use strict";
-    var Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DirectiveEngine, DomUtils, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, MiscUtils, cnt, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, __showPage, Router, TemplateLoader, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+    var ElementPrototype, Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DomUtils, MiscUtils, cnt, TemplateLoader, DirectiveEngine, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, __showPage, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    }, ElementPrototype = "undefined" != typeof HTMLElement ? HTMLElement.prototype : Element.prototype;
+    };
+    if (!window.console) {
+        window.console = {};
+        window.console.log = window.console.error = window.console.warn = function(msg) {
+            window.status = msg;
+        };
+    }
+    ElementPrototype = "undefined" != typeof HTMLElement ? HTMLElement.prototype : Element.prototype;
     if (!ElementPrototype.remove) ElementPrototype.remove = function() {
         this.parentNode && this.parentNode.removeChild(this);
     };
@@ -138,11 +145,6 @@
         };
         self;
     }();
-    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
-        return typeof obj;
-    } : function(obj) {
-        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
@@ -158,6 +160,7 @@
             this.modelView = modelView;
             this.watchers = [];
             this.id = MiscUtils.getUID();
+            this.domId = null;
             this.node.setAttribute("data-component-id", this.id);
             DomUtils.nodeListToArray(this.node.querySelectorAll("*")).forEach(function(el) {
                 el.setAttribute("data-component-id", _this.id);
@@ -169,6 +172,7 @@
             this.children.push(childComponent);
         };
         Component.prototype.updateModelView = function(modelView) {
+            // todo remove
             //MiscUtils.superficialCopy(this.modelView,modelView);
             this.modelView = modelView;
             if (this.children) this.children.forEach(function(c) {});
@@ -187,11 +191,9 @@
         Component.prototype.digest = function() {
             var _this2 = this;
             this.watchers.forEach(function(watcher) {
-                var oldValue, newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this2);
-                if ("object" == (void 0 === newValue ? "undefined" : _typeof(newValue))) newValue = MiscUtils.deepCopy(newValue);
-                oldValue = watcher.last;
-                if (!MiscUtils.deepEqual(newValue, oldValue)) watcher.listenerFn(newValue, oldValue);
-                watcher.last = newValue;
+                var newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this2), oldValue = watcher.last, newValDeepCopy = MiscUtils.deepCopy(newValue);
+                if (!MiscUtils.deepEqual(newValDeepCopy, oldValue)) watcher.listenerFn(newValue, oldValue);
+                watcher.last = newValDeepCopy;
             });
         };
         Component.prototype.run = function() {
@@ -215,6 +217,16 @@
             var res = null;
             Component.instances.some(function(cmp) {
                 if (cmp.id == id) {
+                    res = cmp;
+                    return true;
+                }
+            });
+            return res;
+        };
+        Component.getComponentByDomId = function(domId) {
+            var res = null;
+            Component.instances.some(function(cmp) {
+                if (cmp.domId == domId) {
                     res = cmp;
                     return true;
                 }
@@ -313,7 +325,7 @@
         function ScopedLoopContainer(node, modelView) {
             _classCallCheck(this, ScopedLoopContainer);
             var _this = _possibleConstructorReturn(this, _Component.call(this, null, node, modelView));
-            if (node.getAttribute("data-for")) throw "can not use data-for attribute at component directly. Use this directive at parent node";
+            if (node.getAttribute("data-for")) throw 'can not use "data-for" attribute at component directly. Use this directive at parent node';
             _this.scopedDomFragments = [];
             _this.lastFrafmentsLength = 0;
             _this.node = node;
@@ -347,6 +359,7 @@
                     if (_this3.indexName) localModelView[_this3.indexName] = i;
                     node = _this3.node.cloneNode(true);
                     scopedDomFragment = new ScopedDomFragment(node, localModelView);
+                    // todo Cannot read property 'insertBefore' of null
                     currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
                     scopedDomFragment.parent = _this3.parent;
                     scopedDomFragment.parent.addChild(scopedDomFragment);
@@ -370,205 +383,6 @@
         };
         return ScopedLoopContainer;
     }(Component);
-    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
-        return typeof obj;
-    } : function(obj) {
-        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-    }
-    DirectiveEngine = function() {
-        function DirectiveEngine(component) {
-            _classCallCheck(this, DirectiveEngine);
-            this.component = component;
-        }
-        DirectiveEngine.prototype._eachElementWithAttr = function(dataAttrName, onEachElementFn) {
-            var i, elements = [], nodes = this.component.node.querySelectorAll("[" + dataAttrName + "]");
-            for (i = 0; i < nodes.length; i++) elements.push(nodes[i]);
-            if (this.component.node.hasAttribute(dataAttrName)) elements.push(this.component.node);
-            elements.forEach(function(el) {
-                var expression = el.getAttribute(dataAttrName);
-                el.removeAttribute(dataAttrName);
-                el.setAttribute("_" + dataAttrName, expression);
-                onEachElementFn(el, expression);
-            });
-        };
-        DirectiveEngine.prototype.runDirective_For = function() {
-            var _this = this;
-            this._eachElementWithAttr("data-for", function(el, expression) {
-                var variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, tokens = expression.split(" ");
-                if ([ "in", "of" ].indexOf(tokens[1]) == -1) throw "can not parse expression " + expression;
-                variables = Lexer.tokenize(tokens[0]).filter(function(t) {
-                    return [ Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY ].indexOf(t.tokenType) > -1;
-                }).map(function(t) {
-                    return t.tokenValue;
-                });
-                if (!variables.length) throw "can not parse expression " + expression;
-                eachItemName = variables[0];
-                indexName = variables[1];
-                iterableObjectName = tokens[2];
-                scopedLoopContainer = new ScopedLoopContainer(el, _this.component.modelView);
-                scopedLoopContainer.parent = _this.component;
-                scopedLoopContainer.run(eachItemName, indexName, iterableObjectName);
-            });
-        };
-        DirectiveEngine.prototype.runTextNodes = function() {
-            var _this2 = this;
-            DomUtils.processScopedTextNodes(this.component.node).forEach(function(it) {
-                _this2.component.addWatcher(it.expression, function(value) {
-                    if ("object" == (void 0 === value ? "undefined" : _typeof(value))) value = JSON.stringify(value);
-                    DomUtils.setTextNodeValue(it.node, value);
-                });
-            });
-        };
-        DirectiveEngine.prototype.runDomEvent = function(eventName) {
-            var _this3 = this;
-            this._eachElementWithAttr("data-" + eventName, function(el, expression) {
-                var fn = ExpressionEngine.getExpressionFn(expression);
-                DomUtils.addEventListener(el, eventName, function(e) {
-                    var shouldPreventDefault = [ "keypress", "keydown" ].indexOf(eventName) == -1;
-                    if (shouldPreventDefault) {
-                        e = e || window.e;
-                        e.preventDefault && e.preventDefault();
-                        e.stopPropagation && e.stopPropagation();
-                        e.cancelBubble = true;
-                    }
-                    ExpressionEngine.runExpressionFn(fn, _this3.component);
-                    Component.digestAll();
-                    if (shouldPreventDefault) return false;
-                });
-            });
-        };
-        DirectiveEngine.prototype.runDirective_Bind = function() {
-            var _this4 = this;
-            this._eachElementWithAttr("data-bind", function(el, expression) {
-                var fn = ExpressionEngine.getExpressionFn(expression);
-                ExpressionEngine.runExpressionFn(fn, _this4.component);
-                _this4.component.addWatcher(expression, function(value) {
-                    DomUtils.setTextNodeValue(el, value);
-                });
-            });
-        };
-        DirectiveEngine.prototype.runDirective_Value = function() {
-            var fn, el = this.component.node, expression = el.getAttribute("data-value");
-            if (expression) {
-                if ("option" != el.tagName.toLowerCase()) throw "data-value attribute supported only by <option>, use data-model instead";
-                fn = ExpressionEngine.getExpressionFn(expression);
-                ExpressionEngine.runExpressionFn(fn, this.component);
-                this.component.addWatcher(expression, function(value) {
-                    el.value = value;
-                });
-            }
-        };
-        DirectiveEngine.prototype.runDirective_Model = function() {
-            var _this5 = this;
-            this._eachElementWithAttr("data-model", function(el, expression) {
-                if ("radio" == el.getAttribute("type") && !el.getAttribute("name")) el.setAttribute("name", el.getAttribute("_data-model"));
-                DomUtils.getDefaultInputChangeEvents(el).split(",").forEach(function(eventName) {
-                    DomUtils.addEventListener(el, eventName, function() {
-                        ExpressionEngine.setValueToContext(_this5.component.modelView, expression, DomUtils.getInputValue(el));
-                        Component.digestAll();
-                    });
-                });
-                _this5.component.addWatcher(expression, function(value) {
-                    if (DomUtils.getInputValue(el) !== value) DomUtils.setInputValue(el, value);
-                });
-            });
-        };
-        DirectiveEngine.prototype.runDirective_Class = function() {
-            var _this6 = this;
-            this._eachElementWithAttr("data-class", function(el, expression) {
-                _this6.component.addWatcher(expression, function(classNameOrObj) {
-                    if ("object" === (void 0 === classNameOrObj ? "undefined" : _typeof(classNameOrObj))) {
-                        for (var key in classNameOrObj) if (classNameOrObj.hasOwnProperty(key)) DomUtils.toggleClass(el, key, !!classNameOrObj[key]);
-                    } else el.className = classNameOrObj;
-                });
-            });
-        };
-        DirectiveEngine.prototype.runDirective_Style = function() {
-            var _this7 = this;
-            this._eachElementWithAttr("data-style", function(el, expression) {
-                _this7.component.addWatcher(expression, function(styleObject) {
-                    for (var key in styleObject) if (styleObject.hasOwnProperty(key)) el.style[key] = styleObject[key] ? styleObject[key] : "";
-                });
-            });
-        };
-        DirectiveEngine.prototype.runDirective_Disabled = function() {
-            var _this8 = this;
-            this._eachElementWithAttr("data-disabled", function(el, expression) {
-                _this8.component.addWatcher(expression, function(value) {
-                    if (value) el.setAttribute("disabled", "disabled"); else el.removeAttribute("disabled");
-                });
-            });
-        };
-        DirectiveEngine.prototype.runDirective_If = function() {
-            var _this9 = this;
-            this._eachElementWithAttr("data-if", function(el, expression) {
-                var comment = document.createComment("");
-                el.parentNode.insertBefore(comment, el);
-                _this9.component.addWatcher(expression, function(val) {
-                    if (val) {
-                        if (!el.parentElement) comment.parentNode.insertBefore(el, comment.nextSibling);
-                    } else el.remove();
-                });
-            });
-        };
-        DirectiveEngine.prototype.runComponents = function() {
-            var _this10 = this;
-            ComponentProto.instances.forEach(function(componentProto) {
-                var componentNodes, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
-                if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
-                    console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
-                    console.error("component node:", _this10.component.node);
-                    throw "Can not use data-for attribute at component";
-                }
-                componentNodes = [];
-                domEls.forEach(function(it) {
-                    var componentNode, dataPropertiesAttr, dataProperties, component;
-                    if (!it.getAttribute("data-_processed")) {
-                        it.setAttribute("data-_processed", "1");
-                        componentNode = componentProto.node.cloneNode(true);
-                        componentNodes.push(componentNode);
-                        it.parentNode.insertBefore(componentNode, it);
-                        dataPropertiesAttr = it.getAttribute("data-properties");
-                        dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
-                        component = componentProto.newInstance(componentNode, dataProperties);
-                        component.run();
-                        component.parent = _this10.component;
-                        component.parent.addChild(component);
-                        component.disableParentScopeEvaluation = true;
-                        // avoid recursion in Component
-                        it.parentNode.removeChild(it);
-                    }
-                });
-                componentNodes.forEach(function(node) {
-                    DomUtils.removeParentButNotChildren(node);
-                });
-            });
-        };
-        DirectiveEngine.prototype.run = function() {
-            var _this11 = this;
-            this.runDirective_Value();
-            this.runDirective_For();
-            this.runComponents();
-            this.runTextNodes();
-            this.runDirective_Model();
-            // todo check event sequence in legacy browsers
-            [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown" ].forEach(function(eventName) {
-                _this11.runDomEvent(eventName);
-            });
-            this.runDirective_Bind();
-            this.runDirective_Value();
-            this.runDirective_Class();
-            this.runDirective_Style();
-            // todo this.runDirective_Show();
-            // todo this.runDirective_Hide();
-            this.runDirective_Disabled();
-            this.runDirective_If();
-        };
-        return DirectiveEngine;
-    }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
@@ -729,6 +543,359 @@
             }
         };
         return DomUtils;
+    }();
+    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+        return typeof obj;
+    } : function(obj) {
+        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+    }
+    MiscUtils = function() {
+        function MiscUtils() {
+            _classCallCheck(this, MiscUtils);
+        }
+        /**
+     * @param obj
+     * @returns {*}
+     */
+        MiscUtils.deepCopy = function(obj) {
+            var out, i, len, _out, _i;
+            if (void 0 !== obj) {
+                if (null === obj) return null;
+                if ("[object Array]" === Object.prototype.toString.call(obj)) {
+                    out = [], i = 0, len = obj.length;
+                    for (;i < len; i++) out[i] = MiscUtils.deepCopy(obj[i]);
+                    return out;
+                }
+                if ("object" === (void 0 === obj ? "undefined" : _typeof(obj))) {
+                    _out = {};
+                    for (_i in obj) _out[_i] = MiscUtils.deepCopy(obj[_i]);
+                    return _out;
+                }
+                return obj;
+            }
+        };
+        MiscUtils.superficialCopy = function(a, b) {
+            if (a && b) Object.keys(b).forEach(function(key) {
+                a[key] = b[key];
+            });
+        };
+        /**
+     * @param x
+     * @param y
+     * @returns {*}
+     */
+        MiscUtils.deepEqual = function(x, y) {
+            //if (isNaN(x) && isNaN(y)) return true;
+            return x && y && "object" === (void 0 === x ? "undefined" : _typeof(x)) && "object" === (void 0 === y ? "undefined" : _typeof(y)) ? Object.keys(x).length === Object.keys(y).length && Object.keys(x).reduce(function(isEqual, key) {
+                return isEqual && MiscUtils.deepEqual(x[key], y[key]);
+            }, true) : x === y;
+        };
+        MiscUtils.camelToSnake = function(str) {
+            return str.replace(/([A-Z])/g, function($1) {
+                return "-" + $1.toLowerCase();
+            });
+        };
+        MiscUtils.getUID = function() {
+            return cnt++;
+        };
+        return MiscUtils;
+    }();
+    cnt = 0;
+    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+        return typeof obj;
+    } : function(obj) {
+        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+    }
+    TemplateLoader = function() {
+        function TemplateLoader() {
+            _classCallCheck(this, TemplateLoader);
+        }
+        TemplateLoader._getNodeFromDom = function(templateObj) {
+            if (!templateObj.value) throw "template.value must be specified";
+            var node = document.getElementById(templateObj.value);
+            if (!node) throw "can not fing dom element with id " + templateObj.value;
+            return node;
+        };
+        TemplateLoader._getNodeFromString = function(templateObj) {
+            if (!templateObj.value) throw "template string not provided";
+            if ("string" != typeof templateObj.value) throw "template.value mast be a String, but " + _typeof(templateObj.value) + " found";
+            var container = document.createElement("div");
+            container.innerHTML = templateObj.value;
+            return container;
+        };
+        TemplateLoader.getNode = function(templateObj) {
+            if (!templateObj) throw "template object not defined. Provide template at your component";
+            switch (templateObj.type) {
+              case "dom":
+                return TemplateLoader._getNodeFromDom(templateObj);
+
+              case "string":
+                return TemplateLoader._getNodeFromString(templateObj);
+
+              default:
+                throw "can not load template with type " + templateObj.type + ', only "dom" and "string" types is supported';
+            }
+        };
+        return TemplateLoader;
+    }();
+    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+        return typeof obj;
+    } : function(obj) {
+        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+    }
+    DirectiveEngine = function() {
+        function DirectiveEngine(component) {
+            _classCallCheck(this, DirectiveEngine);
+            this.component = component;
+        }
+        DirectiveEngine.prototype._eachElementWithAttr = function(dataAttrName, onEachElementFn) {
+            var i, elements = [], nodes = this.component.node.querySelectorAll("[" + dataAttrName + "]");
+            for (i = 0; i < nodes.length; i++) elements.push(nodes[i]);
+            if (this.component.node.hasAttribute(dataAttrName)) elements.push(this.component.node);
+            elements.forEach(function(el) {
+                var expression = el.getAttribute(dataAttrName);
+                el.removeAttribute(dataAttrName);
+                el.setAttribute("_" + dataAttrName, expression);
+                onEachElementFn(el, expression);
+            });
+        };
+        DirectiveEngine.prototype.runDirective_For = function() {
+            var _this = this;
+            this._eachElementWithAttr("data-for", function(el, expression) {
+                var variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, tokens = expression.split(" ");
+                if ([ "in", "of" ].indexOf(tokens[1]) == -1) throw "can not parse expression " + expression;
+                variables = Lexer.tokenize(tokens[0]).filter(function(t) {
+                    return [ Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY ].indexOf(t.tokenType) > -1;
+                }).map(function(t) {
+                    return t.tokenValue;
+                });
+                if (!variables.length) throw "can not parse expression " + expression;
+                eachItemName = variables[0];
+                indexName = variables[1];
+                iterableObjectName = tokens[2];
+                scopedLoopContainer = new ScopedLoopContainer(el, _this.component.modelView);
+                scopedLoopContainer.parent = _this.component;
+                scopedLoopContainer.run(eachItemName, indexName, iterableObjectName);
+            });
+        };
+        DirectiveEngine.prototype.runTextNodes = function() {
+            var _this2 = this;
+            DomUtils.processScopedTextNodes(this.component.node).forEach(function(it) {
+                _this2.component.addWatcher(it.expression, function(value) {
+                    if ("object" == (void 0 === value ? "undefined" : _typeof(value))) value = JSON.stringify(value);
+                    DomUtils.setTextNodeValue(it.node, value);
+                });
+            });
+        };
+        DirectiveEngine.prototype.runDomEvent = function(eventName) {
+            var _this3 = this;
+            this._eachElementWithAttr("data-" + eventName, function(el, expression) {
+                var fn = ExpressionEngine.getExpressionFn(expression);
+                DomUtils.addEventListener(el, eventName, function(e) {
+                    var shouldPreventDefault = [ "keypress", "keydown" ].indexOf(eventName) == -1;
+                    if (shouldPreventDefault) {
+                        e = e || window.e;
+                        e.preventDefault && e.preventDefault();
+                        e.stopPropagation && e.stopPropagation();
+                        e.cancelBubble = true;
+                    }
+                    ExpressionEngine.runExpressionFn(fn, _this3.component);
+                    Component.digestAll();
+                    if (shouldPreventDefault) return false;
+                });
+            });
+        };
+        DirectiveEngine.prototype.runDirective_Bind = function() {
+            var _this4 = this;
+            this._eachElementWithAttr("data-bind", function(el, expression) {
+                var fn = ExpressionEngine.getExpressionFn(expression);
+                ExpressionEngine.runExpressionFn(fn, _this4.component);
+                _this4.component.addWatcher(expression, function(value) {
+                    DomUtils.setTextNodeValue(el, value);
+                });
+            });
+        };
+        DirectiveEngine.prototype.runDirective_Value = function() {};
+        DirectiveEngine.prototype._runDirective_Model_OfSelect = function(selectEl, modelExpression) {
+            var isMultiple = selectEl.multiple, val = [];
+            DomUtils.nodeListToArray(selectEl.querySelectorAll("option")).filter(function(opt) {
+                return opt.selected;
+            }).forEach(function(selectedEl) {
+                var dataValueAttr = selectedEl.getAttribute("data-value"), component = void 0;
+                component = Component.getComponentById(selectedEl.getAttribute("data-component-id"));
+                if (component && dataValueAttr) val.push(ExpressionEngine.executeExpression(dataValueAttr, component)); else val.push(selectedEl.getAttribute("value"));
+            });
+            ExpressionEngine.setValueToContext(this.component.modelView, modelExpression, isMultiple ? val : val[0]);
+        };
+        DirectiveEngine.prototype.runDirective_Model = function() {
+            var _this5 = this;
+            this._eachElementWithAttr("data-model", function(el, expression) {
+                if ("radio" == el.getAttribute("type") && !el.getAttribute("name")) el.setAttribute("name", expression);
+                DomUtils.getDefaultInputChangeEvents(el).split(",").forEach(function(eventName) {
+                    if ("select" == el.tagName.toLowerCase()) DomUtils.addEventListener(el, eventName, function() {
+                        _this5._runDirective_Model_OfSelect(el, expression);
+                        Component.digestAll();
+                    }); else DomUtils.addEventListener(el, eventName, function() {
+                        ExpressionEngine.setValueToContext(_this5.component.modelView, expression, DomUtils.getInputValue(el));
+                        Component.digestAll();
+                    });
+                });
+                _this5.component.addWatcher(expression, function(value) {
+                    var isMultiple, isModelSet;
+                    if ("select" == el.tagName.toLowerCase()) {
+                        isMultiple = el.multiple;
+                        isModelSet = false;
+                        DomUtils.nodeListToArray(el.querySelectorAll("option")).some(function(opt) {
+                            var componentId, component, modelItem, modelItemExpression = opt.getAttribute("data-value");
+                            if (modelItemExpression) {
+                                componentId = opt.getAttribute("data-component-id");
+                                component = Component.getComponentById(componentId);
+                                modelItem = ExpressionEngine.executeExpression(modelItemExpression, component);
+                                if (isMultiple) if (value.indexOf(modelItem) > -1) {
+                                    isModelSet = true;
+                                    opt.selected = true;
+                                } else opt.selected = false; else if (modelItem == value) {
+                                    opt.selected = true;
+                                    isModelSet = true;
+                                    return true;
+                                }
+                            }
+                        });
+                        if (!isModelSet) {
+                            el.value = value;
+                            if (isMultiple) DomUtils.nodeListToArray(el.querySelectorAll("option")).forEach(function(opt) {
+                                opt.selected = value.indexOf(opt.getAttribute("value")) > -1;
+                            });
+                        }
+                    } else if (DomUtils.getInputValue(el) !== value) DomUtils.setInputValue(el, value);
+                });
+            });
+        };
+        DirectiveEngine.prototype.runDirective_Class = function() {
+            var _this6 = this;
+            this._eachElementWithAttr("data-class", function(el, expression) {
+                _this6.component.addWatcher(expression, function(classNameOrObj) {
+                    if ("object" === (void 0 === classNameOrObj ? "undefined" : _typeof(classNameOrObj))) {
+                        for (var key in classNameOrObj) if (classNameOrObj.hasOwnProperty(key)) DomUtils.toggleClass(el, key, !!classNameOrObj[key]);
+                    } else el.className = classNameOrObj;
+                });
+            });
+        };
+        DirectiveEngine.prototype.runDirective_Style = function() {
+            var _this7 = this;
+            this._eachElementWithAttr("data-style", function(el, expression) {
+                _this7.component.addWatcher(expression, function(styleObject) {
+                    for (var key in styleObject) if (styleObject.hasOwnProperty(key)) el.style[key] = styleObject[key] ? styleObject[key] : "";
+                });
+            });
+        };
+        DirectiveEngine.prototype.runDirective_Disabled = function() {
+            var _this8 = this;
+            this._eachElementWithAttr("data-disabled", function(el, expression) {
+                _this8.component.addWatcher(expression, function(value) {
+                    if (value) el.setAttribute("disabled", "disabled"); else el.removeAttribute("disabled");
+                });
+            });
+        };
+        DirectiveEngine.prototype.runDirective_If = function() {
+            var _this9 = this;
+            this._eachElementWithAttr("data-if", function(el, expression) {
+                var comment = document.createComment("");
+                el.parentNode.insertBefore(comment, el);
+                _this9.component.addWatcher(expression, function(val) {
+                    if (val) {
+                        if (!el.parentElement) comment.parentNode.insertBefore(el, comment.nextSibling);
+                    } else el.remove();
+                });
+            });
+        };
+        DirectiveEngine.prototype.runComponents = function() {
+            var _this10 = this;
+            ComponentProto.instances.forEach(function(componentProto) {
+                var componentNodes, toDel, domEls = DomUtils.nodeListToArray(_this10.component.node.getElementsByTagName(componentProto.name));
+                if (_this10.component.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
+                    console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
+                    console.error("component node:", _this10.component.node);
+                    throw "Can not use data-for attribute at component";
+                }
+                componentNodes = [];
+                toDel = [];
+                domEls.forEach(function(domEl) {
+                    var domId, componentNode, dataTransclusion, dataPropertiesAttr, dataProperties, component;
+                    if (!domEl.getAttribute("data-_processed")) {
+                        domEl.setAttribute("data-_processed", "1");
+                        domId = domEl.getAttribute("id");
+                        componentNode = componentProto.node.cloneNode(true);
+                        dataTransclusion = "data-transclusion";
+                        DomUtils.nodeListToArray(componentNode.querySelectorAll("[" + dataTransclusion + "]")).forEach(function(transcl) {
+                            var recipients, name = transcl.getAttribute(dataTransclusion);
+                            if (!name) {
+                                console.error(componentProto.node);
+                                console.error(transcl);
+                                throw dataTransclusion + " attribute can not be empty";
+                            }
+                            recipients = DomUtils.nodeListToArray(domEl.querySelectorAll("[" + dataTransclusion + "=" + name + "]"));
+                            if (!recipients.length) {
+                                console.error(domEl);
+                                throw dataTransclusion + " attribute with name " + name + " defined at template, but not found at component";
+                            }
+                            recipients.forEach(function(rcp) {
+                                toDel.push(rcp);
+                                transcl.innerHTML = rcp.innerHTML;
+                            });
+                        });
+                        componentNodes.push(componentNode);
+                        domEl.parentNode.insertBefore(componentNode, domEl);
+                        dataPropertiesAttr = domEl.getAttribute("data-properties");
+                        dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this10.component) : {};
+                        component = componentProto.newInstance(componentNode, dataProperties);
+                        domId && (component.domId = domId);
+                        component.run();
+                        component.parent = _this10.component;
+                        component.parent.addChild(component);
+                        component.disableParentScopeEvaluation = true;
+                        // avoid recursion in Component
+                        domEl.parentNode.removeChild(domEl);
+                    }
+                });
+                componentNodes.forEach(function(node) {
+                    DomUtils.removeParentButNotChildren(node);
+                });
+                toDel.forEach(function(node) {
+                    DomUtils.removeParentButNotChildren(node);
+                });
+            });
+        };
+        DirectiveEngine.prototype.run = function() {
+            var _this11 = this;
+            this.runDirective_Value();
+            this.runDirective_For();
+            this.runComponents();
+            this.runTextNodes();
+            this.runDirective_Model();
+            // todo check event sequence in legacy browsers
+            [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown" ].forEach(function(eventName) {
+                _this11.runDomEvent(eventName);
+            });
+            this.runDirective_Bind();
+            this.runDirective_Value();
+            this.runDirective_Class();
+            this.runDirective_Style();
+            // todo this.runDirective_Show();
+            // todo this.runDirective_Hide();
+            this.runDirective_Disabled();
+            this.runDirective_If();
+        };
+        return DirectiveEngine;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -917,66 +1084,6 @@
         };
         return Lexer;
     }();
-    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
-        return typeof obj;
-    } : function(obj) {
-        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-    }
-    MiscUtils = function() {
-        function MiscUtils() {
-            _classCallCheck(this, MiscUtils);
-        }
-        /**
-     * @param obj
-     * @returns {*}
-     */
-        MiscUtils.deepCopy = function(obj) {
-            var out, i, len, _out, _i;
-            if (void 0 !== obj) {
-                if (null === obj) return null;
-                if ("[object Array]" === Object.prototype.toString.call(obj)) {
-                    out = [], i = 0, len = obj.length;
-                    for (;i < len; i++) out[i] = MiscUtils.deepCopy(obj[i]);
-                    return out;
-                }
-                if ("object" === (void 0 === obj ? "undefined" : _typeof(obj))) {
-                    _out = {};
-                    for (_i in obj) _out[_i] = MiscUtils.deepCopy(obj[_i]);
-                    return _out;
-                }
-                return obj;
-            }
-        };
-        MiscUtils.superficialCopy = function(a, b) {
-            if (a && b) Object.keys(b).forEach(function(key) {
-                a[key] = b[key];
-            });
-        };
-        /**
-     * @param x
-     * @param y
-     * @returns {*}
-     */
-        MiscUtils.deepEqual = function(x, y) {
-            //if (isNaN(x) && isNaN(y)) return true;
-            return x && y && "object" === (void 0 === x ? "undefined" : _typeof(x)) && "object" === (void 0 === y ? "undefined" : _typeof(y)) ? Object.keys(x).length === Object.keys(y).length && Object.keys(x).reduce(function(isEqual, key) {
-                return isEqual && MiscUtils.deepEqual(x[key], y[key]);
-            }, true) : x === y;
-        };
-        MiscUtils.camelToSnake = function(str) {
-            return str.replace(/([A-Z])/g, function($1) {
-                return "-" + $1.toLowerCase();
-            });
-        };
-        MiscUtils.getUID = function() {
-            return cnt++;
-        };
-        return MiscUtils;
-    }();
-    cnt = 0;
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
@@ -1110,46 +1217,6 @@
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
-    TemplateLoader = function() {
-        function TemplateLoader() {
-            _classCallCheck(this, TemplateLoader);
-        }
-        TemplateLoader._getNodeFromDom = function(templateObj) {
-            if (!templateObj.value) throw "template.value must be specified";
-            var node = document.getElementById(templateObj.value);
-            if (!node) throw "can not fing dom element with id " + templateObj.value;
-            return node;
-        };
-        TemplateLoader._getNodeFromString = function(templateObj) {
-            if (!templateObj.value) throw "template string not provided";
-            if ("string" != typeof templateObj.value) throw "template.value mast be a String, but " + _typeof(templateObj.value) + " found";
-            var container = document.createElement("div");
-            container.innerHTML = templateObj.value;
-            return container;
-        };
-        TemplateLoader.getNode = function(templateObj) {
-            if (!templateObj) throw "template object not defined. Provide template at your component";
-            switch (templateObj.type) {
-              case "dom":
-                return TemplateLoader._getNodeFromDom(templateObj);
-
-              case "string":
-                return TemplateLoader._getNodeFromString(templateObj);
-
-              default:
-                throw "can not load template with type " + templateObj.type + ', only "dom" and "string" types is supported';
-            }
-        };
-        return TemplateLoader;
-    }();
-    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
-        return typeof obj;
-    } : function(obj) {
-        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-    }
     Core = function() {
         function Core() {
             _classCallCheck(this, Core);
@@ -1157,6 +1224,7 @@
         Core.registerComponent = function(name, modelView) {
             var tmpl, domTemplate, node, componentProto;
             name = MiscUtils.camelToSnake(name);
+            document.createElement(name);
             tmpl = TemplateLoader.getNode(modelView.template);
             domTemplate = tmpl.innerHTML;
             tmpl.remove();
@@ -1179,14 +1247,15 @@
             Component.digestAll();
         };
         Core.getComponentById = function(id) {
-            return Component.getComponentById(id);
+            var cmp = Component.getComponentByDomId(id);
+            if (!cmp) return null; else return cmp.modelView;
         };
         Core.run = function() {
-            console.warn("core.run() is deprecated for now");
+            throw "method not used";
         };
         return Core;
     }();
-    Core.version = "0.5.1";
+    Core.version = "0.5.9";
     window.RF = Core;
     window.RF.Router = Router;
 }();

@@ -43,7 +43,7 @@ class DirectiveEngine {
         DomUtils.processScopedTextNodes(this.component.node).forEach(it=>{
             this.component.addWatcher(
                 it.expression,
-                function(value){
+                value=>{
                     if (typeof value == 'object') value = JSON.stringify(value);
                     DomUtils.setTextNodeValue(it.node,value);
                 }
@@ -75,44 +75,109 @@ class DirectiveEngine {
             ExpressionEngine.runExpressionFn(fn,this.component);
             this.component.addWatcher(
                 expression,
-                function(value){
+                value=>{
                     DomUtils.setTextNodeValue(el,value);
                 }
             )
         });
     };
 
-    runDirective_Value(){
-        let el = this.component.node;
-        let expression = el.getAttribute('data-value');
-        if (!expression) return;
-        if (el.tagName.toLowerCase()!='option') throw 'data-value attribute supported only by <option>, use data-model instead';
-        let fn = ExpressionEngine.getExpressionFn(expression);
-        ExpressionEngine.runExpressionFn(fn,this.component);
-        this.component.addWatcher(
-            expression,
-            function(value){
-                el.value = value;
+    runDirective_Value(){ // todo remove
+        // let el = this.component.node;
+        // let expression = el.getAttribute('data-value');
+        // if (!expression) return;
+        // if (el.tagName.toLowerCase()!='option') throw 'data-value attribute supported only by <option>, use data-model instead';
+        // let fn = ExpressionEngine.getExpressionFn(expression);
+        // ExpressionEngine.runExpressionFn(fn,this.component);
+        // this.component.addWatcher(
+        //     expression,
+        //     function(value){
+        //         el.value = value;
+        //     }
+        // )
+    }
+
+    _runDirective_Model_OfSelect(selectEl,modelExpression){
+        let isMultiple = selectEl.multiple, val = [];
+        let selectedEls = DomUtils.
+            nodeListToArray(selectEl.querySelectorAll('option')).
+        filter(opt=>{return opt.selected});
+        selectedEls.forEach(selectedEl=>{
+            let dataValueAttr = selectedEl.getAttribute('data-value');
+            let component;
+            component = Component.getComponentById(selectedEl.getAttribute('data-component-id'));
+            if (component && dataValueAttr) {
+                val.push(ExpressionEngine.executeExpression(dataValueAttr,component));
             }
-        )
+            else {
+                val.push(selectedEl.getAttribute('value'));
+            }
+        });
+        ExpressionEngine.setValueToContext(this.component.modelView,modelExpression,isMultiple?val:val[0]);
     }
 
     runDirective_Model(){
         this._eachElementWithAttr('data-model',(el,expression)=>{
             if (el.getAttribute('type')=='radio' && !el.getAttribute('name'))
-                el.setAttribute('name',el.getAttribute('_data-model'));
+                el.setAttribute('name',expression);
             let eventNames = DomUtils.getDefaultInputChangeEvents(el);
             eventNames.split(',').forEach(eventName=>{
-                DomUtils.addEventListener(el,eventName,()=>{
-                    ExpressionEngine.setValueToContext(this.component.modelView,expression,DomUtils.getInputValue(el));
-                    Component.digestAll();
-                });
+                if (el.tagName.toLowerCase()=='select') {
+                    DomUtils.addEventListener(el,eventName,()=>{
+                        this._runDirective_Model_OfSelect(el,expression);
+                        Component.digestAll();
+                    });
+                } else {
+                    DomUtils.addEventListener(el,eventName,()=>{
+                        ExpressionEngine.setValueToContext(this.component.modelView,expression,DomUtils.getInputValue(el));
+                        Component.digestAll();
+                    });
+                }
+
             });
             this.component.addWatcher(
                 expression,
-                function(value){
-                    if (DomUtils.getInputValue(el)!==value)
-                        DomUtils.setInputValue(el,value);
+                value=>{
+                    if (el.tagName.toLowerCase()=='select') {
+                        let isMultiple = el.multiple;
+                        let isModelSet = false;
+                        DomUtils.nodeListToArray(el.querySelectorAll('option')).some(opt=>{
+                            let modelItemExpression = opt.getAttribute('data-value');
+                            if (!modelItemExpression) return;
+                            let componentId = opt.getAttribute('data-component-id');
+                            let component = Component.getComponentById(componentId);
+                            let modelItem = ExpressionEngine.executeExpression(modelItemExpression,component);
+                            if (isMultiple) {
+                                if (value.indexOf(modelItem)>-1) {
+                                    isModelSet = true;
+                                    opt.selected = true;
+                                } else {
+                                    opt.selected = false;
+                                }
+                            } else {
+                                if (modelItem==value) {
+                                    opt.selected = true;
+                                    isModelSet = true;
+                                    return true;
+                                }
+                            }
+                        });
+                        if (!isModelSet) {
+                            el.value = value;
+                            if (isMultiple) {
+                                DomUtils.
+                                    nodeListToArray(el.querySelectorAll('option')).
+                                    forEach(opt=>{
+                                        opt.selected = value.indexOf(opt.getAttribute('value'))>-1;
+                                    }
+                                );
+                            }
+                        }
+                    } else {
+                        if (DomUtils.getInputValue(el)!==value)
+                            DomUtils.setInputValue(el,value);
+                    }
+
                 }
             )
         });
@@ -122,7 +187,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-class',(el,expression)=>{
             this.component.addWatcher(
                 expression,
-                function(classNameOrObj){
+                classNameOrObj=>{
                     if (typeof classNameOrObj === 'object') {
                         for (let key in classNameOrObj) {
                             if (!classNameOrObj.hasOwnProperty(key)) continue;
@@ -141,7 +206,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-style',(el,expression)=>{
             this.component.addWatcher(
                 expression,
-                function(styleObject){
+                styleObject=>{
                     for (let key in styleObject) {
                         if (!styleObject.hasOwnProperty(key)) continue;
                         el.style[key] = styleObject[key]?styleObject[key]:'';
@@ -155,7 +220,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-disabled',(el,expression)=>{
             this.component.addWatcher(
                 expression,
-                function(value){
+                value=>{
                     if (value) el.setAttribute('disabled','disabled');
                     else el.removeAttribute('disabled');
                 }
@@ -169,7 +234,7 @@ class DirectiveEngine {
             el.parentNode.insertBefore(comment,el);
             this.component.addWatcher(
                 expression,
-                function(val){
+                val=>{
                     if (val) {
                         if (!el.parentElement) {
                             comment.parentNode.insertBefore(el,comment.nextSibling);
@@ -224,23 +289,54 @@ class DirectiveEngine {
                 throw "Can not use data-for attribute at component"
             }
             let componentNodes = [];
-            domEls.forEach(it=>{
-                if (it.getAttribute('data-_processed')) return;
-                it.setAttribute('data-_processed','1');
+            let toDel = [];
+            domEls.forEach(domEl=>{
+
+                if (domEl.getAttribute('data-_processed')) return;
+                domEl.setAttribute('data-_processed','1');
+                let domId = domEl.getAttribute('id');
                 let componentNode = componentProto.node.cloneNode(true);
+                let dataTransclusion = 'data-transclusion';
+                DomUtils.nodeListToArray(componentNode.querySelectorAll(`[${dataTransclusion}]`)).forEach(transcl=>{
+                    let name = transcl.getAttribute(dataTransclusion);
+                    if (!name) {
+                        console.error(componentProto.node);
+                        console.error(transcl);
+                        throw `${dataTransclusion} attribute can not be empty`;
+                    }
+
+                    let recipients =
+                        DomUtils.
+                        nodeListToArray(domEl.querySelectorAll(`[${dataTransclusion}=${name}]`));
+
+                    if (!recipients.length) {
+                        console.error(domEl);
+                        throw `${dataTransclusion} attribute with name ${name} defined at template, but not found at component`
+                    }
+                    recipients.forEach(rcp=>{
+                        toDel.push(rcp);
+                        transcl.innerHTML = rcp.innerHTML;
+                    });
+                });
                 componentNodes.push(componentNode);
-                it.parentNode.insertBefore(componentNode,it);
-                let dataPropertiesAttr = it.getAttribute('data-properties');
+                domEl.parentNode.insertBefore(componentNode,domEl);
+
+                let dataPropertiesAttr = domEl.getAttribute('data-properties');
                 let dataProperties = dataPropertiesAttr?
                     ExpressionEngine.executeExpression(dataPropertiesAttr,this.component):{};
                 let component = componentProto.newInstance(componentNode,dataProperties);
+                domId && (component.domId = domId);
+
                 component.run();
                 component.parent = this.component;
                 component.parent.addChild(component);
                 component.disableParentScopeEvaluation = true; // avoid recursion in Component
-                it.parentNode.removeChild(it);
+                domEl.parentNode.removeChild(domEl);
             });
             componentNodes.forEach((node)=>{
+                DomUtils.removeParentButNotChildren(node);
+            });
+            toDel.forEach((node)=>{
                 DomUtils.removeParentButNotChildren(node);
             });
         });

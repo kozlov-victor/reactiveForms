@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+<meta
+    name ="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>RunCode</title>
+    <style>
+        
+button, input[type=text] {
+    margin: 0 auto 3px;
+    padding: 3px;
+}
+
+button {
+    background-color: #00dcff;
+    border: none;
+}
+
+button.inline-block {
+    display: inline-block;
+    width: auto;
+}
+
+button {
+    color: white;
+}
+
+button:active,input:active {
+    outline: 1px solid blue;
+}
+    </style>
+    <script>
+        if (!window.console) {
+            window.console = {};
+            window.console.log = function(msg){
+                window.status = msg.toString();
+            }
+        }
+    </script>
+    <script src="../reactiveForms.js?1492031780711"></script>
+</head>
+<body>
+
+    
+
+<style>
+    .withPadding {
+        padding: 10px;
+    }
+    .fullscreen {
+        position: fixed;
+        left:0;top:0;right:0;bottom:0;
+        z-index: 100;
+    }
+    .shadow {
+        background-color: rgba(0,0,0,0.3);
+    }
+    .dialogWrapper {
+        display: table;
+        width: 100%;
+        position: fixed;
+        left:0;top:0;right:0;bottom:0;
+        height: 100%;
+        text-align: center;
+        z-index:200;
+    }
+    .dialog {
+        display: table-cell;
+        vertical-align: middle;
+        position: relative;
+        width: 100%;
+    }
+    .dialogContent {
+        display: inline-block;
+        position: relative;
+        background-color: #f8f8f8;
+        max-height: 90vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        z-index: 300;
+    }
+    .dialogClose {
+        text-align: right;
+        background-color: #bdbdbd;
+        border-bottom: 1px solid #767676;
+        font-family: monospace;
+        font-size: 22px;
+        padding: 5px;
+        color: #5f6e6f;
+    }
+</style>
+
+<div style="display: none;">
+    <div id="popupTmpl">
+        <div class="dialogWrapper" data-if="opened">
+            <div class="fullscreen shadow"></div>
+            <div class="dialog">
+                <div class="dialogContent">
+                    <div class="dialogClose">
+                        <span data-transclusion="title">
+                            this title will be replaced
+                        </span>
+                        <span data-click="close()" class="pointer">X</span>
+                    </div>
+                    <div class="withPadding" data-transclusion="content">
+                        this content will be replaced
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="app">
+    <button data-click="openDialog('dialog1')">open dialog 1</button>
+    <button data-click="openDialog('dialog2')">open dialog 2</button>
+
+    <popup-dialog id="dialog1">
+        <div data-transclusion="title">
+            dialog one title
+        </div>
+        <div data-transclusion="content">
+            dialog one content
+        </div>
+    </popup-dialog>
+
+    <popup-dialog id="dialog2">
+        <div data-transclusion="title">
+            dialog two title
+        </div>
+        <div data-transclusion="content">
+            dialog two content
+        </div>
+    </popup-dialog>
+</div>
+
+
+
+
+    <script>
+        
+RF.registerComponent('popup-dialog',{
+    template: {
+        type: 'dom',
+        value: 'popupTmpl'
+    },
+    opened:false,
+    open: function(){
+        this.opened = true;
+    },
+    close: function(){
+        this.opened = false;
+    }
+});
+
+RF.applyBindings('#app',{
+    openDialog: function(dialogId){
+        RF.getComponentById(dialogId).open();
+    }
+});
+    </script>
+
+    <script>
+        window.onload = function(){
+            var getStyle = function (el) {
+                if (typeof getComputedStyle !== 'undefined') {
+                    return getComputedStyle(el);
+                } else {
+                    return el.currentStyle;
+                }
+            };
+            var style = getStyle(document.documentElement);
+            window.top.postMessage({
+                fromEditor:true,
+                page: location.search.substr(1),
+                height:parseInt(style.height),
+                width:parseInt(style.width)
+            },'*');
+        };
+    </script>
+
+</body>
+</html>

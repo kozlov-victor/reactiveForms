@@ -31,7 +31,15 @@ button:active,input:active {
     outline: 1px solid blue;
 }
     </style>
-    <script src="../reactiveForms.js?1491728883293"></script>
+    <script>
+        if (!window.console) {
+            window.console = {};
+            window.console.log = function(msg){
+                window.status = msg.toString();
+            }
+        }
+    </script>
+    <script src="../reactiveForms.js?1492031780681"></script>
 </head>
 <body>
 

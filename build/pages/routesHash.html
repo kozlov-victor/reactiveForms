@@ -31,7 +31,15 @@ button:active,input:active {
     outline: 1px solid blue;
 }
     </style>
-    <script src="../reactiveForms.js?1491728883339"></script>
+    <script>
+        if (!window.console) {
+            window.console = {};
+            window.console.log = function(msg){
+                window.status = msg.toString();
+            }
+        }
+    </script>
+    <script src="../reactiveForms.js?1492031780791"></script>
 </head>
 <body>
 
@@ -86,7 +94,6 @@ var pageDetail = RF.registerComponent('page1',{
     },
     pageIndex:-1,
     onShow: function(params){
-        console.log(params);
         this.pageIndex = params.pageIndex;
     },
     external: {

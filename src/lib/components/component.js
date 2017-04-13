@@ -9,6 +9,7 @@ class Component {
         this.modelView = modelView;
         this.watchers = [];
         this.id = MiscUtils.getUID();
+        this.domId = null;
         this.node.setAttribute('data-component-id',this.id);
         DomUtils.nodeListToArray(this.node.querySelectorAll('*')).forEach(el=>{
             el.setAttribute('data-component-id',this.id);
@@ -21,7 +22,7 @@ class Component {
         this.children.push(childComponent);
     }
 
-    updateModelView(modelView) {
+    updateModelView(modelView) { // todo remove
         //MiscUtils.superficialCopy(this.modelView,modelView);
         this.modelView = modelView;
         if (this.children) {
@@ -48,14 +49,12 @@ class Component {
     digest() {
         this.watchers.forEach(watcher => {
             let newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, this);
-            if (typeof newValue == 'object') {
-                newValue = MiscUtils.deepCopy(newValue);
-            }
             let oldValue = watcher.last;
-            if (!MiscUtils.deepEqual(newValue, oldValue)) {
+            let newValDeepCopy = MiscUtils.deepCopy(newValue);
+            if (!MiscUtils.deepEqual(newValDeepCopy,oldValue)) {
                 watcher.listenerFn(newValue, oldValue);
             }
-            watcher.last = newValue;
+            watcher.last = newValDeepCopy;
         });
         // if (this.children) { // todo need??
         //     this.children.forEach(c=>{
@@ -90,6 +89,17 @@ class Component {
         let res = null;
         Component.instances.some(cmp => {
             if (cmp.id==id) {
+                res = cmp;
+                return true;
+            }
+        });
+        return res;
+    }
+
+    static getComponentByDomId(domId){
+        let res = null;
+        Component.instances.some(cmp => {
+            if (cmp.domId==domId) {
                 res = cmp;
                 return true;
             }
