@@ -830,25 +830,23 @@
                 componentNodes = [];
                 toDel = [];
                 domEls.forEach(function(domEl) {
-                    var domId, componentNode, dataPropertiesAttr, dataProperties, component;
+                    var domId, componentNode, dataTransclusion, dataPropertiesAttr, dataProperties, component;
                     if (!domEl.getAttribute("data-_processed")) {
                         domEl.setAttribute("data-_processed", "1");
                         domId = domEl.getAttribute("id");
                         componentNode = componentProto.node.cloneNode(true);
-                        DomUtils.nodeListToArray(componentNode.querySelectorAll("[data-transclusion]")).forEach(function(transcl) {
-                            var recipients, name = transcl.getAttribute("data-transclusion");
+                        dataTransclusion = "data-transclusion";
+                        DomUtils.nodeListToArray(componentNode.querySelectorAll("[" + dataTransclusion + "]")).forEach(function(transcl) {
+                            var recipients, name = transcl.getAttribute(dataTransclusion);
                             if (!name) {
                                 console.error(componentProto.node);
                                 console.error(transcl);
-                                throw "data-transclusion attribute can not be empty";
+                                throw dataTransclusion + " attribute can not be empty";
                             }
-                            recipients = DomUtils.nodeListToArray(domEl.querySelectorAll("[data-transclusion]")).filter(function(el) {
-                                return el.name == name;
-                            });
-                            // querySelectorAll[attr=value] not works correctly in ie8
+                            recipients = DomUtils.nodeListToArray(domEl.querySelectorAll("[" + dataTransclusion + "=" + name + "]"));
                             if (!recipients.length) {
                                 console.error(domEl);
-                                throw "data-transclusion attribute with name " + name + " defined at template, but not found at component";
+                                throw dataTransclusion + " attribute with name " + name + " defined at template, but not found at component";
                             }
                             recipients.forEach(function(rcp) {
                                 toDel.push(rcp);
@@ -1226,6 +1224,7 @@
         Core.registerComponent = function(name, modelView) {
             var tmpl, domTemplate, node, componentProto;
             name = MiscUtils.camelToSnake(name);
+            document.createElement(name);
             tmpl = TemplateLoader.getNode(modelView.template);
             domTemplate = tmpl.innerHTML;
             tmpl.remove();

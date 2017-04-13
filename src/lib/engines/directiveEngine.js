@@ -264,19 +264,22 @@ class DirectiveEngine {
                 domEl.setAttribute('data-_processed','1');
                 let domId = domEl.getAttribute('id');
                 let componentNode = componentProto.node.cloneNode(true);
-                DomUtils.nodeListToArray(componentNode.querySelectorAll('[data-transclusion]')).forEach(transcl=>{
-                    let name = transcl.getAttribute('data-transclusion');
+                let dataTransclusion = 'data-transclusion';
+                DomUtils.nodeListToArray(componentNode.querySelectorAll(`[${dataTransclusion}]`)).forEach(transcl=>{
+                    let name = transcl.getAttribute(dataTransclusion);
                     if (!name) {
                         console.error(componentProto.node);
                         console.error(transcl);
-                        throw `data-transclusion attribute can not be empty`;
+                        throw `${dataTransclusion} attribute can not be empty`;
                     }
-                    let recipients = DomUtils.
-                        nodeListToArray(domEl.querySelectorAll(`[data-transclusion]`)).
-                        filter(el=>{return el.name==name}); // querySelectorAll[attr=value] not works correctly in ie8
+
+                    let recipients =
+                        DomUtils.
+                        nodeListToArray(domEl.querySelectorAll(`[${dataTransclusion}=${name}]`));
+
                     if (!recipients.length) {
                         console.error(domEl);
-                        throw `data-transclusion attribute with name ${name} defined at template, but not found at component`
+                        throw `${dataTransclusion} attribute with name ${name} defined at template, but not found at component`
                     }
                     recipients.forEach(rcp=>{
                         toDel.push(rcp);
