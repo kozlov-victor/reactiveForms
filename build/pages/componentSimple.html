@@ -72,7 +72,11 @@ RF.registerComponent('counter-component',{
         type: 'dom',
         value: 'counterTmpl'
     },
-    counter: 0,
+    getInitialState: function(){
+        return {
+            counter: 0
+        }
+    },
     inc: function(){
         this.counter++;
     },

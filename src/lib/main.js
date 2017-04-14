@@ -2,25 +2,27 @@
 
 class Core{
 
-    static registerComponent(name,modelView){
+    static registerComponent(name,properties = {}){
         name = MiscUtils.camelToSnake(name);
-        let tmpl = TemplateLoader.getNode(modelView.template);
+        let tmpl = TemplateLoader.getNode(properties.template);
         let domTemplate = tmpl.innerHTML;
         tmpl.remove();
         let node = document.createElement('div');
         node.innerHTML = domTemplate;
-        let componentProto = new ComponentProto(name,node,modelView);
+
+        let componentProto = new ComponentProto(name,node,properties);
         ComponentProto.instances.push(componentProto);
         return componentProto;
     }
 
-    static applyBindings(domElementSelector,modelView){
+    static applyBindings(domElementSelector,properties = {}){
         if (!domElementSelector) throw `ca not applyBindings: element selector not provided`;
         if (typeof domElementSelector!='string') throw (
             `element selector parameter mast me a string,
             but ${typeof domElementSelector} found}`);
         let domElement = document.querySelector(domElementSelector);
         if (!domElement) throw `can not apply bindings: root element with selector ${domElementSelector} not defined`;
+        let modelView = new ModelView(null,properties);
         let fragment = new ScopedDomFragment(domElement,modelView);
         fragment.run();
     };
@@ -35,8 +37,8 @@ class Core{
         return cmp.modelView;
     }
 
-    static run(){
-        throw "method not used";
+    static _getComponentByInternalId(id){
+        return Component.getComponentByInternalId(id);
     }
 
 }

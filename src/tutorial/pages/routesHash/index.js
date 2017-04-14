@@ -15,9 +15,7 @@ var pageMain = RF.registerComponent('page1',{
         type: 'dom',
         value: 'pageMain'
     },
-    external: {
-        app: app
-    }
+    app: app
 });
 
 var pageDetail = RF.registerComponent('page1',{
@@ -29,9 +27,7 @@ var pageDetail = RF.registerComponent('page1',{
     onShow: function(params){
         this.pageIndex = params.pageIndex;
     },
-    external: {
-        app: app
-    }
+    app: app
 });
 
 RF.Router.setup({

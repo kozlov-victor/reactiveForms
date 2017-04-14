@@ -74,20 +74,26 @@ class RouterStrategyProvider {
 }
 
 let routeNode = null;
+let lastPageItem;
 let __showPage = (pageName,params)=>{
-    let pageItem = Router._pages[pageName];
-    if (!pageItem) throw `no page with name ${pageName} registered`;
-    if (!pageItem.component) {
-        let componentNode = pageItem.componentProto.node.cloneNode(true);
-        pageItem.component = pageItem.componentProto.newInstance(componentNode,{});
-        pageItem.component.modelView.onShow && pageItem.component.modelView.onShow(params);
-        pageItem.component.run();
-        delete pageItem.componentProto;
-    } else {
-        pageItem.component.modelView.onShow && pageItem.component.modelView.onShow(params);
+    if (lastPageItem) {
+        lastPageItem.component.modelView.onHide();
+        lastPageItem.component.modelView.onUnmount();
     }
-    routeNode.parentNode.replaceChild(pageItem.component.node,routeNode);
-    routeNode = pageItem.component.node;
+    lastPageItem = Router._pages[pageName];
+    if (!lastPageItem) throw `no page with name ${pageName} registered`;
+    if (!lastPageItem.component) {
+        let componentNode = lastPageItem.componentProto.node.cloneNode(true);
+        lastPageItem.component = lastPageItem.componentProto.newInstance(componentNode,{});
+        lastPageItem.component.modelView.onShow(params);
+        lastPageItem.component.run();
+        delete lastPageItem.componentProto;
+    } else {
+        lastPageItem.component.modelView.onMount();
+        lastPageItem.component.modelView.onShow(params);
+    }
+    routeNode.parentNode.replaceChild(lastPageItem.component.node,routeNode);
+    routeNode = lastPageItem.component.node;
     Component.digestAll();
 };
 

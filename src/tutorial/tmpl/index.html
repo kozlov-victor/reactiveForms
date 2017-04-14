@@ -90,7 +90,7 @@
 
     <ol>
         <li data-for="page of storage.pages">
-            <tutorial-item data-properties="{page:page}"></tutorial-item>
+            <tutorial-item data-state="{page:page}"></tutorial-item>
         </li>
     </ol>
 </div>
@@ -117,10 +117,8 @@
         }
     };
     RF.registerComponent('tutorial-item',{
-        external: {
-            page:null,
-            storage: storage
-        },
+        page:null,
+        storage: storage,
         template: {
             type:'dom',
             value:'tutorialItemTmpl'

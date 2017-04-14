@@ -19,9 +19,7 @@ var page1 = RF.registerComponent('page1',{
         type: 'dom',
         value: 'page1Tmpl'
     },
-    external: {
-        app: app
-    }
+    app: app
 });
 
 var page2 = RF.registerComponent('page2',{
@@ -29,9 +27,7 @@ var page2 = RF.registerComponent('page2',{
         type: 'dom',
         value: 'page2Tmpl'
     },
-    external: {
-        app: app
-    }
+    app: app
 });
 
 var page3 = RF.registerComponent('page3',{
@@ -39,9 +35,7 @@ var page3 = RF.registerComponent('page3',{
         type: 'dom',
         value: 'page3Tmpl'
     },
-    external: {
-        app: app
-    }
+    app: app
 });
 
 RF.Router.setup({

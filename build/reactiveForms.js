@@ -1,6 +1,6 @@
 !function() {
     "use strict";
-    var ElementPrototype, Component, ComponentProto, ScopedDomFragment, ScopedLoopContainer, DomUtils, MiscUtils, cnt, TemplateLoader, DirectiveEngine, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, __showPage, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+    var ElementPrototype, Component, ComponentProto, noop, ModelView, ScopedDomFragment, ScopedLoopContainer, DomUtils, MiscUtils, cnt, TemplateLoader, DirectiveEngine, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, lastPageItem, __showPage, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
@@ -171,14 +171,6 @@
             if (!this.children) this.children = [];
             this.children.push(childComponent);
         };
-        Component.prototype.updateModelView = function(modelView) {
-            // todo remove
-            //MiscUtils.superficialCopy(this.modelView,modelView);
-            this.modelView = modelView;
-            if (this.children) this.children.forEach(function(c) {});
-        };
-        Component.prototype.onShow = function() {};
-        // todo move to modelview class
         Component.prototype.addWatcher = function(expression, listenerFn) {
             var watcherFn = ExpressionEngine.getExpressionFn(expression);
             this.watchers.push({
@@ -200,20 +192,19 @@
             new DirectiveEngine(this).run();
         };
         Component.prototype.destroy = function() {
-            // todo not implemented yet!
-            // remove watchers
-            // remove nodes
+            // todo not implemented yet! todo remove watchers
             this.node.remove();
             if (this.children) this.children.forEach(function(c) {
                 c.destroy();
             });
+            this.modelView.onDestroy();
         };
         Component.digestAll = function() {
             Component.instances.forEach(function(cmp) {
                 cmp.digest();
             });
         };
-        Component.getComponentById = function(id) {
+        Component.getComponentByInternalId = function(id) {
             var res = null;
             Component.instances.some(function(cmp) {
                 if (cmp.id == id) {
@@ -240,24 +231,15 @@
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
     ComponentProto = function() {
-        function ComponentProto(name, node, modelView) {
+        function ComponentProto(name, node, properties) {
             _classCallCheck(this, ComponentProto);
             this.name = name;
             this.node = node;
-            this.modelView = modelView;
+            this.properties = properties;
         }
-        ComponentProto.prototype.applyProperties = function(componentName, target) {
-            var properties = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {}, opts = arguments.length > 3 && void 0 !== arguments[3] ? arguments[3] : {}, strict = opts.strict;
-            Object.keys(properties).forEach(function(key) {
-                if (strict && !target.hasOwnProperty(key)) throw "can not apply non declared property " + key + " to component " + componentName;
-                target[key] = properties[key];
-            });
-        };
-        ComponentProto.prototype.newInstance = function(node, properties) {
-            var externalProperties = this.modelView.external, modelView = MiscUtils.deepCopy(this.modelView);
-            delete modelView.external;
-            externalProperties && this.applyProperties(this.name, modelView, externalProperties);
-            this.applyProperties(this.name, modelView, properties, {
+        ComponentProto.prototype.newInstance = function(node, externalProperties) {
+            var modelView = new ModelView(this.name, this.properties);
+            modelView._applyState(externalProperties, {
                 strict: true
             });
             return new Component(this.name, node, modelView);
@@ -270,6 +252,38 @@
         return ComponentProto;
     }();
     ComponentProto.instances = [];
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+    }
+    noop = function() {
+        return "noChanged";
+    };
+    ModelView = function() {
+        function ModelView(componentName, properties) {
+            _classCallCheck(this, ModelView);
+            this.name = componentName || "";
+            this._applyState(properties);
+            var initialState = properties.getInitialState && properties.getInitialState();
+            initialState && (initialState = MiscUtils.deepCopy(initialState));
+            initialState && this._applyState(this.name, initialState, {
+                warnRedefined: true
+            });
+            this.onShow = this.onShow || noop;
+            this.onHide = this.onHide || noop;
+            this.onMount = this.onMount || noop;
+            this.onUnmount = this.onUnmount || noop;
+            this.onDestroy = this.onDestroy || noop;
+        }
+        ModelView.prototype._applyState = function() {
+            var _this = this, properties = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}, opts = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {}, strict = opts.strict;
+            Object.keys(properties).forEach(function(key) {
+                if (strict && !_this.hasOwnProperty(key)) throw '\n                    can not apply non declared property "' + key + '" to component "' + _this.name + '",\n                    declare property in getInitialState() method\n                ';
+                if (opts.warnRedefined && properties[key] && _this.hasOwnProperty(key)) console.warn("property " + key + " is redefined at component " + _this.name);
+                _this[key] = properties[key];
+            });
+        };
+        return ModelView;
+    }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
@@ -815,8 +829,16 @@
                 el.parentNode.insertBefore(comment, el);
                 _this9.component.addWatcher(expression, function(val) {
                     if (val) {
-                        if (!el.parentElement) comment.parentNode.insertBefore(el, comment.nextSibling);
-                    } else el.remove();
+                        if (!el.parentElement) {
+                            comment.parentNode.insertBefore(el, comment.nextSibling);
+                            _this9.component.modelView.onMount();
+                            _this9.component.onShow();
+                        }
+                    } else {
+                        _this9.component.modelView.onHide();
+                        _this9.component.modelView.onUnmount();
+                        el.remove();
+                    }
                 });
             });
         };
@@ -825,7 +847,13 @@
             this._eachElementWithAttr("data-show", function(el, expression) {
                 var initialStyle = el.style.display || "";
                 _this10.component.addWatcher(expression, function(val) {
-                    if (val) el.style.display = initialStyle; else el.style.display = "none";
+                    if (val) {
+                        el.style.display = initialStyle;
+                        _this10.component.modelView.onShow();
+                    } else {
+                        el.style.display = "none";
+                        _this10.component.modelView.onHide();
+                    }
                 });
             });
         };
@@ -834,7 +862,13 @@
             this._eachElementWithAttr("data-hide", function(el, expression) {
                 var initialStyle = el.style.display || "";
                 _this11.component.addWatcher(expression, function(val) {
-                    if (val) el.style.display = "none"; else el.style.display = initialStyle;
+                    if (val) {
+                        el.style.display = "none";
+                        _this11.component.modelView.onHide();
+                    } else {
+                        el.style.display = initialStyle;
+                        _this11.component.modelView.onShow();
+                    }
                 });
             });
         };
@@ -869,7 +903,7 @@
                 componentNodes = [];
                 toDel = [];
                 domEls.forEach(function(domEl) {
-                    var domId, componentNode, dataTransclusion, dataPropertiesAttr, dataProperties, component;
+                    var domId, componentNode, dataTransclusion, dataStateAttr, dataState, component, hasStateChanged;
                     if (!domEl.getAttribute("data-_processed")) {
                         domEl.setAttribute("data-_processed", "1");
                         domId = domEl.getAttribute("id");
@@ -894,10 +928,13 @@
                         });
                         componentNodes.push(componentNode);
                         domEl.parentNode.insertBefore(componentNode, domEl);
-                        dataPropertiesAttr = domEl.getAttribute("data-properties");
-                        dataProperties = dataPropertiesAttr ? ExpressionEngine.executeExpression(dataPropertiesAttr, _this14.component) : {};
-                        component = componentProto.newInstance(componentNode, dataProperties);
+                        dataStateAttr = domEl.getAttribute("data-state");
+                        dataState = dataStateAttr ? ExpressionEngine.executeExpression(dataStateAttr, _this14.component) : {};
+                        component = componentProto.newInstance(componentNode, dataState);
                         domId && (component.domId = domId);
+                        hasStateChanged = "noChanged" != component.modelView.onMount();
+                        hasStateChanged = "noChanged" != component.modelView.onShow() || hasStateChanged;
+                        hasStateChanged && Component.digestAll();
                         component.run();
                         component.parent = _this14.component;
                         component.parent.addChild(component);
@@ -1204,18 +1241,26 @@
         return RouterStrategyProvider;
     }();
     routeNode = null;
+    lastPageItem = void 0;
     __showPage = function(pageName, params) {
-        var componentNode, pageItem = Router._pages[pageName];
-        if (!pageItem) throw "no page with name " + pageName + " registered";
-        if (!pageItem.component) {
-            componentNode = pageItem.componentProto.node.cloneNode(true);
-            pageItem.component = pageItem.componentProto.newInstance(componentNode, {});
-            pageItem.component.modelView.onShow && pageItem.component.modelView.onShow(params);
-            pageItem.component.run();
-            delete pageItem.componentProto;
-        } else pageItem.component.modelView.onShow && pageItem.component.modelView.onShow(params);
-        routeNode.parentNode.replaceChild(pageItem.component.node, routeNode);
-        routeNode = pageItem.component.node;
+        if (lastPageItem) {
+            lastPageItem.component.modelView.onHide();
+            lastPageItem.component.modelView.onUnmount();
+        }
+        lastPageItem = Router._pages[pageName];
+        if (!lastPageItem) throw "no page with name " + pageName + " registered";
+        if (!lastPageItem.component) {
+            var componentNode = lastPageItem.componentProto.node.cloneNode(true);
+            lastPageItem.component = lastPageItem.componentProto.newInstance(componentNode, {});
+            lastPageItem.component.modelView.onShow(params);
+            lastPageItem.component.run();
+            delete lastPageItem.componentProto;
+        } else {
+            lastPageItem.component.modelView.onMount();
+            lastPageItem.component.modelView.onShow(params);
+        }
+        routeNode.parentNode.replaceChild(lastPageItem.component.node, routeNode);
+        routeNode = lastPageItem.component.node;
         Component.digestAll();
     };
     Router = function() {
@@ -1262,24 +1307,25 @@
         function Core() {
             _classCallCheck(this, Core);
         }
-        Core.registerComponent = function(name, modelView) {
-            var tmpl, domTemplate, node, componentProto;
+        Core.registerComponent = function(name) {
+            var tmpl, domTemplate, node, componentProto, properties = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {};
             name = MiscUtils.camelToSnake(name);
-            tmpl = TemplateLoader.getNode(modelView.template);
+            tmpl = TemplateLoader.getNode(properties.template);
             domTemplate = tmpl.innerHTML;
             tmpl.remove();
             node = document.createElement("div");
             node.innerHTML = domTemplate;
-            componentProto = new ComponentProto(name, node, modelView);
+            componentProto = new ComponentProto(name, node, properties);
             ComponentProto.instances.push(componentProto);
             return componentProto;
         };
-        Core.applyBindings = function(domElementSelector, modelView) {
-            var domElement, fragment;
+        Core.applyBindings = function(domElementSelector) {
+            var domElement, modelView, fragment, properties = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {};
             if (!domElementSelector) throw "ca not applyBindings: element selector not provided";
             if ("string" != typeof domElementSelector) throw "element selector parameter mast me a string,\n            but " + (void 0 === domElementSelector ? "undefined" : _typeof(domElementSelector)) + " found}";
             domElement = document.querySelector(domElementSelector);
             if (!domElement) throw "can not apply bindings: root element with selector " + domElementSelector + " not defined";
+            modelView = new ModelView(null, properties);
             fragment = new ScopedDomFragment(domElement, modelView);
             fragment.run();
         };
@@ -1290,12 +1336,12 @@
             var cmp = Component.getComponentByDomId(id);
             if (!cmp) return null; else return cmp.modelView;
         };
-        Core.run = function() {
-            throw "method not used";
+        Core._getComponentByInternalId = function(id) {
+            return Component.getComponentByInternalId(id);
         };
         return Core;
     }();
-    Core.version = "0.5.9";
+    Core.version = "0.6.0";
     window.RF = Core;
     window.RF.Router = Router;
 }();

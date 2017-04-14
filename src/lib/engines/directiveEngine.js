@@ -242,8 +242,12 @@ class DirectiveEngine {
                     if (val) {
                         if (!el.parentElement) {
                             comment.parentNode.insertBefore(el,comment.nextSibling);
+                            this.component.modelView.onMount();
+                            this.component.onShow();
                         }
                     } else {
+                        this.component.modelView.onHide();
+                        this.component.modelView.onUnmount();
                         el.remove();
                     }
                 }
@@ -256,11 +260,13 @@ class DirectiveEngine {
             let initialStyle = el.style.display || '';
             this.component.addWatcher(
                 expression,
-                function(val){
+                val=>{
                     if (val) {
                         el.style.display = initialStyle;
+                        this.component.modelView.onShow();
                     } else {
                         el.style.display = 'none';
+                        this.component.modelView.onHide();
                     }
                 }
             );
@@ -272,11 +278,13 @@ class DirectiveEngine {
             let initialStyle = el.style.display || '';
             this.component.addWatcher(
                 expression,
-                function(val){
+                val=>{
                     if (val) {
                         el.style.display = 'none';
+                        this.component.modelView.onHide();
                     } else {
                         el.style.display = initialStyle;
+                        this.component.modelView.onShow();
                     }
                 }
             );
@@ -287,7 +295,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-html',(el,expression)=>{
             this.component.addWatcher(
                 expression,
-                function(val){
+                val=>{
                     el.innerHTML = val;
                 }
             );
@@ -298,7 +306,7 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-attributes',(el,expression)=>{
             this.component.addWatcher(
                 expression,
-                function(properties){
+                properties=>{
                     Object.keys(properties).forEach(key=>{
                         let val = properties[key];
                         if (typeof val == 'boolean')
@@ -352,11 +360,15 @@ class DirectiveEngine {
                 componentNodes.push(componentNode);
                 domEl.parentNode.insertBefore(componentNode,domEl);
 
-                let dataPropertiesAttr = domEl.getAttribute('data-properties');
-                let dataProperties = dataPropertiesAttr?
-                    ExpressionEngine.executeExpression(dataPropertiesAttr,this.component):{};
-                let component = componentProto.newInstance(componentNode,dataProperties);
+                let dataStateAttr = domEl.getAttribute('data-state');
+                let dataState = dataStateAttr?
+                    ExpressionEngine.executeExpression(dataStateAttr,this.component):{};
+                let component = componentProto.newInstance(componentNode,dataState);
                 domId && (component.domId = domId);
+
+                let hasStateChanged = component.modelView.onMount()!='noChanged';
+                hasStateChanged = component.modelView.onShow()!='noChanged' || hasStateChanged;
+                hasStateChanged && (Component.digestAll());
 
                 component.run();
                 component.parent = this.component;

@@ -1,8 +1,12 @@
 
 RF.applyBindings('#app',{
-    user: {
-        name: 'defaultUserName',
-        isSuperMan: false,
-        isDisabled: false
+    getInitialState: function(){
+       return {
+           user: {
+               name: 'defaultUserName',
+               isSuperMan: false,
+               isDisabled: false
+           }
+       }
     }
 });

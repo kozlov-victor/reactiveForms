@@ -4,7 +4,11 @@ RF.registerComponent('popup-dialog',{
         type: 'dom',
         value: 'popupTmpl'
     },
-    opened:false,
+    getInitialState:function(){
+        return {
+            opened: false
+        }
+    },
     open: function(){
         this.opened = true;
     },

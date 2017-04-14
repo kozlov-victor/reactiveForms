@@ -108,8 +108,5 @@ app.changeGlobal = function(){
 };
 
 RF.applyBindings('#app',{
-    app:app,
-    r:function(){
-
-    }
+    app:app
 });

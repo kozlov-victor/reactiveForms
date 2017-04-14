@@ -10,7 +10,11 @@ RF.registerComponent('counter-component',{
             '    <button data-click="dec()">-</button>'+
             '</div>'
     },
-    counter: 0,
+    getInitialState: function(){
+        return {
+            counter: 0
+        }
+    },
     inc: function(){
         this.counter++;
     },

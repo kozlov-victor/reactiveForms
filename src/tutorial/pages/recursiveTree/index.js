@@ -43,13 +43,15 @@ RF.registerComponent('node-item',{
         type:'dom',
         value:'nodeItemTmpl'
     },
-    collapsed: true,
+    getInitialState:function(){
+        return {
+            collapsed: true
+        }
+    },
     triggerCollapse: function(){
         this.collapsed = !this.collapsed;
     },
-    external: {
-        node:null
-    }
+    node:null
 });
 
 RF.applyBindings('#app',{

@@ -22,20 +22,6 @@ class Component {
         this.children.push(childComponent);
     }
 
-    updateModelView(modelView) { // todo remove
-        //MiscUtils.superficialCopy(this.modelView,modelView);
-        this.modelView = modelView;
-        if (this.children) {
-            this.children.forEach(c => {
-                //c.modelView = modelView;
-                //MiscUtils.superficialCopy(c.modelView,modelView);
-            });
-        }
-    }
-
-    onShow(){} // todo move to modelview class
-
-
     addWatcher(expression, listenerFn) {
         let watcherFn = ExpressionEngine.getExpressionFn(expression);
         this.watchers.push({
@@ -68,15 +54,14 @@ class Component {
     }
 
     destroy() {
-        // todo not implemented yet!
-        // remove watchers
-        // remove nodes
+        // todo not implemented yet! todo remove watchers
         this.node.remove();
         if (this.children) {
             this.children.forEach(c => {
                 c.destroy();
             });
         }
+        this.modelView.onDestroy();
     }
 
     static digestAll() {
@@ -85,7 +70,7 @@ class Component {
         });
     }
 
-    static getComponentById(id){
+    static getComponentByInternalId(id){
         let res = null;
         Component.instances.some(cmp => {
             if (cmp.id==id) {
