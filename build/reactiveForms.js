@@ -194,10 +194,10 @@
         Component.prototype.destroy = function() {
             // todo not implemented yet! todo remove watchers
             this.node.remove();
+            Component.instances.splice(Component.instances.indexOf(this), 1);
             if (this.children) this.children.forEach(function(c) {
                 c.destroy();
             });
-            this.modelView.onDestroy();
         };
         Component.digestAll = function() {
             Component.instances.forEach(function(cmp) {
@@ -745,7 +745,7 @@
                 return opt.selected;
             }).forEach(function(selectedEl) {
                 var dataValueAttr = selectedEl.getAttribute("data-value"), component = void 0;
-                component = Component.getComponentById(selectedEl.getAttribute("data-component-id"));
+                component = Component.getComponentByInternalId(selectedEl.getAttribute("data-component-id"));
                 if (component && dataValueAttr) val.push(ExpressionEngine.executeExpression(dataValueAttr, component)); else val.push(selectedEl.getAttribute("value"));
             });
             ExpressionEngine.setValueToContext(this.component.modelView, modelExpression, isMultiple ? val : val[0]);
@@ -772,7 +772,7 @@
                             var componentId, component, modelItem, modelItemExpression = opt.getAttribute("data-value");
                             if (modelItemExpression) {
                                 componentId = opt.getAttribute("data-component-id");
-                                component = Component.getComponentById(componentId);
+                                component = Component.getComponentByInternalId(componentId);
                                 modelItem = ExpressionEngine.executeExpression(modelItemExpression, component);
                                 if (isMultiple) if (value.indexOf(modelItem) > -1) {
                                     isModelSet = true;
@@ -832,7 +832,7 @@
                         if (!el.parentElement) {
                             comment.parentNode.insertBefore(el, comment.nextSibling);
                             _this9.component.modelView.onMount();
-                            _this9.component.onShow();
+                            _this9.component.modelView.onShow();
                         }
                     } else {
                         _this9.component.modelView.onHide();

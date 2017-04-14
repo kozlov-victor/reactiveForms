@@ -105,7 +105,7 @@ class DirectiveEngine {
         selectedEls.forEach(selectedEl=>{
             let dataValueAttr = selectedEl.getAttribute('data-value');
             let component;
-            component = Component.getComponentById(selectedEl.getAttribute('data-component-id'));
+            component = Component.getComponentByInternalId(selectedEl.getAttribute('data-component-id'));
             if (component && dataValueAttr) {
                 val.push(ExpressionEngine.executeExpression(dataValueAttr,component));
             }
@@ -145,7 +145,7 @@ class DirectiveEngine {
                             let modelItemExpression = opt.getAttribute('data-value');
                             if (!modelItemExpression) return;
                             let componentId = opt.getAttribute('data-component-id');
-                            let component = Component.getComponentById(componentId);
+                            let component = Component.getComponentByInternalId(componentId);
                             let modelItem = ExpressionEngine.executeExpression(modelItemExpression,component);
                             if (isMultiple) {
                                 if (value.indexOf(modelItem)>-1) {
@@ -243,7 +243,7 @@ class DirectiveEngine {
                         if (!el.parentElement) {
                             comment.parentNode.insertBefore(el,comment.nextSibling);
                             this.component.modelView.onMount();
-                            this.component.onShow();
+                            this.component.modelView.onShow();
                         }
                     } else {
                         this.component.modelView.onHide();

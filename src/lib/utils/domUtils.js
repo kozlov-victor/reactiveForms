@@ -130,7 +130,7 @@ class DomUtils {
                 }
                 break;
             case 'select':
-                return 'change';
+                return 'change'; // DOMNodeRemoved
                 break;
             case 'textarea':
                 return 'keyup';
