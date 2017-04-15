@@ -123,12 +123,12 @@ class DirectiveEngine {
             let eventNames = DomUtils.getDefaultInputChangeEvents(el);
             eventNames.split(',').forEach(eventName=>{
                 if (el.tagName.toLowerCase()=='select') {
-                    DomUtils.addEventListener(el,eventName,()=>{
+                    DomUtils.addEventListener(el,eventName,e=>{
                         this._runDirective_Model_OfSelect(el,expression);
                         Component.digestAll();
                     });
                 } else {
-                    DomUtils.addEventListener(el,eventName,()=>{
+                    DomUtils.addEventListener(el,eventName,e=>{
                         ExpressionEngine.setValueToContext(this.component.modelView,expression,DomUtils.getInputValue(el));
                         Component.digestAll();
                     });
@@ -319,6 +319,7 @@ class DirectiveEngine {
     };
 
     runComponents(){
+        let transclComponents = [];
         ComponentProto.instances.forEach(componentProto=>{
             let domEls =  DomUtils.nodeListToArray(this.component.node.getElementsByTagName(componentProto.name));
             if (this.component.node.tagName.toLowerCase()==componentProto.name.toLowerCase()) {
@@ -336,11 +337,12 @@ class DirectiveEngine {
                 let domId = domEl.getAttribute('id');
                 let componentNode = componentProto.node.cloneNode(true);
                 let dataTransclusion = 'data-transclusion';
-                DomUtils.nodeListToArray(componentNode.querySelectorAll(`[${dataTransclusion}]`)).forEach(transcl=>{
-                    let name = transcl.getAttribute(dataTransclusion);
+
+                DomUtils.nodeListToArray(componentNode.querySelectorAll(`[${dataTransclusion}]`)).forEach(transclNode=>{
+                    let name = transclNode.getAttribute(dataTransclusion);
                     if (!name) {
                         console.error(componentProto.node);
-                        console.error(transcl);
+                        console.error(transclNode);
                         throw `${dataTransclusion} attribute can not be empty`;
                     }
 
@@ -353,8 +355,14 @@ class DirectiveEngine {
                         throw `${dataTransclusion} attribute with name ${name} defined at template, but not found at component`
                     }
                     recipients.forEach(rcp=>{
-                        toDel.push(rcp);
-                        transcl.innerHTML = rcp.innerHTML;
+                        // transclNode.innerHTML = rcp.innerHTML;
+                        // let transclComponent = new ScopedDomFragment(transclNode,this.component.modelView);
+                        // transclComponent.run();
+
+
+
+                        transclNode.innerHTML = '';
+                        transclComponents.push({transclNode,rcp});
                     });
                 });
                 componentNodes.push(componentNode);
@@ -383,12 +391,20 @@ class DirectiveEngine {
                 DomUtils.removeParentButNotChildren(node);
             });
         });
+        transclComponents.forEach(trnscl=>{
+            trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
+            console.log('trnscl.transclNode',trnscl.transclNode);
+            let transclComponent = new ScopedDomFragment(trnscl.transclNode,new ModelView(this.component.name));
+            this.component.addChild(transclComponent);
+            transclComponent.parent = this.component;
+            transclComponent.run();
+        });
     }
 
     run(){
         this.runDirective_Value();
-        this.runDirective_For();
         this.runComponents();
+        this.runDirective_For();
         this.runTextNodes();
         this.runDirective_Model(); // todo check event sequence in legacy browsers
         [

@@ -63,7 +63,7 @@ button:active,input:active {
         </option>
     </select>
     <table>
-        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(item)" data-for="item in fruits">
+        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(item)" data-for="item,index in fruits">
             <td>{{item.name}}</td>
             <td><button data-click="remove(index)">-</button></td>
         </tr>

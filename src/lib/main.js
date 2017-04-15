@@ -4,7 +4,7 @@ class Core{
 
     static registerComponent(name,properties = {}){
         name = MiscUtils.camelToSnake(name);
-        let tmpl = TemplateLoader.getNode(properties.template);
+        let tmpl = TemplateLoader.getNode(properties,name);
         let domTemplate = tmpl.innerHTML;
         tmpl.remove();
         let node = document.createElement('div');

@@ -4,7 +4,6 @@ class ScopedLoopContainer extends Component {
     constructor(node,modelView){
         super(null,node,modelView);
 
-
         if (node.getAttribute('data-for'))
             throw `can not use "data-for" attribute at component directly. Use this directive at parent node`;
 
@@ -39,19 +38,25 @@ class ScopedLoopContainer extends Component {
 
     _processIterations(newArr = [],oldArr){
 
+        console.log('newArr',newArr);
+
         let currNodeInIteration = this.anchor;
         newArr.forEach((iterableItem,i)=>{
 
             if (!this.scopedDomFragments[i]) {
 
-                let localModelView = {};
-                localModelView[this.eachItemName] = iterableItem;
-                if (this.indexName) localModelView[this.indexName] = i;
+                let props = {};
+                props[this.eachItemName] = iterableItem;
+                if (this.indexName) props[this.indexName] = i;
+                let localModelView = new ModelView(this.indexName,props);
 
                 let node = this.node.cloneNode(true);
                 let scopedDomFragment = new ScopedDomFragment(node,localModelView);
                 // todo Cannot read property 'insertBefore' of null
+                console.log('created new fragment in loop',scopedDomFragment);
                 currNodeInIteration.parentNode.insertBefore(node,currNodeInIteration.nextSibling);
+                console.log('currNodeInIteration',currNodeInIteration);
+                console.log('appended node',node);
                 scopedDomFragment.parent = this.parent;
                 scopedDomFragment.parent.addChild(scopedDomFragment);
 
@@ -61,10 +66,10 @@ class ScopedLoopContainer extends Component {
                 this.lastFrafmentsLength++;
 
             } else {
+
                 let localModelView = this.scopedDomFragments[i].modelView;
                 localModelView[this.eachItemName] = iterableItem;
                 if (this.indexName) localModelView[this.indexName] = i;
-                //this.scopedDomFragments[i].updateModelView(localModelView);
 
                 currNodeInIteration = this.scopedDomFragments[i].node;
                 this.scopedDomFragments[i].digest();

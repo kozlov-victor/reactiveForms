@@ -194,7 +194,7 @@
         Component.prototype.destroy = function() {
             // todo not implemented yet! todo remove watchers
             this.node.remove();
-            Component.instances.splice(Component.instances.indexOf(this), 1);
+            //Component.instances.splice(Component.instances.indexOf(this),1);
             if (this.children) this.children.forEach(function(c) {
                 c.destroy();
             });
@@ -259,11 +259,12 @@
         return "noChanged";
     };
     ModelView = function() {
-        function ModelView(componentName, properties) {
+        function ModelView(componentName) {
+            var initialState, properties = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {};
             _classCallCheck(this, ModelView);
             this.name = componentName || "";
             this._applyState(properties);
-            var initialState = properties.getInitialState && properties.getInitialState();
+            initialState = properties.getInitialState && properties.getInitialState();
             initialState && (initialState = MiscUtils.deepCopy(initialState));
             initialState && this._applyState(this.name, initialState, {
                 warnRedefined: true
@@ -363,18 +364,24 @@
             });
         };
         ScopedLoopContainer.prototype._processIterations = function() {
-            var l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [], currNodeInIteration = (arguments[1], 
-            this.anchor);
+            var currNodeInIteration, l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
+            arguments[1];
+            console.log("newArr", newArr);
+            currNodeInIteration = this.anchor;
             newArr.forEach(function(iterableItem, i) {
-                var localModelView, node, scopedDomFragment, _localModelView;
+                var props, localModelView, node, scopedDomFragment, _localModelView;
                 if (!_this3.scopedDomFragments[i]) {
-                    localModelView = {};
-                    localModelView[_this3.eachItemName] = iterableItem;
-                    if (_this3.indexName) localModelView[_this3.indexName] = i;
+                    props = {};
+                    props[_this3.eachItemName] = iterableItem;
+                    if (_this3.indexName) props[_this3.indexName] = i;
+                    localModelView = new ModelView(_this3.indexName, props);
                     node = _this3.node.cloneNode(true);
                     scopedDomFragment = new ScopedDomFragment(node, localModelView);
                     // todo Cannot read property 'insertBefore' of null
+                    console.log("created new fragment in loop", scopedDomFragment);
                     currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
+                    console.log("currNodeInIteration", currNodeInIteration);
+                    console.log("appended node", node);
                     scopedDomFragment.parent = _this3.parent;
                     scopedDomFragment.parent.addChild(scopedDomFragment);
                     scopedDomFragment.run();
@@ -385,7 +392,6 @@
                     _localModelView = _this3.scopedDomFragments[i].modelView;
                     _localModelView[_this3.eachItemName] = iterableItem;
                     if (_this3.indexName) _localModelView[_this3.indexName] = i;
-                    //this.scopedDomFragments[i].updateModelView(localModelView);
                     currNodeInIteration = _this3.scopedDomFragments[i].node;
                     _this3.scopedDomFragments[i].digest();
                 }
@@ -630,29 +636,37 @@
         function TemplateLoader() {
             _classCallCheck(this, TemplateLoader);
         }
-        TemplateLoader._getNodeFromDom = function(templateObj) {
-            if (!templateObj.value) throw "template.value must be specified";
+        TemplateLoader._getNodeFromDom = function(templateObj, componentName) {
+            if (!templateObj.value) {
+                console.error("can not process template at component " + componentName);
+                throw "template.value must be specified";
+            }
             var node = document.getElementById(templateObj.value);
             if (!node) throw "can not fing dom element with id " + templateObj.value;
             return node;
         };
-        TemplateLoader._getNodeFromString = function(templateObj) {
+        TemplateLoader._getNodeFromString = function(templateObj, componentName) {
             if (!templateObj.value) throw "template string not provided";
-            if ("string" != typeof templateObj.value) throw "template.value mast be a String, but " + _typeof(templateObj.value) + " found";
+            if ("string" != typeof templateObj.value) {
+                console.error("can not process template at component " + componentName);
+                throw "template.value mast be a String, but " + _typeof(templateObj.value) + " found";
+            }
             var container = document.createElement("div");
             container.innerHTML = templateObj.value;
             return container;
         };
-        TemplateLoader.getNode = function(templateObj) {
-            if (!templateObj) throw "template object not defined. Provide template at your component";
+        TemplateLoader.getNode = function() {
+            var properties = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}, componentName = arguments[1], templateObj = properties.template;
+            if (!templateObj) throw "template object not defined. Provide template at your component '" + componentName + "'";
             switch (templateObj.type) {
               case "dom":
-                return TemplateLoader._getNodeFromDom(templateObj);
+                return TemplateLoader._getNodeFromDom(templateObj, componentName);
 
               case "string":
-                return TemplateLoader._getNodeFromString(templateObj);
+                return TemplateLoader._getNodeFromString(templateObj, componentName);
 
               default:
+                console.error("can not process template at component " + componentName);
                 throw "can not load template with type " + templateObj.type + ', only "dom" and "string" types is supported';
             }
         };
@@ -755,10 +769,10 @@
             this._eachElementWithAttr("data-model", function(el, expression) {
                 if ("radio" == el.getAttribute("type") && !el.getAttribute("name")) el.setAttribute("name", expression);
                 DomUtils.getDefaultInputChangeEvents(el).split(",").forEach(function(eventName) {
-                    if ("select" == el.tagName.toLowerCase()) DomUtils.addEventListener(el, eventName, function() {
+                    if ("select" == el.tagName.toLowerCase()) DomUtils.addEventListener(el, eventName, function(e) {
                         _this5._runDirective_Model_OfSelect(el, expression);
                         Component.digestAll();
-                    }); else DomUtils.addEventListener(el, eventName, function() {
+                    }); else DomUtils.addEventListener(el, eventName, function(e) {
                         ExpressionEngine.setValueToContext(_this5.component.modelView, expression, DomUtils.getInputValue(el));
                         Component.digestAll();
                     });
@@ -892,7 +906,7 @@
             });
         };
         DirectiveEngine.prototype.runComponents = function() {
-            var _this14 = this;
+            var _this14 = this, transclComponents = [];
             ComponentProto.instances.forEach(function(componentProto) {
                 var componentNodes, toDel, domEls = DomUtils.nodeListToArray(_this14.component.node.getElementsByTagName(componentProto.name));
                 if (_this14.component.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
@@ -909,11 +923,11 @@
                         domId = domEl.getAttribute("id");
                         componentNode = componentProto.node.cloneNode(true);
                         dataTransclusion = "data-transclusion";
-                        DomUtils.nodeListToArray(componentNode.querySelectorAll("[" + dataTransclusion + "]")).forEach(function(transcl) {
-                            var recipients, name = transcl.getAttribute(dataTransclusion);
+                        DomUtils.nodeListToArray(componentNode.querySelectorAll("[" + dataTransclusion + "]")).forEach(function(transclNode) {
+                            var recipients, name = transclNode.getAttribute(dataTransclusion);
                             if (!name) {
                                 console.error(componentProto.node);
-                                console.error(transcl);
+                                console.error(transclNode);
                                 throw dataTransclusion + " attribute can not be empty";
                             }
                             recipients = DomUtils.nodeListToArray(domEl.querySelectorAll("[" + dataTransclusion + "=" + name + "]"));
@@ -922,8 +936,14 @@
                                 throw dataTransclusion + " attribute with name " + name + " defined at template, but not found at component";
                             }
                             recipients.forEach(function(rcp) {
-                                toDel.push(rcp);
-                                transcl.innerHTML = rcp.innerHTML;
+                                // transclNode.innerHTML = rcp.innerHTML;
+                                // let transclComponent = new ScopedDomFragment(transclNode,this.component.modelView);
+                                // transclComponent.run();
+                                transclNode.innerHTML = "";
+                                transclComponents.push({
+                                    transclNode: transclNode,
+                                    rcp: rcp
+                                });
                             });
                         });
                         componentNodes.push(componentNode);
@@ -950,12 +970,20 @@
                     DomUtils.removeParentButNotChildren(node);
                 });
             });
+            transclComponents.forEach(function(trnscl) {
+                trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
+                console.log("trnscl.transclNode", trnscl.transclNode);
+                var transclComponent = new ScopedDomFragment(trnscl.transclNode, new ModelView(_this14.component.name));
+                _this14.component.addChild(transclComponent);
+                transclComponent.parent = _this14.component;
+                transclComponent.run();
+            });
         };
         DirectiveEngine.prototype.run = function() {
             var _this15 = this;
             this.runDirective_Value();
-            this.runDirective_For();
             this.runComponents();
+            this.runDirective_For();
             this.runTextNodes();
             this.runDirective_Model();
             // todo check event sequence in legacy browsers
@@ -1310,7 +1338,7 @@
         Core.registerComponent = function(name) {
             var tmpl, domTemplate, node, componentProto, properties = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {};
             name = MiscUtils.camelToSnake(name);
-            tmpl = TemplateLoader.getNode(properties.template);
+            tmpl = TemplateLoader.getNode(properties, name);
             domTemplate = tmpl.innerHTML;
             tmpl.remove();
             node = document.createElement("div");
@@ -1341,7 +1369,7 @@
         };
         return Core;
     }();
-    Core.version = "0.6.0";
+    Core.version = "0.6.1";
     window.RF = Core;
     window.RF.Router = Router;
 }();

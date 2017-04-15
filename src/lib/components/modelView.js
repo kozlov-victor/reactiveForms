@@ -5,7 +5,7 @@ const noop = function(){
 
 class ModelView{
 
-    constructor(componentName,properties){
+    constructor(componentName,properties = {}){
         this.name = componentName || '';
 
         this._applyState(properties);

@@ -122,21 +122,40 @@ button:active,input:active {
     <button data-click="openDialog('dialog1')">open dialog 1</button>
     <button data-click="openDialog('dialog2')">open dialog 2</button>
 
+    <div>
+        dialog1Title: {{dialog1Title}}
+        <br/>
+        dialog1Content: {{dialog1Content}}
+        <br/>
+        dialog2Title: {{dialog2Title}}
+        <br/>
+        dialog2Content: {{dialog2Content}}
+        <br/>
+
+    </div>
+
+    <button data-click="changeDialogData()">changeDialogData()</button>
+
     <popup-dialog id="dialog1">
         <div data-transclusion="title">
-            dialog one title
+            {{dialog1Title}}
         </div>
         <div data-transclusion="content">
-            dialog one content
+            {{dialog1Content}}
         </div>
     </popup-dialog>
 
     <popup-dialog id="dialog2">
         <div data-transclusion="title">
-            dialog two title
+            {{dialog2Title}}
         </div>
         <div data-transclusion="content">
-            dialog two content
+            {{dialog2Content}}
+            <br/>
+            openedArr loop
+            <span data-for="el in openedArr">
+                {{el}}
+            </span>
         </div>
     </popup-dialog>
 </div>
@@ -164,9 +183,28 @@ RF.registerComponent('popup-dialog',{
     }
 });
 
+var rnd = function(){
+    return Math.random().toFixed(2);
+};
+
 RF.applyBindings('#app',{
+
+    dialog1Title: 'title Of Dialog One',
+    dialog1Content: 'content Of Dialog One',
+    dialog2Title: 'title Of Dialog Two',
+    dialog2Content: 'content Of Dialog Two',
+
+    openedArr:[rnd()],
+
     openDialog: function(dialogId){
+        this.openedArr.push(rnd());
         RF.getComponentById(dialogId).open();
+    },
+    changeDialogData: function(){
+        this.dialog1Title = 'title Of Dialog One ' + rnd();
+        this.dialog1Content = 'content Of Dialog One ' + rnd();
+        this.dialog2Title = 'title Of Dialog Two ' + rnd();
+        this.dialog2Content = 'content Of Dialog Two ' + rnd();
     }
 });
     </script>

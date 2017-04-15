@@ -56,7 +56,7 @@ class Component {
     destroy() {
         // todo not implemented yet! todo remove watchers
         this.node.remove();
-        Component.instances.splice(Component.instances.indexOf(this),1);
+        //Component.instances.splice(Component.instances.indexOf(this),1);
         if (this.children) {
             this.children.forEach(c => {
                 c.destroy();
