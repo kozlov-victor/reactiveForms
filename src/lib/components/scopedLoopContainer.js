@@ -38,8 +38,6 @@ class ScopedLoopContainer extends Component {
 
     _processIterations(newArr = [],oldArr){
 
-        console.log('newArr',newArr);
-
         let currNodeInIteration = this.anchor;
         newArr.forEach((iterableItem,i)=>{
 
@@ -53,10 +51,7 @@ class ScopedLoopContainer extends Component {
                 let node = this.node.cloneNode(true);
                 let scopedDomFragment = new ScopedDomFragment(node,localModelView);
                 // todo Cannot read property 'insertBefore' of null
-                console.log('created new fragment in loop',scopedDomFragment);
                 currNodeInIteration.parentNode.insertBefore(node,currNodeInIteration.nextSibling);
-                console.log('currNodeInIteration',currNodeInIteration);
-                console.log('appended node',node);
                 scopedDomFragment.parent = this.parent;
                 scopedDomFragment.parent.addChild(scopedDomFragment);
 

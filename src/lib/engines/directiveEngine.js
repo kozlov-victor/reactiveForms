@@ -1,8 +1,9 @@
 
 class DirectiveEngine {
 
-    constructor(component) {
+    constructor(component,ignoreComponents) {
         this.component = component;
+        this.ignoreComponents = ignoreComponents;
     }
 
     _eachElementWithAttr(dataAttrName,onEachElementFn) {
@@ -393,7 +394,6 @@ class DirectiveEngine {
         });
         transclComponents.forEach(trnscl=>{
             trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
-            console.log('trnscl.transclNode',trnscl.transclNode);
             let transclComponent = new ScopedDomFragment(trnscl.transclNode,new ModelView(this.component.name));
             this.component.addChild(transclComponent);
             transclComponent.parent = this.component;
@@ -403,8 +403,11 @@ class DirectiveEngine {
 
     run(){
         this.runDirective_Value();
+        this.ignoreComponents = true;
+        this.runDirective_For(); // first loop traverse
         this.runComponents();
-        this.runDirective_For();
+        this.ignoreComponents = false;
+        //this.runDirective_For(); // second loop traverse
         this.runTextNodes();
         this.runDirective_Model(); // todo check event sequence in legacy browsers
         [

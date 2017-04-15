@@ -364,10 +364,8 @@
             });
         };
         ScopedLoopContainer.prototype._processIterations = function() {
-            var currNodeInIteration, l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
-            arguments[1];
-            console.log("newArr", newArr);
-            currNodeInIteration = this.anchor;
+            var l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [], currNodeInIteration = (arguments[1], 
+            this.anchor);
             newArr.forEach(function(iterableItem, i) {
                 var props, localModelView, node, scopedDomFragment, _localModelView;
                 if (!_this3.scopedDomFragments[i]) {
@@ -378,10 +376,7 @@
                     node = _this3.node.cloneNode(true);
                     scopedDomFragment = new ScopedDomFragment(node, localModelView);
                     // todo Cannot read property 'insertBefore' of null
-                    console.log("created new fragment in loop", scopedDomFragment);
                     currNodeInIteration.parentNode.insertBefore(node, currNodeInIteration.nextSibling);
-                    console.log("currNodeInIteration", currNodeInIteration);
-                    console.log("appended node", node);
                     scopedDomFragment.parent = _this3.parent;
                     scopedDomFragment.parent.addChild(scopedDomFragment);
                     scopedDomFragment.run();
@@ -681,9 +676,10 @@
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
     DirectiveEngine = function() {
-        function DirectiveEngine(component) {
+        function DirectiveEngine(component, ignoreComponents) {
             _classCallCheck(this, DirectiveEngine);
             this.component = component;
+            this.ignoreComponents = ignoreComponents;
         }
         DirectiveEngine.prototype._eachElementWithAttr = function(dataAttrName, onEachElementFn) {
             var i, elements = [], nodes = this.component.node.querySelectorAll("[" + dataAttrName + "]");
@@ -972,7 +968,6 @@
             });
             transclComponents.forEach(function(trnscl) {
                 trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
-                console.log("trnscl.transclNode", trnscl.transclNode);
                 var transclComponent = new ScopedDomFragment(trnscl.transclNode, new ModelView(_this14.component.name));
                 _this14.component.addChild(transclComponent);
                 transclComponent.parent = _this14.component;
@@ -982,8 +977,12 @@
         DirectiveEngine.prototype.run = function() {
             var _this15 = this;
             this.runDirective_Value();
-            this.runComponents();
+            this.ignoreComponents = true;
             this.runDirective_For();
+            // first loop traverse
+            this.runComponents();
+            this.ignoreComponents = false;
+            //this.runDirective_For(); // second loop traverse
             this.runTextNodes();
             this.runDirective_Model();
             // todo check event sequence in legacy browsers
