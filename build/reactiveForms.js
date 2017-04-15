@@ -15,6 +15,20 @@
     if (!ElementPrototype.remove) ElementPrototype.remove = function() {
         this.parentNode && this.parentNode.removeChild(this);
     };
+    if (!ElementPrototype.matches) !function(e) {
+        e.matches || (e.matches = e.matchesSelector || function(selector) {
+            var matches = document.querySelectorAll(selector), th = this;
+            return Array.prototype.some.call(matches, function(e) {
+                return e === th;
+            });
+        });
+    }(Element.prototype);
+    if (!ElementPrototype.closest) !function(e) {
+        e.closest = e.closest || function(css) {
+            for (var node = this; node; ) if (node.matches(css)) return node; else node = node.parentElement;
+            return null;
+        };
+    }(Element.prototype);
     if (!Object.keys) Object.keys = function(obj) {
         var i, keys = [];
         for (i in obj) if (obj.hasOwnProperty(i)) keys.push(i);
@@ -266,7 +280,7 @@
             this._applyState(properties);
             initialState = properties.getInitialState && properties.getInitialState();
             initialState && (initialState = MiscUtils.deepCopy(initialState));
-            initialState && this._applyState(this.name, initialState, {
+            initialState && this._applyState(initialState, {
                 warnRedefined: true
             });
             this.onShow = this.onShow || noop;
@@ -679,23 +693,25 @@
         function DirectiveEngine(component, ignoreComponents) {
             _classCallCheck(this, DirectiveEngine);
             this.component = component;
-            this.ignoreComponents = ignoreComponents;
         }
         DirectiveEngine.prototype._eachElementWithAttr = function(dataAttrName, onEachElementFn) {
             var i, elements = [], nodes = this.component.node.querySelectorAll("[" + dataAttrName + "]");
             for (i = 0; i < nodes.length; i++) elements.push(nodes[i]);
             if (this.component.node.hasAttribute(dataAttrName)) elements.push(this.component.node);
             elements.forEach(function(el) {
-                var expression = el.getAttribute(dataAttrName);
+                var processed, expression = el.getAttribute(dataAttrName);
                 el.removeAttribute(dataAttrName);
                 el.setAttribute("_" + dataAttrName, expression);
-                onEachElementFn(el, expression);
+                processed = onEachElementFn(el, expression);
+                if (false === processed) el.setAttribute(dataAttrName, expression);
             });
         };
         DirectiveEngine.prototype.runDirective_For = function() {
             var _this = this;
             this._eachElementWithAttr("data-for", function(el, expression) {
-                var variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, tokens = expression.split(" ");
+                var tokens, variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, closestTransclusionEl = el.closest("[data-transclusion]");
+                if (closestTransclusionEl && !closestTransclusionEl.getAttribute("data-_processed")) return false;
+                tokens = expression.split(" ");
                 if ([ "in", "of" ].indexOf(tokens[1]) == -1) throw "can not parse expression " + expression;
                 variables = Lexer.tokenize(tokens[0]).filter(function(t) {
                     return [ Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY ].indexOf(t.tokenType) > -1;
@@ -971,18 +987,15 @@
                 var transclComponent = new ScopedDomFragment(trnscl.transclNode, new ModelView(_this14.component.name));
                 _this14.component.addChild(transclComponent);
                 transclComponent.parent = _this14.component;
+                trnscl.transclNode.setAttribute("data-_processed", "1");
                 transclComponent.run();
             });
         };
         DirectiveEngine.prototype.run = function() {
             var _this15 = this;
             this.runDirective_Value();
-            this.ignoreComponents = true;
             this.runDirective_For();
-            // first loop traverse
             this.runComponents();
-            this.ignoreComponents = false;
-            //this.runDirective_For(); // second loop traverse
             this.runTextNodes();
             this.runDirective_Model();
             // todo check event sequence in legacy browsers

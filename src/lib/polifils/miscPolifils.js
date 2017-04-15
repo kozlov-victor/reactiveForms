@@ -16,6 +16,32 @@ if (!ElementPrototype.remove) {
     };
 }
 
+if (!ElementPrototype.matches) {
+    (function(e){
+        e.matches || (e.matches=e.matchesSelector||function(selector){
+                let matches = document.querySelectorAll(selector), th = this;
+                return Array.prototype.some.call(matches, function(e){
+                    return e === th;
+                });
+            });
+
+    })(Element.prototype);
+}
+
+if (!ElementPrototype.closest) {
+    (function(e){
+        e.closest = e.closest || function(css){
+                let node = this;
+
+                while (node) {
+                    if (node.matches(css)) return node;
+                    else node = node.parentElement;
+                }
+                return null;
+            }
+    })(Element.prototype);
+}
+
 if (!Object.keys) {
     Object.keys = function(obj) {
         var keys = [];

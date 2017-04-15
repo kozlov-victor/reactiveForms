@@ -52,10 +52,18 @@
 
 
 <div id="tutorialItemTmpl">
-    <h3 data-click="storage.togglePage(page)">
+    <h3 class="inline" data-click="storage.togglePage(page)">
         {{page.isOpened?'-':'+'}}
         {{page.title}}
     </h3>
+
+    <form
+            target="_blank"
+            class="inline"
+            data-attributes="{action:'pages/'+page.page+'.html?'+page.page}">
+        <button> &gt; </button>
+    </form>
+
     <div data-show="page.isOpened">
         <div class="html" data-html="page.html"></div>
         <code class="js" data-html="page.js"></code>

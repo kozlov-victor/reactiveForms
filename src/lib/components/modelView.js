@@ -11,7 +11,7 @@ class ModelView{
         this._applyState(properties);
         let initialState = properties.getInitialState && properties.getInitialState();
         initialState && (initialState = MiscUtils.deepCopy(initialState));
-        initialState && this._applyState(this.name,initialState,{warnRedefined:true});
+        initialState && this._applyState(initialState,{warnRedefined:true});
 
         this.onShow = this.onShow || noop;
         this.onHide = this.onHide || noop;
@@ -23,6 +23,7 @@ class ModelView{
 
     _applyState(properties = {},opts = {}){
         let strict = opts.strict;
+
         Object.keys(properties).forEach(key=>{
             if (strict && !this.hasOwnProperty(key))
                 throw `

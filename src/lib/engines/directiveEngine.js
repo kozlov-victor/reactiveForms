@@ -3,7 +3,6 @@ class DirectiveEngine {
 
     constructor(component,ignoreComponents) {
         this.component = component;
-        this.ignoreComponents = ignoreComponents;
     }
 
     _eachElementWithAttr(dataAttrName,onEachElementFn) {
@@ -17,12 +16,16 @@ class DirectiveEngine {
             let expression = el.getAttribute(dataAttrName);
             el.removeAttribute(dataAttrName);
             el.setAttribute('_'+dataAttrName,expression);
-            onEachElementFn(el,expression);
+            let processed = onEachElementFn(el,expression);
+            if (processed===false) el.setAttribute(dataAttrName,expression);
         });
     };
 
     runDirective_For(){
         this._eachElementWithAttr('data-for',(el,expression)=>{
+            let closestTransclusionEl = el.closest('[data-transclusion]');
+
+            if (closestTransclusionEl && !closestTransclusionEl.getAttribute('data-_processed')) return false;
             let tokens = expression.split(' ');
             if (['in','of'].indexOf(tokens[1])==-1) throw 'can not parse expression ' + expression;
             let variables =
@@ -397,17 +400,15 @@ class DirectiveEngine {
             let transclComponent = new ScopedDomFragment(trnscl.transclNode,new ModelView(this.component.name));
             this.component.addChild(transclComponent);
             transclComponent.parent = this.component;
+            trnscl.transclNode.setAttribute('data-_processed','1');
             transclComponent.run();
         });
     }
 
     run(){
         this.runDirective_Value();
-        this.ignoreComponents = true;
-        this.runDirective_For(); // first loop traverse
+        this.runDirective_For();
         this.runComponents();
-        this.ignoreComponents = false;
-        //this.runDirective_For(); // second loop traverse
         this.runTextNodes();
         this.runDirective_Model(); // todo check event sequence in legacy browsers
         [
