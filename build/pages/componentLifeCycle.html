@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+<meta
+    name ="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>RunCode</title>
+    <style>
+        
+button, input[type=text] {
+    margin: 0 auto 3px;
+    padding: 3px;
+}
+
+button {
+    background-color: #00dcff;
+    border: none;
+}
+
+button.inline-block {
+    display: inline-block;
+    width: auto;
+}
+
+button {
+    color: white;
+}
+
+button:active,input:active {
+    outline: 1px solid blue;
+}
+    </style>
+    <script>
+        if (!window.console) {
+            window.console = {};
+            window.console.log = window.console.error = function(msg){
+                window.status = msg;
+            };
+        }
+    </script>
+    <script src="../reactiveForms.js?{{salt}}"></script>
+</head>
+<body>
+
+    
+<style>
+    .component {
+        display: inline-block;
+        border: 1px solid black;
+    }
+</style>
+
+<div id="simpleTmpl" style="display:none;">
+    <div class="component">
+        component here
+    </div>
+</div>
+<div id="app">
+
+    mounted: <input type="checkbox" data-model="app.mounted"> {{app.mounted}}
+    <br/>
+    shown: <input type="checkbox" data-model="app.shown"> {{app.shown}}
+    <br/>
+    noop: <input type="checkbox" data-model="app.noop"> {{app.noop}}
+    <br/>
+
+    <simple-component data-show="app.shown" data-if="app.mounted"></simple-component>
+
+    <ul>
+        <li data-for="state of app.states">
+            {{state}}
+        </li>
+    </ul>
+</div>
+
+
+
+    <script>
+        
+let app = {
+    states:[],
+    mounted: true,
+    shown: true,
+    noop:false
+};
+
+RF.registerComponent('simple-component',{
+    template: {
+        type: 'dom',
+        value: 'simpleTmpl'
+    },
+    app: app,
+    onMount: function() {
+        this.app.states.push('mounted');
+        console.log('mounted',this.$el);
+        this.$el.style.color = 'green';
+    },
+    onShow: function() {
+        this.app.states.push('showed');
+        console.log('showed');
+    },
+    onHide: function() {
+        this.app.states.push('hided');
+        console.log('hided');
+    },
+    onUnmount:function() {
+        this.app.states.push('unmounted');
+        console.log('unmounted');
+    }
+});
+RF.applyBindings('#app',{
+    app:app
+});
+    </script>
+
+    <script>
+        window.onload = function(){
+            var getStyle = function (el) {
+                if (typeof getComputedStyle !== 'undefined') {
+                    return getComputedStyle(el);
+                } else {
+                    return el.currentStyle;
+                }
+            };
+            setInterval(function() {
+                var style = getStyle(document.documentElement);
+                window.top.postMessage({
+                    fromEditor:true,
+                    page: location.search.substr(1),
+                    height:parseInt(style.height),
+                    width:parseInt(style.width)
+                },'*');
+            },1000);
+        };
+    </script>
+
+</body>
+</html>
