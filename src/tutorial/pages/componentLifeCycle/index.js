@@ -14,7 +14,8 @@ RF.registerComponent('simple-component',{
     app: app,
     onMount: function() {
         this.app.states.push('mounted');
-        console.log('mounted');
+        console.log('mounted',this.$el);
+        this.$el.style.color = 'green';
     },
     onShow: function() {
         this.app.states.push('showed');

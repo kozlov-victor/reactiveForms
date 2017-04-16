@@ -7,7 +7,8 @@ if (!window.console){
         }
 }
 
-var ElementPrototype = typeof HTMLElement !== "undefined"
+
+let ElementPrototype = typeof HTMLElement !== "undefined"
     ? HTMLElement.prototype : Element.prototype;
 
 if (!ElementPrototype.remove) {
@@ -44,8 +45,8 @@ if (!ElementPrototype.closest) {
 
 if (!Object.keys) {
     Object.keys = function(obj) {
-        var keys = [];
-        for (var i in obj) {
+        let keys = [];
+        for (let i in obj) {
             if (obj.hasOwnProperty(i)) {
                 keys.push(i);
             }
@@ -63,7 +64,7 @@ if (!Array.prototype.reduce) {
         if (typeof callback !== 'function') {
             throw new TypeError(callback + ' is not a function');
         }
-        var t = Object(this), len = t.length >>> 0, k = 0, value;
+        let t = Object(this), len = t.length >>> 0, k = 0, value;
         if (arguments.length >= 2) {
             value = arguments[1];
         } else {
@@ -118,7 +119,7 @@ if (typeof Array.prototype.forEach != 'function') {
         if (typeof callback != 'function') return;
 
         if (typeof this == 'object') {
-            for (var i = 0; i < this.length; i++) {
+            for (let i = 0; i < this.length; i++) {
                 if (i in this) {
                     callback.call(thisArg || this, this[i], i, this);
                 } else {
@@ -148,8 +149,8 @@ if (typeof Array.prototype.forEach != 'function') {
 
 if (!Array.prototype.map) {
     Array.prototype.map = function(fn) {
-        var rv = [];
-        for(var i=0, l=this.length; i<l; i++)
+        let rv = [];
+        for(let i=0, l=this.length; i<l; i++)
             rv.push(fn(this[i]));
         return rv;
     };
@@ -158,8 +159,8 @@ if (!Array.prototype.map) {
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function(elt /*, from*/)
     {
-        var len = this.length >>> 0;
-        var from = Number(arguments[1]) || 0;
+        let len = this.length >>> 0;
+        let from = Number(arguments[1]) || 0;
         from = (from < 0)
             ? Math.ceil(from)
             : Math.floor(from);

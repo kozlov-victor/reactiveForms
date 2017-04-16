@@ -14,6 +14,7 @@ class Component {
         DomUtils.nodeListToArray(this.node.querySelectorAll('*')).forEach(el=>{
             el.setAttribute('data-component-id',this.id);
         });
+        modelView.$el = node;
         Component.instances.push(this);
     }
 

@@ -3,7 +3,10 @@
 class Core{
 
     static registerComponent(name,properties = {}){
+        let nameOriginal = name;
         name = MiscUtils.camelToSnake(name);
+        if (ComponentProto.getByName(name))
+            throw `component with name ${nameOriginal} already registered`;
         let tmpl = TemplateLoader.getNode(properties,name);
         let domTemplate = tmpl.innerHTML;
         tmpl.remove();

@@ -103,6 +103,7 @@ class Router {
         Router._strategy = RouterStrategyProvider.getRouterStrategy(strategyName);
         let routePlaceholderNode = document.querySelector('[data-route]');
         if (!routePlaceholderNode) throw 'can not run Route: element with data-route attribute not found';
+        routePlaceholderNode.innerHTML = '';
         routeNode = routePlaceholderNode.parentNode.appendChild(document.createElement('div'));
         Object.keys(keyValues).forEach(key=>{
             Router._pages[key]={

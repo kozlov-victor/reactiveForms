@@ -175,11 +175,13 @@ class DomUtils {
     }
 
     static removeParentButNotChildren(nodeToBeRemoved){
+        let children = DomUtils.nodeListToArray(nodeToBeRemoved.children);
         while (nodeToBeRemoved.firstChild) {
             nodeToBeRemoved.parentNode.insertBefore(nodeToBeRemoved.firstChild,
                 nodeToBeRemoved);
         }
         nodeToBeRemoved.parentNode.removeChild(nodeToBeRemoved);
+        return children;
     }
 
     static getClosestElWithDataAttr(node,dataAttr){

@@ -37,7 +37,7 @@
     if (!Array.prototype.reduce) Array.prototype.reduce = function(callback) {
         if (null == this) throw new TypeError("Array.prototype.reduce called on null or undefined");
         if ("function" != typeof callback) throw new TypeError(callback + " is not a function");
-        var value, t = Object(this), len = t.length >>> 0, k = 0;
+        var t = Object(this), len = t.length >>> 0, k = 0, value = void 0;
         if (arguments.length >= 2) value = arguments[1]; else {
             for (;k < len && !(k in t); ) k++;
             if (k >= len) throw new TypeError("Reduce of empty array with no initial value");
@@ -179,6 +179,7 @@
             DomUtils.nodeListToArray(this.node.querySelectorAll("*")).forEach(function(el) {
                 el.setAttribute("data-component-id", _this.id);
             });
+            modelView.$el = node;
             Component.instances.push(this);
         }
         Component.prototype.addChild = function(childComponent) {
@@ -561,8 +562,9 @@
             return arr;
         };
         DomUtils.removeParentButNotChildren = function(nodeToBeRemoved) {
-            for (;nodeToBeRemoved.firstChild; ) nodeToBeRemoved.parentNode.insertBefore(nodeToBeRemoved.firstChild, nodeToBeRemoved);
+            for (var children = DomUtils.nodeListToArray(nodeToBeRemoved.children); nodeToBeRemoved.firstChild; ) nodeToBeRemoved.parentNode.insertBefore(nodeToBeRemoved.firstChild, nodeToBeRemoved);
             nodeToBeRemoved.parentNode.removeChild(nodeToBeRemoved);
+            return children;
         };
         DomUtils.getClosestElWithDataAttr = function(node, dataAttr) {
             for (;node; ) {
@@ -920,16 +922,15 @@
         DirectiveEngine.prototype.runComponents = function() {
             var _this14 = this, transclComponents = [];
             ComponentProto.instances.forEach(function(componentProto) {
-                var componentNodes, toDel, domEls = DomUtils.nodeListToArray(_this14.component.node.getElementsByTagName(componentProto.name));
+                var componentNodes, hasStateChanged, domEls = DomUtils.nodeListToArray(_this14.component.node.getElementsByTagName(componentProto.name));
                 if (_this14.component.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
                     console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
                     console.error("component node:", _this14.component.node);
                     throw "Can not use data-for attribute at component";
                 }
                 componentNodes = [];
-                toDel = [];
                 domEls.forEach(function(domEl) {
-                    var domId, componentNode, dataTransclusion, dataStateAttr, dataState, component, hasStateChanged;
+                    var domId, componentNode, dataTransclusion, dataStateAttr, dataState, component;
                     if (!domEl.getAttribute("data-_processed")) {
                         domEl.setAttribute("data-_processed", "1");
                         domId = domEl.getAttribute("id");
@@ -958,29 +959,31 @@
                                 });
                             });
                         });
-                        componentNodes.push(componentNode);
                         domEl.parentNode.insertBefore(componentNode, domEl);
                         dataStateAttr = domEl.getAttribute("data-state");
                         dataState = dataStateAttr ? ExpressionEngine.executeExpression(dataStateAttr, _this14.component) : {};
                         component = componentProto.newInstance(componentNode, dataState);
                         domId && (component.domId = domId);
-                        hasStateChanged = "noChanged" != component.modelView.onMount();
-                        hasStateChanged = "noChanged" != component.modelView.onShow() || hasStateChanged;
-                        hasStateChanged && Component.digestAll();
                         component.run();
                         component.parent = _this14.component;
                         component.parent.addChild(component);
                         component.disableParentScopeEvaluation = true;
                         // avoid recursion in Component
                         domEl.parentNode.removeChild(domEl);
+                        componentNodes.push({
+                            component: component,
+                            componentNode: componentNode
+                        });
                     }
                 });
-                componentNodes.forEach(function(node) {
-                    DomUtils.removeParentButNotChildren(node);
+                hasStateChanged = false;
+                componentNodes.forEach(function(item) {
+                    var children = DomUtils.removeParentButNotChildren(item.componentNode);
+                    if (1 == children.length) item.component.modelView.$el = children[0]; else item.component.modelView.$el = children;
+                    hasStateChanged = "noChanged" != item.component.modelView.onMount() || hasStateChanged;
+                    hasStateChanged = "noChanged" != item.component.modelView.onShow() || hasStateChanged;
                 });
-                toDel.forEach(function(node) {
-                    DomUtils.removeParentButNotChildren(node);
-                });
+                hasStateChanged && Component.digestAll();
             });
             transclComponents.forEach(function(trnscl) {
                 trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
@@ -1312,6 +1315,7 @@
             Router._strategy = RouterStrategyProvider.getRouterStrategy(strategyName);
             routePlaceholderNode = document.querySelector("[data-route]");
             if (!routePlaceholderNode) throw "can not run Route: element with data-route attribute not found";
+            routePlaceholderNode.innerHTML = "";
             routeNode = routePlaceholderNode.parentNode.appendChild(document.createElement("div"));
             Object.keys(keyValues).forEach(function(key) {
                 Router._pages[key] = {
@@ -1348,8 +1352,9 @@
             _classCallCheck(this, Core);
         }
         Core.registerComponent = function(name) {
-            var tmpl, domTemplate, node, componentProto, properties = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {};
+            var tmpl, domTemplate, node, componentProto, properties = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {}, nameOriginal = name;
             name = MiscUtils.camelToSnake(name);
+            if (ComponentProto.getByName(name)) throw "component with name " + nameOriginal + " already registered";
             tmpl = TemplateLoader.getNode(properties, name);
             domTemplate = tmpl.innerHTML;
             tmpl.remove();
@@ -1381,7 +1386,7 @@
         };
         return Core;
     }();
-    Core.version = "0.6.1";
+    Core.version = "0.6.2";
     window.RF = Core;
     window.RF.Router = Router;
 }();

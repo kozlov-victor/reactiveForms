@@ -322,7 +322,8 @@ class DirectiveEngine {
         });
     };
 
-    runComponents(){
+
+    runComponents(){ // todo refactor
         let transclComponents = [];
         ComponentProto.instances.forEach(componentProto=>{
             let domEls =  DomUtils.nodeListToArray(this.component.node.getElementsByTagName(componentProto.name));
@@ -333,7 +334,6 @@ class DirectiveEngine {
                 throw "Can not use data-for attribute at component"
             }
             let componentNodes = [];
-            let toDel = [];
             domEls.forEach(domEl=>{
 
                 if (domEl.getAttribute('data-_processed')) return;
@@ -369,7 +369,6 @@ class DirectiveEngine {
                         transclComponents.push({transclNode,rcp});
                     });
                 });
-                componentNodes.push(componentNode);
                 domEl.parentNode.insertBefore(componentNode,domEl);
 
                 let dataStateAttr = domEl.getAttribute('data-state');
@@ -378,22 +377,25 @@ class DirectiveEngine {
                 let component = componentProto.newInstance(componentNode,dataState);
                 domId && (component.domId = domId);
 
-                let hasStateChanged = component.modelView.onMount()!='noChanged';
-                hasStateChanged = component.modelView.onShow()!='noChanged' || hasStateChanged;
-                hasStateChanged && (Component.digestAll());
-
                 component.run();
                 component.parent = this.component;
                 component.parent.addChild(component);
                 component.disableParentScopeEvaluation = true; // avoid recursion in Component
                 domEl.parentNode.removeChild(domEl);
+                componentNodes.push({component,componentNode});
             });
-            componentNodes.forEach((node)=>{
-                DomUtils.removeParentButNotChildren(node);
+            let hasStateChanged = false;
+            componentNodes.forEach((item)=>{
+                let children = DomUtils.removeParentButNotChildren(item.componentNode);
+                if (children.length == 1) {
+                    item.component.modelView.$el = children[0];
+                } else {
+                    item.component.modelView.$el = children;
+                }
+                hasStateChanged = item.component.modelView.onMount()!='noChanged' || hasStateChanged;
+                hasStateChanged = item.component.modelView.onShow()!='noChanged' || hasStateChanged;
             });
-            toDel.forEach((node)=>{
-                DomUtils.removeParentButNotChildren(node);
-            });
+            hasStateChanged && (Component.digestAll());
         });
         transclComponents.forEach(trnscl=>{
             trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
