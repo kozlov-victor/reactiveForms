@@ -157,7 +157,6 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
-        self;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -477,9 +476,6 @@
                 break;
 
               case "select":
-                el.value = value;
-                break;
-
               case "textarea":
                 el.value = value;
             }
@@ -508,8 +504,6 @@
                 break;
 
               case "select":
-                return el.value;
-
               case "textarea":
                 return el.value;
             }
@@ -521,8 +515,6 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
-                    return "click";
-
                   case "radio":
                     return "click";
 
@@ -743,8 +735,7 @@
             this._eachElementWithAttr("data-" + eventName, function(el, expression) {
                 var fn = ExpressionEngine.getExpressionFn(expression);
                 DomUtils.addEventListener(el, eventName, function(e) {
-                    var shouldPreventDefault = [ "keypress", "keydown" ].indexOf(eventName) == -1;
-                    if (shouldPreventDefault) {
+                    if (false) {
                         e = e || window.e;
                         e.preventDefault && e.preventDefault();
                         e.stopPropagation && e.stopPropagation();
@@ -752,7 +743,7 @@
                     }
                     ExpressionEngine.runExpressionFn(fn, _this3.component);
                     Component.digestAll();
-                    if (shouldPreventDefault) return false;
+                    if (false) return false;
                 });
             });
         };
@@ -1295,15 +1286,13 @@
         if (!lastPageItem.component) {
             var componentNode = lastPageItem.componentProto.node.cloneNode(true);
             lastPageItem.component = lastPageItem.componentProto.newInstance(componentNode, {});
-            lastPageItem.component.modelView.onShow(params);
             lastPageItem.component.run();
-            delete lastPageItem.componentProto;
-        } else {
-            lastPageItem.component.modelView.onMount();
             lastPageItem.component.modelView.onShow(params);
-        }
+            delete lastPageItem.componentProto;
+        } else lastPageItem.component.modelView.onShow(params);
         routeNode.parentNode.replaceChild(lastPageItem.component.node, routeNode);
         routeNode = lastPageItem.component.node;
+        lastPageItem.component.modelView.onMount(params);
         Component.digestAll();
     };
     Router = function() {
