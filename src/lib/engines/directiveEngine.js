@@ -59,7 +59,8 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-'+eventName,(el,expression)=>{
             let fn = ExpressionEngine.getExpressionFn(expression);
             DomUtils.addEventListener(el,eventName,e=>{
-                let shouldPreventDefault = ['keypress','keydown'].indexOf(eventName)==-1;
+                // todo!!!
+                let shouldPreventDefault = false && ['keypress','keydown'].indexOf(eventName)==-1;
                 if (shouldPreventDefault) {
                     e = e || window.e;
                     e.preventDefault && e.preventDefault();

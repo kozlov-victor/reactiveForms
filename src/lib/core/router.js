@@ -85,15 +85,15 @@ let __showPage = (pageName,params)=>{
     if (!lastPageItem.component) {
         let componentNode = lastPageItem.componentProto.node.cloneNode(true);
         lastPageItem.component = lastPageItem.componentProto.newInstance(componentNode,{});
-        lastPageItem.component.modelView.onShow(params);
         lastPageItem.component.run();
+        lastPageItem.component.modelView.onShow(params);
         delete lastPageItem.componentProto;
     } else {
-        lastPageItem.component.modelView.onMount();
         lastPageItem.component.modelView.onShow(params);
     }
     routeNode.parentNode.replaceChild(lastPageItem.component.node,routeNode);
     routeNode = lastPageItem.component.node;
+    lastPageItem.component.modelView.onMount(params);
     Component.digestAll();
 };
 
