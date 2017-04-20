@@ -1,4 +1,4 @@
-
+// [3].indexOf(dataStorage.receiver.actionType)>-1
 class Token {
     constructor(type,val){
         this.tokenType = type;
