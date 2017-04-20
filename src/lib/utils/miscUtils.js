@@ -55,6 +55,14 @@ class MiscUtils {
         return cnt++;
     }
 
+    static objectToArray(obj){
+        let res = [];
+        Object.key(res,key=>{
+            res.push({key,value:obj[key]})
+        });
+        return res;
+    }
+
 }
 
 

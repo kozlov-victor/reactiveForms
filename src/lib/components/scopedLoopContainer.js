@@ -39,7 +39,13 @@ class ScopedLoopContainer extends Component {
     _processIterations(newArr = [],oldArr){
 
         let currNodeInIteration = this.anchor;
+        if (newArr instanceof Object) newArr = MiscUtils.objectToArray(newArr);
         newArr.forEach((iterableItem,i)=>{
+
+            if (iterableItem.key && iterableItem.value) { // if looped object with key and value pairs
+                i = iterableItem.key;
+                iterableItem = iterableItem.value;
+            }
 
             if (!this.scopedDomFragments[i]) {
 
