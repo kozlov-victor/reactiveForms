@@ -102,15 +102,25 @@ class Lexer {
 
             if (t && t.tokenType==Token.TYPE.VARIABLE) {
                 let next = tokens[i+1];
+
                 if (next && (next.tokenValue == Token.SYMBOL.COLON))
                     t.tokenType = Token.TYPE.OBJECT_KEY;
+
                 if (t.tokenValue && t.tokenValue.startsWith('.'))
                     t.tokenType = Token.TYPE.STRING; // resolve expression error at app.task.taskCases[0].text
             }
 
+            if (
+                t &&
+                t.tokenType == Token.TYPE.FUNCTION &&
+                t.tokenValue.indexOf('.')==0
+            ) {
+                t.tokenType = Token.TYPE.OBJECT_KEY; // resolve expression [1,2,3].indexOf(2)
+            }
+
         });
         if (!isEndWithSemicolon) tokens.pop();
-        //console.log(JSON.stringify(tokens));
+        console.log(JSON.stringify(tokens));
         return tokens;
     }
 

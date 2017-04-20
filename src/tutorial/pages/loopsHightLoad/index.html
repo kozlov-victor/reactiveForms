@@ -1,0 +1,26 @@
+
+
+<style>
+    .pointer {
+        cursor: pointer;
+    }
+    .selected {
+        outline: 1px solid darkblue;
+    }
+</style>
+<div id="app">
+    <table>
+        <tr class="pointer" data-for="item,index in list">
+            <td>{{index+1}}</td>
+            <td>{{item.name1}}</td>
+            <td>{{item.name2}}</td>
+            <td>{{item.name3}}</td>
+            <td>{{item.name4}}</td>
+            <td><button data-click="change(item)">change</button></td>
+            <td><button data-click="remove(index)">-</button></td>
+        </tr>
+    </table>
+    <button data-click="add()">add</button>
+</div>
+
+
