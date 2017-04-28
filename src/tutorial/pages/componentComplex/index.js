@@ -4,7 +4,9 @@ var applicationModel = {
     user: {
         name: 'defaultUserName',
         power: 100,
-        karmaLevel: 42
+        karmaLevel: function(){
+            return this.power+2;
+        }
     }
 };
 

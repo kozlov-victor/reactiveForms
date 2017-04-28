@@ -120,12 +120,12 @@ class Lexer {
 
         });
         if (!isEndWithSemicolon) tokens.pop();
-        console.log(JSON.stringify(tokens));
+        //console.log(JSON.stringify(tokens));
         return tokens;
     }
 
     static convertExpression(expression,variableReplacerStr = '{expr}'){
-        let out = '';
+        let out = ``;
         expression = expression.split('\n').join('');
         Lexer.tokenize(expression).forEach(function(token){
             if ([
@@ -136,6 +136,7 @@ class Lexer {
             }
             else out+=(token.tokenValue||token.tokenType);
         });
+        console.log(out);
         return out;
     }
 

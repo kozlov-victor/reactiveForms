@@ -816,10 +816,11 @@
         DirectiveEngine.prototype.runDirective_Class = function() {
             var _this6 = this;
             this._eachElementWithAttr("data-class", function(el, expression) {
+                var initialClassName = el.className;
                 _this6.component.addWatcher(expression, function(classNameOrObj) {
                     if ("object" === (void 0 === classNameOrObj ? "undefined" : _typeof(classNameOrObj))) {
                         for (var key in classNameOrObj) if (classNameOrObj.hasOwnProperty(key)) DomUtils.toggleClass(el, key, !!classNameOrObj[key]);
-                    } else el.className = classNameOrObj;
+                    } else el.className = initialClassName + " " + classNameOrObj;
                 });
             });
         };
@@ -1098,6 +1099,7 @@
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
+    // [3].indexOf(dataStorage.receiver.actionType)>-1
     Token = function Token(type, val) {
         _classCallCheck(this, Token);
         this.tokenType = type;
@@ -1181,6 +1183,7 @@
                     if (next && next.tokenValue == Token.SYMBOL.COLON) t.tokenType = Token.TYPE.OBJECT_KEY;
                     if (t.tokenValue && t.tokenValue.startsWith(".")) t.tokenType = Token.TYPE.STRING;
                 }
+                if (t && t.tokenType == Token.TYPE.FUNCTION && 0 == t.tokenValue.indexOf(".")) t.tokenType = Token.TYPE.OBJECT_KEY;
             });
             if (!isEndWithSemicolon) tokens.pop();
             //console.log(JSON.stringify(tokens));
@@ -1192,6 +1195,7 @@
             Lexer.tokenize(expression).forEach(function(token) {
                 if ([ Token.TYPE.VARIABLE, Token.TYPE.FUNCTION ].indexOf(token.tokenType) > -1) out += variableReplacerStr.replace("{expr}", token.tokenValue); else out += token.tokenValue || token.tokenType;
             });
+            console.log(out);
             return out;
         };
         return Lexer;
@@ -1375,7 +1379,7 @@
         };
         return Core;
     }();
-    Core.version = "0.6.2";
+    Core.version = "0.6.21";
     window.RF = Core;
     window.RF.Router = Router;
 }();

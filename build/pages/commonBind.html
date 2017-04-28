@@ -45,17 +45,32 @@ button:active,input:active {
 
     
 <div id="app">
-    <input data-model="user.name"><input data-model="user.name">
+    <input data-model="user.userName"><input data-model="user.userName">
     <br/>
-    Вы ввели значение: {{user.name}}
+    Вы ввели значение:{{user.userName}}
+    <br/>
+    {{user.level()}}
+    <br/>
+    {{level()}}
 </div>
 
 
     <script>
         
+var user = {
+    userName: 'defaultUserName',
+    level: function(){
+        return this.userName.length;
+    },
+    _level: function(){
+       return this.level.bind(this);
+    }
+};
+
 RF.applyBindings('#app',{
-    user: {
-        name: 'defaultUserName'
+    user: user,
+    level: function(){
+        return this.user.level();
     }
 });
     </script>

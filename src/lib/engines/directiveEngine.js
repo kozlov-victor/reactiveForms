@@ -190,6 +190,7 @@ class DirectiveEngine {
 
     runDirective_Class(){
         this._eachElementWithAttr('data-class',(el,expression)=>{
+            let initialClassName = el.className;
             this.component.addWatcher(
                 expression,
                 classNameOrObj=>{
@@ -199,9 +200,8 @@ class DirectiveEngine {
                             DomUtils.toggleClass(el,key,!!classNameOrObj[key]);
                         }
                     } else {
-                        el.className = classNameOrObj;
+                        el.className = initialClassName + ' ' +classNameOrObj;
                     }
-
                 }
             );
         });
