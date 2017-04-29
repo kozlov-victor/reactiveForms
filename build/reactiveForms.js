@@ -157,6 +157,7 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
+        self;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -380,8 +381,14 @@
         ScopedLoopContainer.prototype._processIterations = function() {
             var l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [], currNodeInIteration = (arguments[1], 
             this.anchor);
+            if (newArr instanceof Object) newArr = MiscUtils.objectToArray(newArr);
             newArr.forEach(function(iterableItem, i) {
                 var props, localModelView, node, scopedDomFragment, _localModelView;
+                if (iterableItem.key && iterableItem.value) {
+                    // if looped object with key and value pairs
+                    i = iterableItem.key;
+                    iterableItem = iterableItem.value;
+                }
                 if (!_this3.scopedDomFragments[i]) {
                     props = {};
                     props[_this3.eachItemName] = iterableItem;
@@ -476,6 +483,9 @@
                 break;
 
               case "select":
+                el.value = value;
+                break;
+
               case "textarea":
                 el.value = value;
             }
@@ -504,6 +514,8 @@
                 break;
 
               case "select":
+                return el.value;
+
               case "textarea":
                 return el.value;
             }
@@ -515,6 +527,8 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
+                    return "click";
+
                   case "radio":
                     return "click";
 
@@ -623,6 +637,16 @@
         };
         MiscUtils.getUID = function() {
             return cnt++;
+        };
+        MiscUtils.objectToArray = function(obj) {
+            var res = [];
+            Object.keys(obj).forEach(function(key) {
+                res.push({
+                    key: key,
+                    value: obj[key]
+                });
+            });
+            return res;
         };
         return MiscUtils;
     }();
@@ -1130,7 +1154,7 @@
         return Token.SYMBOL[key];
     });
     Token.TYPE = {
-        SPECIAL_SYMBOL: "SPECIAL_SYMBOL",
+        OPERATOR: "OPERATOR",
         DIGIT: "DIGIT",
         VARIABLE: "VARIABLE",
         STRING: "STRING",
@@ -1157,7 +1181,7 @@
                 var type, lastToken = tokens[tokens.length - 1];
                 if (lastToken && charInArr(lastToken.tokenValue, [ "true", "false" ])) lastToken.tokenType = Token.TYPE.BOOLEAN;
                 if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS)) {
-                    t = new Token(Token.TYPE.SPECIAL_SYMBOL, char);
+                    t = new Token(Token.TYPE.OPERATOR, char);
                     tokens.push(t);
                     lastChar = char;
                     if (!lastToken) return;
@@ -1181,6 +1205,7 @@
                     if (next && next.tokenValue == Token.SYMBOL.COLON) t.tokenType = Token.TYPE.OBJECT_KEY;
                     if (t.tokenValue && t.tokenValue.startsWith(".")) t.tokenType = Token.TYPE.STRING;
                 }
+                if (t && t.tokenType == Token.TYPE.FUNCTION && 0 == t.tokenValue.indexOf(".")) t.tokenType = Token.TYPE.OBJECT_KEY;
             });
             if (!isEndWithSemicolon) tokens.pop();
             //console.log(JSON.stringify(tokens));

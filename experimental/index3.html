@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script>
+
+    // https://www.thepolyglotdeveloper.com/2015/03/parse-with-the-shunting-yard-algorithm-using-javascript/
+
+    class Token {
+        constructor(type,val){
+            this.tokenType = type;
+            this.tokenValue = val;
+        }
+    }
+
+    Token.OPERATOR = {
+        "^": {
+            precedence: 4,
+            associativity: "Right",
+            gen: (a,b)=>{
+                return `${a}^${b}`
+            }
+        },
+        "/": {
+            precedence: 3,
+            associativity: "Left",
+            gen: (a,b)=>{
+                return `${a}/${b}`
+            }
+        },
+        "*": {
+            precedence: 3,
+            associativity: "Left",
+            gen: (a,b)=>{
+                return `${a}*${b}`
+            }
+        },
+        ">": {
+            precedence: 3,
+            associativity: "Left",
+            gen: (a,b)=>{
+                return `${a}>${b}`
+            }
+        },
+        "<": {
+            precedence: 3,
+            associativity: "Left",
+            gen: (a,b)=>{
+                return `${a}<${b}`
+            }
+        },
+        "FUNCTION": {
+            precedence: 4,
+            associativity: "Left",
+            gen: (fnName,arg)=>{
+                return `${fnName}(${arg})`
+            }
+        },
+        "?": {
+            precedence: 0,
+            associativity: "Left",
+            gen: (expr,left,right)=>{
+                return `${expr}?${left}:${right}`
+            }
+        },
+        "=": {
+            precedence: 3,
+            associativity: "Left",
+            gen: (a,b)=>{
+                return `assign(${a},${b})`
+            }
+        },
+        "+": {
+            precedence: 2,
+            associativity: "Left",
+            gen: (a,b)=>{
+                return `${a}+${b}`
+            }
+        },
+        "-": {
+            precedence: 2,
+            associativity: "Left",
+            gen: (a,b)=>{
+                return `${a}-${b}`
+            }
+        }
+    };
+
+    Token.SYMBOL = {
+        L_PAR:'(',
+        R_PAR:')',
+        L_CURLY:'{',
+        R_CURLY:'}',
+        L_SQUARE:'[',
+        R_SQUARE: ']',
+        COMMA:',',
+        COLON:':',
+        EXCLAMATION:'!',
+        SEMICOLON:';'
+    };
+
+    Token.KEY_WORDS = ['in','of','null','undefined'];
+
+    Token.ALL_OPERATORS =
+        Object.keys(Token.OPERATOR);
+
+    Token.ALL_SPECIAL_SYMBOLS =
+        Object.keys(Token.SYMBOL).
+        map(key=>{return Token.SYMBOL[key]}).
+        concat(
+            Token.ALL_OPERATORS
+        );
+
+    Token.TYPE = {
+        OPERATOR:   'OPERATOR',
+        DIGIT:      'DIGIT',
+        VARIABLE:   'VARIABLE',
+        STRING:     'STRING',
+        BOOLEAN:    'BOOLEAN',
+        KEY_WORD:   'KEY_WORD',
+        FUNCTION:   'FUNCTION',
+        TERNARY:    'TERNARY'
+    };
+
+    function isNumber(n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
+    }
+
+    function charInArr(char,arr) {
+        return char && arr.indexOf(char)>-1;
+    }
+
+    class Tokenizer {
+
+        static _toTokens(expression){
+            let tokens = [], t, lastChar = '';
+            expression.trim().split('').forEach(function(char,i) {
+
+                let lastToken = tokens[tokens.length - 1]; // previous token
+
+                if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS)) {
+                    t = new Token(Token.TYPE.OPERATOR, char);
+                    tokens.push(t);
+                    lastChar = char;
+
+                } else {
+                    if (lastToken && lastToken.tokenType != Token.TYPE.STRING && char == ' ')
+                        return;
+                    if (
+                        lastToken &&
+                        (
+                            lastToken.tokenType == Token.TYPE.DIGIT ||
+                            lastToken.tokenType == Token.TYPE.VARIABLE ||
+                            lastToken.tokenType == Token.TYPE.STRING
+                        )
+                    ) { // continue token
+                        lastToken.tokenValue += char;
+                    } else { // new token
+                        let type;
+                        if(isNumber(char)) type = Token.TYPE.DIGIT;
+                        else if (charInArr(char,['"',"'"])) type = Token.TYPE.STRING;
+                        else type = Token.TYPE.VARIABLE;
+                        t = new Token(type,char);
+                        tokens.push(t);
+                    }
+                    lastChar = char;
+                }
+            });
+            return tokens;
+        }
+
+        static _postProcessTokens(tokens){
+            tokens.forEach((t,i)=>{
+                if (charInArr(t.tokenValue,Token.KEY_WORDS)){
+                    t.tokenType = Token.TYPE.KEY_WORD;
+                }
+                if (charInArr(t.tokenValue,['true','false'])){
+                    t.tokenType = Token.TYPE.BOOLEAN;
+                }
+                if (t.tokenType==Token.TYPE.VARIABLE) {
+                    if (tokens[i+1] && tokens[i+1].tokenValue==Token.SYMBOL.L_PAR)
+                        t.tokenType = Token.TYPE.FUNCTION;
+                }
+                if (t.tokenType==Token.TYPE.STRING) {
+                    let firstChar = t.tokenValue[0];
+                    let lastChar = t.tokenValue[t.tokenValue.length-1];
+                    if (
+                        !charInArr(firstChar,['"',"'"] ||
+                            firstChar!==lastChar
+                        )
+                    ) throw `unexpected character at ${t.tokenValue}`;
+                    t.tokenValue = t.tokenValue.substr(1,t.tokenValue.length-2);
+                }
+            });
+        }
+
+        static tokenize(expression) {
+            let tokens = Tokenizer._toTokens(expression);
+            Tokenizer._postProcessTokens(tokens);
+            return tokens;
+        }
+
+    }
+
+
+
+    class MathSolver {
+        
+        static postfixToJs(tokens) {
+            let stack = [];
+            tokens.forEach(token=>{
+                if (token.tokenValue=='?') {
+                    let right = stack.pop().tokenValue;
+                    let left = stack.pop().tokenValue;
+                    let expression = stack.pop().tokenValue;
+                    let result = Token.OPERATOR['?'].gen(expression,left,right);
+                    stack.push({tokenValue:result});
+                }
+                else if(token.tokenType==Token.TYPE.FUNCTION) {
+                    let argument = stack.pop().tokenValue;
+                    let result = Token.OPERATOR.FUNCTION.gen(token.tokenValue,argument);
+                    stack.push({tokenValue:result});
+                } else if (charInArr(token.tokenValue,Token.ALL_OPERATORS)) {
+                    let right = stack.pop().tokenValue;
+                    let left = stack.pop().tokenValue;
+                    let operand = Token.OPERATOR[token.tokenValue];
+                    let result = `(${operand.gen(left,right)})`;
+                    stack.push({tokenValue:result});
+                } else {
+                    stack.push(token);
+                }
+            });
+            return stack[0];
+        }
+
+
+        static infixToPostfix(infix) {
+            let outputQueue = [];
+            let operatorStack = [];
+
+            Tokenizer.tokenize(infix).forEach(token=>{
+                if(charInArr(token.tokenType,[
+                        Token.TYPE.DIGIT,
+                        Token.TYPE.VARIABLE,
+                        Token.TYPE.STRING
+                    ])
+                ) {
+                    outputQueue.push(token);
+                }
+                else if(
+                    charInArr(token.tokenValue,Token.ALL_OPERATORS) ||
+                    token.tokenType == Token.TYPE.FUNCTION
+                ) {
+                    let t1 = token, t2 = operatorStack[operatorStack.length - 1];
+                    let o1 = t1.tokenType==Token.TYPE.FUNCTION?Token.TYPE.FUNCTION:t1.tokenValue;
+                    let o2 = t2 && (t2.tokenType==Token.TYPE.FUNCTION?Token.TYPE.FUNCTION:t2.tokenValue);
+                    while
+                        (charInArr(o2,Token.ALL_OPERATORS) && o1 && o2 &&
+                        (
+                            (
+                                Token.OPERATOR[o1].associativity === "Left" &&
+                                Token.OPERATOR[o1].precedence <= Token.OPERATOR[o2].precedence
+                            ) ||
+                            (
+                                    Token.OPERATOR[o1].associativity === "Right" &&
+                                    Token.OPERATOR[o1].precedence < Token.OPERATOR[o2].precedence)
+                            )
+                        ) {
+                        outputQueue.push(operatorStack.pop());
+                        o2 = operatorStack[operatorStack.length - 1];
+                    }
+                    operatorStack.push(t1);
+                } else if(token.tokenValue === Token.SYMBOL.L_PAR) {
+                    operatorStack.push(token);
+                } else if(token.tokenValue === Token.SYMBOL.R_PAR) {
+                    while(operatorStack[operatorStack.length - 1].tokenValue !== Token.SYMBOL.L_PAR) {
+                        outputQueue.push(operatorStack.pop())
+                    }
+                    operatorStack.pop();
+                }
+            });
+            while(operatorStack.length > 0) {
+                outputQueue.push(operatorStack.pop());
+            }
+            return outputQueue;
+        }
+
+    }
+    var nop = function(){},sin = nop,cos = nop, concat = nop, a = 0;
+    let tokens = MathSolver.infixToPostfix("q=(a>2)?(3+sin(1)):(5+cos(2))");
+    console.log(JSON.stringify(tokens));
+    let b = MathSolver.postfixToJs(tokens);
+    console.log(b);
+
+    (assign(q,(a>2)))?(3+sin(1)):(5+cos(2)
+
+</script>
+</body>
+</html>

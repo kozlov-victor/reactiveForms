@@ -9,18 +9,19 @@
     }
 </style>
 <div id="app">
+    {{fruits}}
     <div>
-        Текущий фрукт: {{currentFruit.name}}
+        Текущий фрукт: {{currentFruit}}
     </div>
     <select data-model="currentFruit">
-        <option data-value="item" data-for="item in fruits">
-            {{item.name}}
+        <option data-value="key" data-for="value,key in fruits">
+            {{value}}
         </option>
     </select>
     <table>
-        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(item)" data-for="item,index in fruits">
-            <td>{{item.name}}</td>
-            <td><button data-click="remove(index)">-</button></td>
+        <tr class="pointer" data-class="{selected:value==currentFruit}" title="применить" data-click="setCurrentFruit(key)" data-for="value,key in fruits">
+            <td>{{value}}</td>
+            <td><button data-click="remove(key)">-</button></td>
         </tr>
     </table>
     <button data-click="add()">add</button>

@@ -1,18 +1,25 @@
 
 var fruits = {
-
+    0: 'fruit zero',
+    1: 'fruit one',
+    2: 'fruit two'
 };
+var rnd = function(){
+    return ~~(Math.random()*100);
+};
+
+var cnt=3;
 
 RF.applyBindings('#app',{
     fruits: fruits,
-    currentFruit: fruits[0],
+    currentFruit: this.fruits[0],
     add: function(){
-        this.fruits.push({name:~~(Math.random()*100)});
+        this.fruits[(''+ cnt++ + rnd())] = rnd();
     },
-    remove: function(i){
-        this.fruits.splice(i,1);
+    remove: function(key){
+        delete this.fruits[key];
     },
-    setCurrentFruit: function(currentFr){
-        this.currentFruit = currentFr;
+    setCurrentFruit: function(key){
+        this.currentFruit = this.fruits[key];
     }
 });

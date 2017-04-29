@@ -35,7 +35,7 @@ Token.KEY_WORDS = ['in','of','null','undefined'];
 Token.ALL_SPECIAL_SYMBOLS = Object.keys(Token.SYMBOL).map(key=>{return Token.SYMBOL[key]});
 
 Token.TYPE = {
-    SPECIAL_SYMBOL: 'SPECIAL_SYMBOL',
+    OPERATOR: 'OPERATOR',
     DIGIT:      'DIGIT',
     VARIABLE:   'VARIABLE',
     STRING:     'STRING',
@@ -67,7 +67,7 @@ class Lexer {
                 lastToken.tokenType = Token.TYPE.BOOLEAN;
 
             if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS)) {
-                t = new Token(Token.TYPE.SPECIAL_SYMBOL, char);
+                t = new Token(Token.TYPE.OPERATOR, char);
                 tokens.push(t);
                 lastChar = char;
                 if (!lastToken) return;

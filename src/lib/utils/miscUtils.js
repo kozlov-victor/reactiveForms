@@ -57,7 +57,7 @@ class MiscUtils {
 
     static objectToArray(obj){
         let res = [];
-        Object.key(res,key=>{
+        Object.keys(obj).forEach(key=>{
             res.push({key,value:obj[key]})
         });
         return res;

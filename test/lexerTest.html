@@ -110,9 +110,13 @@
                     ),
                     "{fontWeight:scope.bold?'bold':'',fontStyle:scope.italic?'italic':''}"
         );
+        assertEqual(
+            Lexer.convertExpression('[1,2,3].indexOf(a)','scope.{expr}'),
+            "[1,2,3].indexOf(scope.a)"
+        );
 //        assertEqual(
-//            Lexer.convertExpression('[1,2,3].indexOf(a)','scope.{expr}'),
-//            ""
+//            Lexer.convertExpression('user.name.value = mainObj.value.lastChar',"getVal('{expr}')","assign({expr})"),
+//            "assign('name',getVal('mainObj.value.lastChar'))"
 //        );
     </script>
 </body>
