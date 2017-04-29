@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+<meta
+    name ="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>RunCode</title>
+    <style>
+        
+button, input[type=text] {
+    margin: 0 auto 3px;
+    padding: 3px;
+}
+
+button {
+    background-color: #00dcff;
+    border: none;
+}
+
+button.inline-block {
+    display: inline-block;
+    width: auto;
+}
+
+button {
+    color: white;
+}
+
+button:active,input:active {
+    outline: 1px solid blue;
+}
+    </style>
+    <script>
+        if (!window.console) {
+            window.console = {};
+            window.console.log = window.console.error = function(msg){
+                window.status = msg;
+            };
+        }
+    </script>
+    <script src="../reactiveForms.js?{{salt}}"></script>
+</head>
+<body>
+
+    
+
+<style>
+    .pointer {
+        cursor: pointer;
+    }
+    .selected {
+        outline: 1px solid darkblue;
+    }
+</style>
+<div id="app">
+    <table>
+        <tr class="pointer" data-for="item,index in list">
+            <td>{{index+1}}</td>
+            <td>{{item.name1}}</td>
+            <td>{{item.name2}}</td>
+            <td>{{item.name3}}</td>
+            <td>{{item.name4}}</td>
+            <td><button data-click="change(item)">change</button></td>
+            <td><button data-click="remove(index)">-</button></td>
+        </tr>
+    </table>
+    <button data-click="add()">add</button>
+</div>
+
+
+
+
+    <script>
+        
+var MAX = 3000;
+
+var list = [];
+
+var change = function(item){
+    item.name1 = ~~(Math.random()*100);
+    item.name2 = ~~(Math.random()*100);
+    item.name3 = ~~(Math.random()*100);
+    item.name4 = ~~(Math.random()*100);
+};
+
+var add = function(){
+    var item = {};
+    change(item);
+    list.push(item);
+};
+
+for (var i=0;i<MAX;i++) {
+    add();
+}
+
+RF.applyBindings('#app',{
+    list: list,
+    add: function() {
+        add();
+    },
+    change: function(item){
+        change(item);
+    },
+    remove: function(i){
+        this.list.splice(i,1);
+    }
+});
+    </script>
+
+    <script>
+        window.onload = function(){
+            var getStyle = function (el) {
+                if (typeof getComputedStyle !== 'undefined') {
+                    return getComputedStyle(el);
+                } else {
+                    return el.currentStyle;
+                }
+            };
+            setInterval(function() {
+                var style = getStyle(document.documentElement);
+                window.top.postMessage({
+                    fromEditor:true,
+                    page: location.search.substr(1),
+                    height:parseInt(style.height),
+                    width:parseInt(style.width)
+                },'*');
+            },1000);
+        };
+    </script>
+
+</body>
+</html>
