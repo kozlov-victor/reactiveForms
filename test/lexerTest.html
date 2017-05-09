@@ -12,10 +12,12 @@
             margin: 5px;
         }
         .success {
-            background-color: #c4b7ec;
+            background-color: #dff9df;
+            color: black;
         }
         .error {
             background-color: #d1232f;
+            color: white;
         }
     </style>
     <script>
@@ -26,7 +28,7 @@
         let showResult = (a,b,isSuccess)=>{
             let msg = `
                 ${isSuccess?'ok====>':'failed====>'}
-                expected: ${toStr(a)}, received: ${toStr(b)}
+                expected: ${toStr(b)}, received: ${toStr(a)}
             `;
             let item = document.createElement('div');
             item.textContent = msg;
@@ -118,6 +120,20 @@
 //            Lexer.convertExpression('user.name.value = mainObj.value.lastChar',"getVal('{expr}')","assign({expr})"),
 //            "assign('name',getVal('mainObj.value.lastChar'))"
 //        );
+        assertEqual(
+            Lexer.convertExpression('12+(isBordered?"bordered":"")',"getVal('{expr}')"),
+            `12+(getVal('isBordered')?"bordered":"")`
+        );
+//        assertEqual(
+//            Lexer.convertExpression("'scale'+'('+scale.x+','+scale.y+')'","getVal({expr})"),
+//            `'scale'+'('+scale.x+','+scale.y+')';`
+//        );
+       assertEqual(
+           Lexer.convertExpression(
+                'editData.currProjectInEdit.oldName?i18n.edit:i18n.create',"getVal('{expr}')"),
+                "getVal('editData.currProjectInEdit.oldName')?getVal('i18n.edit'):getVal('i18n.create')"
+        );
+
     </script>
 </body>
 </html>

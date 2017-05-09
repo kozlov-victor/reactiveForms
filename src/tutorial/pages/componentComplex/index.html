@@ -10,19 +10,31 @@
     <div class="counter">
         <input type="number" data-model="model.user[modelField]">
         <input type="range" min="1" max="200" data-model="model.user[modelField]">
-        <button data-click="inc()">+</button>
-        <button data-click="dec()">-</button>
+        <button
+            data-click="
+                inc()
+            ">
+            +
+        </button>
+        <button
+            data-click="
+                dec()
+            ">
+            -
+        </button>
     </div>
 </div>
 <div id="application">
     <div>
-        дебаг модели: {{model}}
+        дебаг модели: {{
+            model
+        }}
     </div>
     <div>
         name: <input data-model="model.user.name">
     </div>
     <div>
-        current power: {{model.user.power}}
+        current power: {{ model.user.power }}
     </div>
     <div>
         current carma level: {{model.user.karmaLevel}}
@@ -45,6 +57,10 @@
                         modelField: 'karmaLevel'
                     }">
         </counter-component>
+    </div>
+
+    <div>
+        sum:<i>{{model.user.calculateSkill()}}</i>
     </div>
 
 </div>

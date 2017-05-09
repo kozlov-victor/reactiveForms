@@ -1,0 +1,33 @@
+
+<style>
+    .underlined {
+        text-decoration: underline;
+    }
+    .bordered {
+        border: 1px solid green;
+    }
+    .colored {
+        color: #0077aa;
+    }
+</style>
+
+<div id="app">
+    <span
+            class="
+                {{isBordered?'bordered':''}}
+                {{isUnderlined?'underlined':''}}
+                {{isColored?'colored':''}}"
+            style="{{style}}"
+        >
+        Применение выражений в атрибутах
+    </span>
+    <br/>
+    isBordered: <input type="checkbox" data-model="isBordered">
+    <br/>
+    isColored: <input type="checkbox" data-model="isColored">
+    <br/>
+    isUnderlined: <input type="checkbox" data-model="isUnderlined">
+    <br/>
+    style:
+    <textarea data-model="style"></textarea>
+</div>

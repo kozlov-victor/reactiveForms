@@ -13,13 +13,13 @@
     <div>
         Текущий фрукт: {{currentFruit}}
     </div>
-    <select data-model="currentFruit">
+    <select data-model="currentFruitKey" data-change="setCurrentFruit(currentFruitKey)">
         <option data-value="key" data-for="value,key in fruits">
             {{value}}
         </option>
     </select>
     <table>
-        <tr class="pointer" data-class="{selected:value==currentFruit}" title="применить" data-click="setCurrentFruit(key)" data-for="value,key in fruits">
+        <tr class="pointer" data-class="{selected:key==currentFruitKey}" title="применить" data-click="setCurrentFruit(key)" data-for="value,key in fruits">
             <td>{{value}}</td>
             <td><button data-click="remove(key)">-</button></td>
         </tr>

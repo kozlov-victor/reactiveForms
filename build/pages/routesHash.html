@@ -39,7 +39,9 @@ button:active,input:active {
             };
         }
     </script>
-    <script src="../reactiveForms.js?{{salt}}"></script>
+    <script>
+        document.write('<script src="../reactiveForms.js?salt='+Math.random()+'"></sc'+'ript>')
+    </script>
 </head>
 <body>
 
@@ -48,9 +50,9 @@ button:active,input:active {
 
     <div id="pageMain">
         <button
-            data-click="app.navigateTo(pageIndex)"
-            data-for="pageIndex in app.pages">
-                {{pageIndex}}
+                data-click="app.navigateTo(pageIndex)"
+                data-for="pageIndex in app.pages">
+            {{pageIndex}}
         </button>
     </div>
 

@@ -39,7 +39,9 @@ button:active,input:active {
             };
         }
     </script>
-    <script src="../reactiveForms.js?{{salt}}"></script>
+    <script>
+        document.write('<script src="../reactiveForms.js?salt='+Math.random()+'"></sc'+'ript>')
+    </script>
 </head>
 <body>
 
@@ -55,19 +57,31 @@ button:active,input:active {
     <div class="counter">
         <input type="number" data-model="model.user[modelField]">
         <input type="range" min="1" max="200" data-model="model.user[modelField]">
-        <button data-click="inc()">+</button>
-        <button data-click="dec()">-</button>
+        <button
+            data-click="
+                inc()
+            ">
+            +
+        </button>
+        <button
+            data-click="
+                dec()
+            ">
+            -
+        </button>
     </div>
 </div>
 <div id="application">
     <div>
-        дебаг модели: {{model}}
+        дебаг модели: {{
+            model
+        }}
     </div>
     <div>
         name: <input data-model="model.user.name">
     </div>
     <div>
-        current power: {{model.user.power}}
+        current power: {{ model.user.power }}
     </div>
     <div>
         current carma level: {{model.user.karmaLevel}}
@@ -92,6 +106,10 @@ button:active,input:active {
         </counter-component>
     </div>
 
+    <div>
+        sum:<i>{{model.user.calculateSkill()}}</i>
+    </div>
+
 </div>
 
 
@@ -103,7 +121,10 @@ var applicationModel = {
     user: {
         name: 'defaultUserName',
         power: 100,
-        karmaLevel: 42
+        karmaLevel: 42,
+        calculateSkill(){
+            return +this.power + +this.karmaLevel;
+        }
     }
 };
 

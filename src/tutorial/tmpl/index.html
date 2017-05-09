@@ -110,7 +110,7 @@
         pages: ${pages},
         currentPage:'',
         showFrame: function(page){
-            this.storage.pages.forEach(function(p){ // todo  this.storage.pages >>  this.pages
+            this.pages.forEach(function(p){
                 p.frameUrl = '';
             });
             page.frameUrl = 'pages/'+page.page+'.html?'+page.page;

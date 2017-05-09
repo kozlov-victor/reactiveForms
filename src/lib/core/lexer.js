@@ -1,4 +1,4 @@
-
+// [3].indexOf(dataStorage.receiver.actionType)>-1
 class Token {
     constructor(type,val){
         this.tokenType = type;
@@ -60,18 +60,25 @@ class Lexer {
         let tokens = [], t, lastChar = '';
         expression = expression.trim();
         if (!isEndWithSemicolon) expression = expression+Token.SYMBOL.SEMICOLON;
+
         expression.split('').forEach(function(char,i) {
 
             let lastToken = tokens[tokens.length - 1];
             if (lastToken && charInArr(lastToken.tokenValue,['true','false']))
                 lastToken.tokenType = Token.TYPE.BOOLEAN;
 
-            if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS)) {
+            if (
+                charInArr(char, Token.ALL_SPECIAL_SYMBOLS)
+            ) {
                 t = new Token(Token.TYPE.OPERATOR, char);
                 tokens.push(t);
+
                 lastChar = char;
                 if (!lastToken) return;
-                if (char==Token.SYMBOL.L_PAR) lastToken.tokenType = Token.TYPE.FUNCTION;
+                if (
+                    char==Token.SYMBOL.L_PAR &&
+                    !charInArr(lastToken.tokenValue,Token.ALL_SPECIAL_SYMBOLS)
+                ) lastToken.tokenType = Token.TYPE.FUNCTION;
 
             } else {
                 if (lastToken && lastToken.tokenType != Token.TYPE.STRING && char == ' ') return;
@@ -84,6 +91,7 @@ class Lexer {
                     )
                 ) {
                     lastToken.tokenValue += char;
+
                 } else {
                     let type;
                     if(isNumber(char)) type = Token.TYPE.DIGIT;
@@ -91,6 +99,7 @@ class Lexer {
                     else type = Token.TYPE.VARIABLE;
                     t = new Token(type,char);
                     tokens.push(t);
+
                 }
                 lastChar = char;
             }
@@ -102,8 +111,12 @@ class Lexer {
 
             if (t && t.tokenType==Token.TYPE.VARIABLE) {
                 let next = tokens[i+1];
+                let prev = tokens[i-1];
 
-                if (next && (next.tokenValue == Token.SYMBOL.COLON))
+                if (
+                    next && (next.tokenValue == Token.SYMBOL.COLON) &&
+                    (!prev || (prev && prev.tokenValue!=='?'))
+                )
                     t.tokenType = Token.TYPE.OBJECT_KEY;
 
                 if (t.tokenValue && t.tokenValue.startsWith('.'))
@@ -125,9 +138,16 @@ class Lexer {
     }
 
     static convertExpression(expression,variableReplacerStr = '{expr}'){
-        let out = '';
+        let out = ``;
         expression = expression.split('\n').join('');
-        Lexer.tokenize(expression).forEach(function(token){
+        Lexer.tokenize(expression).forEach(function(token,index){
+            if (
+                token.tokenValue==Token.SYMBOL.EQUAL
+                &&
+                token[index+1]
+                &&
+                token[index+1].tokenValue!= Token.SYMBOL.EQUAL
+            ) throw `assign (like "a=b") not supported at directives for now, change your expression: ${expression}`;
             if ([
                     Token.TYPE.VARIABLE,
                     Token.TYPE.FUNCTION

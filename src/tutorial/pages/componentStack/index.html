@@ -1,0 +1,28 @@
+
+<div id="tmpl" style="display:none;">
+    <div id="redBorderedTmpl">
+        <div style="border: 3px solid red;">
+            <div data-transclusion="red_content"></div>
+        </div>
+    </div>
+    <div id="greenBorderedTmpl">
+        <div style="border: 3px solid green;">
+            <div data-transclusion="green_content"></div>
+        </div>
+    </div>
+    <div id="rootTmpl">
+        <app-red-bordered>
+            <div data-transclusion="red_content">
+                <app-green-bordered>
+                    <div data-transclusion="green_content">
+                        {{componentContent}}
+                    </div>
+                </app-green-bordered>
+            </div>
+        </app-red-bordered>
+    </div>
+</div>
+<div id="application">
+    <app-root></app-root>
+</div>
+

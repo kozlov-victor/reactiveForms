@@ -253,10 +253,7 @@
             this.properties = properties;
         }
         ComponentProto.prototype.newInstance = function(node, externalProperties) {
-            var modelView = new ModelView(this.name, this.properties);
-            modelView._applyState(externalProperties, {
-                strict: true
-            });
+            var modelView = new ModelView(this.name, this.properties, externalProperties);
             return new Component(this.name, node, modelView);
         };
         ComponentProto.getByName = function(name) {
@@ -275,13 +272,12 @@
     };
     ModelView = function() {
         function ModelView(componentName) {
-            var initialState, properties = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {};
+            var properties = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {}, externalProperties = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {};
             _classCallCheck(this, ModelView);
             this.name = componentName || "";
-            this._applyState(properties);
-            initialState = properties.getInitialState && properties.getInitialState();
-            initialState && (initialState = MiscUtils.deepCopy(initialState));
-            initialState && this._applyState(initialState, {
+            this.initialProperties = properties;
+            this.externalProperties = MiscUtils.deepCopy(externalProperties);
+            this.resetState({
                 warnRedefined: true
             });
             this.onShow = this.onShow || noop;
@@ -290,6 +286,18 @@
             this.onUnmount = this.onUnmount || noop;
             this.onDestroy = this.onDestroy || noop;
         }
+        ModelView.prototype.resetState = function() {
+            var initialState, warnRedefined = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : false, properties = this.initialProperties;
+            this._applyState(properties);
+            initialState = properties.getInitialState && properties.getInitialState();
+            initialState && (initialState = MiscUtils.deepCopy(initialState));
+            initialState && this._applyState(initialState, {
+                warnRedefined: warnRedefined
+            });
+            this._applyState(this.externalProperties, {
+                strict: true
+            });
+        };
         ModelView.prototype._applyState = function() {
             var _this = this, properties = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}, opts = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {}, strict = opts.strict;
             Object.keys(properties).forEach(function(key) {
@@ -379,17 +387,18 @@
             });
         };
         ScopedLoopContainer.prototype._processIterations = function() {
-            var l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [], currNodeInIteration = (arguments[1], 
+            var index, l, i, max, _this3 = this, newArr = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [], currNodeInIteration = (arguments[1], 
             this.anchor);
             if (newArr instanceof Object) newArr = MiscUtils.objectToArray(newArr);
+            index = 0;
             newArr.forEach(function(iterableItem, i) {
                 var props, localModelView, node, scopedDomFragment, _localModelView;
-                if (iterableItem.key && iterableItem.value) {
+                if ("key" in iterableItem && "value" in iterableItem) {
                     // if looped object with key and value pairs
                     i = iterableItem.key;
                     iterableItem = iterableItem.value;
                 }
-                if (!_this3.scopedDomFragments[i]) {
+                if (!_this3.scopedDomFragments[index]) {
                     props = {};
                     props[_this3.eachItemName] = iterableItem;
                     if (_this3.indexName) props[_this3.indexName] = i;
@@ -405,12 +414,13 @@
                     _this3.scopedDomFragments.push(scopedDomFragment);
                     _this3.lastFrafmentsLength++;
                 } else {
-                    _localModelView = _this3.scopedDomFragments[i].modelView;
+                    _localModelView = _this3.scopedDomFragments[index].modelView;
                     _localModelView[_this3.eachItemName] = iterableItem;
                     if (_this3.indexName) _localModelView[_this3.indexName] = i;
-                    currNodeInIteration = _this3.scopedDomFragments[i].node;
-                    _this3.scopedDomFragments[i].digest();
+                    currNodeInIteration = _this3.scopedDomFragments[index].node;
+                    _this3.scopedDomFragments[index].digest();
                 }
+                index++;
             });
             if (this.lastFrafmentsLength > newArr.length) {
                 l = this.scopedDomFragments.length;
@@ -445,11 +455,11 @@
             }(root), result = [];
             textNodes.forEach(function(textNode) {
                 var scopedNode = document.createDocumentFragment(), hasExpressions = false;
-                (textNode.textContent || textNode.innerText || textNode.data).split(/(\{\{.*?}})/).forEach(function(item) {
-                    var exp, newNode = void 0;
-                    if (0 == item.indexOf("{{")) {
+                (textNode.textContent || textNode.innerText || textNode.data).split(DomUtils.EXPRESSION_REGEXP).forEach(function(item) {
+                    var exp, newNode = void 0, trimmed = item.trim();
+                    if (0 == trimmed.indexOf("{{")) {
                         newNode = document.createTextNode("");
-                        exp = item.split("{{").join("").split("}}").join("");
+                        exp = trimmed.split("{{").join("").split("}}").join("");
                         if (!exp) return;
                         hasExpressions = true;
                         result.push({
@@ -581,6 +591,7 @@
         };
         return DomUtils;
     }();
+    DomUtils.EXPRESSION_REGEXP = /(\{\{[^\t]*?}})/;
     _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
@@ -781,7 +792,6 @@
                 });
             });
         };
-        DirectiveEngine.prototype.runDirective_Value = function() {};
         DirectiveEngine.prototype._runDirective_Model_OfSelect = function(selectEl, modelExpression) {
             var isMultiple = selectEl.multiple, val = [];
             DomUtils.nodeListToArray(selectEl.querySelectorAll("option")).filter(function(opt) {
@@ -840,10 +850,11 @@
         DirectiveEngine.prototype.runDirective_Class = function() {
             var _this6 = this;
             this._eachElementWithAttr("data-class", function(el, expression) {
+                var initialClassName = el.className;
                 _this6.component.addWatcher(expression, function(classNameOrObj) {
                     if ("object" === (void 0 === classNameOrObj ? "undefined" : _typeof(classNameOrObj))) {
                         for (var key in classNameOrObj) if (classNameOrObj.hasOwnProperty(key)) DomUtils.toggleClass(el, key, !!classNameOrObj[key]);
-                    } else el.className = classNameOrObj;
+                    } else el.className = initialClassName + " " + classNameOrObj;
                 });
             });
         };
@@ -958,15 +969,14 @@
                                 console.error(transclNode);
                                 throw dataTransclusion + " attribute can not be empty";
                             }
-                            recipients = DomUtils.nodeListToArray(domEl.querySelectorAll("[" + dataTransclusion + "=" + name + "]"));
-                            if (!recipients.length) {
-                                console.error(domEl);
-                                throw dataTransclusion + " attribute with name " + name + " defined at template, but not found at component";
-                            }
+                            recipients = DomUtils.nodeListToArray(domEl.querySelectorAll("[" + dataTransclusion + "=" + name + "]")).filter(function(el) {
+                                if (!!(el.parentNode && el.parentNode.closest("[" + dataTransclusion + "=" + name + "]"))) {
+                                    console.error(domEls);
+                                    throw "transclusion name conflict: dont use same transclusion name at different components";
+                                }
+                                return true;
+                            });
                             recipients.forEach(function(rcp) {
-                                // transclNode.innerHTML = rcp.innerHTML;
-                                // let transclComponent = new ScopedDomFragment(transclNode,this.component.modelView);
-                                // transclComponent.run();
                                 transclNode.innerHTML = "";
                                 transclComponents.push({
                                     transclNode: transclNode,
@@ -1009,19 +1019,42 @@
                 transclComponent.run();
             });
         };
-        DirectiveEngine.prototype.run = function() {
+        DirectiveEngine.prototype.runExpressionsInAttrs = function() {
             var _this15 = this;
-            this.runDirective_Value();
+            DomUtils.nodeListToArray(this.component.node.querySelectorAll("*")).forEach(function(node) {
+                if (node.attributes) Array.prototype.forEach.call(node.attributes, function(attr) {
+                    var name, value, resultExpArr, resultExpr;
+                    if (attr) {
+                        name = attr.name, value = attr.value;
+                        if (value.indexOf("{{") != -1 || value.indexOf("}}") != -1) {
+                            value = value.split(/[\n\t]|[\s]{2,}/).join(" ").trim();
+                            resultExpArr = [], resultExpr = "";
+                            value.split(DomUtils.EXPRESSION_REGEXP).forEach(function(token) {
+                                if (token.length) if (0 == token.indexOf("{{")) {
+                                    token = token.split("{{").join("").split("}}").join("");
+                                    resultExpArr.push("(" + token + ")");
+                                } else resultExpArr.push('"' + token + '"');
+                            });
+                            resultExpr = resultExpArr.join("+");
+                            _this15.component.addWatcher(resultExpr, function(expr) {
+                                node.setAttribute(name, expr.trim());
+                            });
+                        }
+                    }
+                });
+            });
+        };
+        DirectiveEngine.prototype.run = function() {
+            var _this16 = this;
             this.runDirective_For();
             this.runComponents();
             this.runTextNodes();
             this.runDirective_Model();
             // todo check event sequence in legacy browsers
             [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown" ].forEach(function(eventName) {
-                _this15.runDomEvent(eventName);
+                _this16.runDomEvent(eventName);
             });
             this.runDirective_Bind();
-            this.runDirective_Value();
             this.runDirective_Class();
             this.runDirective_Style();
             this.runDirective_Show();
@@ -1029,21 +1062,30 @@
             this.runDirective_Disabled();
             this.runDirective_Html();
             this.runDirective_Attributes();
+            this.runExpressionsInAttrs();
             this.runDirective_If();
         };
         return DirectiveEngine;
     }();
+    _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+        return typeof obj;
+    } : function(obj) {
+        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
     _getValByPath = function _getValByPath(component, path) {
-        var keys = path.split("."), lastKey = keys.pop(), res = component.modelView;
+        var keys = path.split("."), lastKey = keys.pop(), contextForPath = component.modelView, res = component.modelView;
         keys.forEach(function(key) {
-            if (void 0 !== res) res = res[key];
+            if (void 0 !== res) {
+                res = res[key];
+                if ("object" === (void 0 === res ? "undefined" : _typeof(res))) contextForPath = res;
+            }
         });
         if (void 0 !== res) res = res[lastKey];
         if (!component.disableParentScopeEvaluation && void 0 === res && component.parent) return _getValByPath(component.parent, path); else if (res && res.call) return function() {
-            return res.apply(component.modelView, Array.prototype.slice.call(arguments));
+            return res.apply(contextForPath, Array.prototype.slice.call(arguments));
         }; else return res;
     };
     getVal = function(component, path) {
@@ -1122,6 +1164,7 @@
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
+    // [3].indexOf(dataStorage.receiver.actionType)>-1
     Token = function Token(type, val) {
         _classCallCheck(this, Token);
         this.tokenType = type;
@@ -1185,7 +1228,7 @@
                     tokens.push(t);
                     lastChar = char;
                     if (!lastToken) return;
-                    if (char == Token.SYMBOL.L_PAR) lastToken.tokenType = Token.TYPE.FUNCTION;
+                    if (char == Token.SYMBOL.L_PAR && !charInArr(lastToken.tokenValue, Token.ALL_SPECIAL_SYMBOLS)) lastToken.tokenType = Token.TYPE.FUNCTION;
                 } else {
                     if (lastToken && lastToken.tokenType != Token.TYPE.STRING && " " == char) return;
                     if (lastToken && (lastToken.tokenType == Token.TYPE.DIGIT || lastToken.tokenType == Token.TYPE.VARIABLE || lastToken.tokenType == Token.TYPE.STRING)) lastToken.tokenValue += char; else {
@@ -1198,11 +1241,13 @@
                 }
             });
             tokens.forEach(function(t, i) {
+                var next, prev;
                 t.tokenValue && (t.tokenValue = t.tokenValue.trim());
                 if (charInArr(t.tokenValue, Token.KEY_WORDS)) t.tokenType = Token.KEY_WORDS;
                 if (t && t.tokenType == Token.TYPE.VARIABLE) {
-                    var next = tokens[i + 1];
-                    if (next && next.tokenValue == Token.SYMBOL.COLON) t.tokenType = Token.TYPE.OBJECT_KEY;
+                    next = tokens[i + 1];
+                    prev = tokens[i - 1];
+                    if (next && next.tokenValue == Token.SYMBOL.COLON && (!prev || prev && "?" !== prev.tokenValue)) t.tokenType = Token.TYPE.OBJECT_KEY;
                     if (t.tokenValue && t.tokenValue.startsWith(".")) t.tokenType = Token.TYPE.STRING;
                 }
                 if (t && t.tokenType == Token.TYPE.FUNCTION && 0 == t.tokenValue.indexOf(".")) t.tokenType = Token.TYPE.OBJECT_KEY;
@@ -1214,7 +1259,8 @@
         Lexer.convertExpression = function(expression) {
             var variableReplacerStr = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "{expr}", out = "";
             expression = expression.split("\n").join("");
-            Lexer.tokenize(expression).forEach(function(token) {
+            Lexer.tokenize(expression).forEach(function(token, index) {
+                if (token.tokenValue == Token.SYMBOL.EQUAL && token[index + 1] && token[index + 1].tokenValue != Token.SYMBOL.EQUAL) throw 'assign (like "a=b") not supported at directives for now, change your expression: ' + expression;
                 if ([ Token.TYPE.VARIABLE, Token.TYPE.FUNCTION ].indexOf(token.tokenType) > -1) out += variableReplacerStr.replace("{expr}", token.tokenValue); else out += token.tokenValue || token.tokenType;
             });
             return out;
@@ -1305,6 +1351,9 @@
         if (lastPageItem) {
             lastPageItem.component.modelView.onHide();
             lastPageItem.component.modelView.onUnmount();
+            DomUtils.nodeListToArray(routeNode.childNodes).forEach(function(el) {
+                lastPageItem.component.node.appendChild(el);
+            });
         }
         lastPageItem = Router._pages[pageName];
         if (!lastPageItem) throw "no page with name " + pageName + " registered";
@@ -1315,8 +1364,9 @@
             lastPageItem.component.modelView.onShow(params);
             delete lastPageItem.componentProto;
         } else lastPageItem.component.modelView.onShow(params);
-        routeNode.parentNode.replaceChild(lastPageItem.component.node, routeNode);
-        routeNode = lastPageItem.component.node;
+        DomUtils.nodeListToArray(lastPageItem.component.node.childNodes).forEach(function(el) {
+            routeNode.appendChild(el);
+        });
         lastPageItem.component.modelView.onMount(params);
         Component.digestAll();
     };
@@ -1330,7 +1380,7 @@
             routePlaceholderNode = document.querySelector("[data-route]");
             if (!routePlaceholderNode) throw "can not run Route: element with data-route attribute not found";
             routePlaceholderNode.innerHTML = "";
-            routeNode = routePlaceholderNode.parentNode.appendChild(document.createElement("div"));
+            routeNode = routePlaceholderNode;
             Object.keys(keyValues).forEach(function(key) {
                 Router._pages[key] = {
                     componentProto: keyValues[key],
@@ -1395,12 +1445,17 @@
             var cmp = Component.getComponentByDomId(id);
             if (!cmp) return null; else return cmp.modelView;
         };
+        Core.getComponents = function() {
+            return Component.instances.map(function(c) {
+                return c.modelView;
+            });
+        };
         Core._getComponentByInternalId = function(id) {
             return Component.getComponentByInternalId(id);
         };
         return Core;
     }();
-    Core.version = "0.6.2";
+    Core.version = "0.7.5";
     window.RF = Core;
     window.RF.Router = Router;
 }();

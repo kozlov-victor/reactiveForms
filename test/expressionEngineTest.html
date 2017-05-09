@@ -13,10 +13,12 @@
             margin: 5px;
         }
         .success {
-            background-color: #c4b7ec;
+            background-color: #dff9df;
+            color: black;
         }
         .error {
             background-color: #d1232f;
+            color: white;
         }
     </style>
     <script>
@@ -52,6 +54,61 @@
 </head>
 <body>
 <script>
+
+    let expressionStr = [`
+    {{a+1}}
+
+    {{
+
+        a>2
+
+    }}
+
+{{++a}}
+
+{{a>2}} {{"hello"}}
+
+
+
+    a:
+    {{
+
+        user.name
+
+    }}
+
+
+
+    you entered:
+
+    {{
+
+        user.name
+
+    }}
+
+
+`,`
+    Вы ввели значение:
+
+    {{
+
+        user.name
+
+    }}
+    `,
+    `{{user.name}}`
+    ];
+
+    expressionStr.forEach(expr=>{
+        expr.split(/(\{\{[^\t]*?}})/).forEach(s=>{
+            if (s.indexOf('{{')>-1) {
+                showResult(`${s}`,s,s.trim().startsWith('{{'));
+            }
+        });
+    });
+
+
     assertEqual(
         exec(
             'user.name', {
@@ -93,14 +150,14 @@
         }),
         {var1:1,var2:41}
     );
-    assertEqual( // todo "object.field = null"
-        exec("user.name = null",{
-            user: {
-                name: 'userName'
-            }
-        }),
-        null
-    );
+//    assertEqual( // todo "object.field = null"
+//        exec("user.name = null",{
+//            user: {
+//                name: 'userName'
+//            }
+//        }),
+//        null
+//    );
 
 </script>
 </body>

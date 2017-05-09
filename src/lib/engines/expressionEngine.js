@@ -2,9 +2,13 @@
 let _getValByPath = function(component, path) {
     let keys = path.split('.');
     let lastKey = keys.pop();
+    let contextForPath = component.modelView;
     let res = component.modelView;
     keys.forEach(function(key){
-        if (res!==undefined) res = res[key];
+        if (res!==undefined) {
+            res = res[key];
+            if (typeof res === 'object') contextForPath = res;
+        }
     });
     if (res!==undefined) res = res[lastKey];
     if (!component.disableParentScopeEvaluation && res===undefined && component.parent) {
@@ -13,7 +17,7 @@ let _getValByPath = function(component, path) {
     else {
         if (res && res.call) {
             return function() {
-                return res.apply(component.modelView, Array.prototype.slice.call(arguments))
+                return res.apply(contextForPath, Array.prototype.slice.call(arguments))
             }
         }
         return res;

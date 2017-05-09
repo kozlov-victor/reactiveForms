@@ -5,13 +5,11 @@ const noop = function(){
 
 class ModelView{
 
-    constructor(componentName,properties = {}){
+    constructor(componentName,properties = {},externalProperties = {}){
         this.name = componentName || '';
-
-        this._applyState(properties);
-        let initialState = properties.getInitialState && properties.getInitialState();
-        initialState && (initialState = MiscUtils.deepCopy(initialState));
-        initialState && this._applyState(initialState,{warnRedefined:true});
+        this.initialProperties = properties;
+        this.externalProperties = MiscUtils.deepCopy(externalProperties);
+        this.resetState({warnRedefined:true});
 
         this.onShow = this.onShow || noop;
         this.onHide = this.onHide || noop;
@@ -20,6 +18,14 @@ class ModelView{
         this.onDestroy = this.onDestroy || noop;
     }
 
+    resetState(warnRedefined = false){
+        let properties = this.initialProperties;
+        this._applyState(properties);
+        let initialState = properties.getInitialState && properties.getInitialState();
+        initialState && (initialState = MiscUtils.deepCopy(initialState));
+        initialState && this._applyState(initialState,{warnRedefined});
+        this._applyState(this.externalProperties,{strict:true});
+    }
 
     _applyState(properties = {},opts = {}){
         let strict = opts.strict;

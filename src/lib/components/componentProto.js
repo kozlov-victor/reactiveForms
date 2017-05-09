@@ -8,8 +8,7 @@ class ComponentProto{
     }
 
     newInstance(node, externalProperties){
-        let modelView = new ModelView(this.name,this.properties);
-        modelView._applyState(externalProperties,{strict:true});
+        let modelView = new ModelView(this.name,this.properties,externalProperties);
         return new Component(this.name,node,modelView);
     }
 

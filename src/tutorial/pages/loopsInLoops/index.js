@@ -29,30 +29,30 @@ var rnd = function(){
 };
 
 app.changeExternal = function(){
-    for (var i=0;i<this.app.bundles.length;i++) {
-        this.app.bundles[i].name = 'bundle_'+rnd();
+    for (var i=0;i<this.bundles.length;i++) {
+        this.bundles[i].name = 'bundle_'+rnd();
     }
 };
 
 app.changeInternal = function(){
-    for (var i=0;i<this.app.bundles.length;i++) {
-        for (var j=0;j<this.app.bundles[i].data.length;j++) {
-            this.app.bundles[i].data[j] = {slot:'slot_'+rnd()};
+    for (var i=0;i<this.bundles.length;i++) {
+        for (var j=0;j<this.bundles[i].data.length;j++) {
+            this.bundles[i].data[j] = {slot:'slot_'+rnd()};
         }
     }
 };
 
 app.changeAll = function(){
-    for (var i=0;i<this.app.bundles.length;i++) {
-        this.app.bundles[i].name = 'bundle_'+rnd();
-        for (var j=0;j<this.app.bundles[i].data.length;j++) {
-            this.app.bundles[i].data[j] = {slot:'slot_'+rnd()};
+    for (var i=0;i<this.bundles.length;i++) {
+        this.bundles[i].name = 'bundle_'+rnd();
+        for (var j=0;j<this.bundles[i].data.length;j++) {
+            this.bundles[i].data[j] = {slot:'slot_'+rnd()};
         }
     }
 };
 
 app.add = function(){
-    this.app.bundles.push({
+    this.bundles.push({
         name:'Хранилище_'+rnd(),
         data: [
             {'slot':'sl_'+rnd()},
@@ -62,26 +62,26 @@ app.add = function(){
 };
 
 app.removeExternal = function(i){
-    this.app.bundles.splice(i,1);
+    this.bundles.splice(i,1);
 };
 
 app.removeInternal = function(i,j){
-    this.app.bundles[i].data.splice(j,1);
+    this.bundles[i].data.splice(j,1);
 };
 
 app.addInternal = function(i){
-    this.app.bundles[i].data.push({
+    this.bundles[i].data.push({
         slot: 'new_'+rnd()
     });
 };
 
 app.addInternal = function(i){
-    this.app.bundles[i].data.push({slot:'new_'+rnd()})
+    this.bundles[i].data.push({slot:'new_'+rnd()})
 };
 
 app.changeGlobal = function(){
 
-    this.app.bundles = [
+    this.bundles = [
         {
             name:'Хранилище 1'+rnd(),
             data: [

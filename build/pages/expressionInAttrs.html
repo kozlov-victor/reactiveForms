@@ -46,67 +46,46 @@ button:active,input:active {
 <body>
 
     
-
 <style>
-    .pointer {
-        cursor: pointer;
+    .underlined {
+        text-decoration: underline;
     }
-    .selected {
-        outline: 1px solid darkblue;
+    .bordered {
+        border: 1px solid green;
+    }
+    .colored {
+        color: #0077aa;
     }
 </style>
+
 <div id="app">
-    <table>
-        <tr class="pointer" data-for="item,index in list">
-            <td>{{index+1}}</td>
-            <td>{{item.name1}}</td>
-            <td>{{item.name2}}</td>
-            <td>{{item.name3}}</td>
-            <td>{{item.name4}}</td>
-            <td><button data-click="change(item)">change</button></td>
-            <td><button data-click="remove(index)">-</button></td>
-        </tr>
-    </table>
-    <button data-click="add()">add</button>
+    <span
+            class="
+                {{isBordered?'bordered':''}}
+                {{isUnderlined?'underlined':''}}
+                {{isColored?'colored':''}}"
+            style="{{style}}"
+        >
+        Применение выражений в атрибутах
+    </span>
+    <br/>
+    isBordered: <input type="checkbox" data-model="isBordered">
+    <br/>
+    isColored: <input type="checkbox" data-model="isColored">
+    <br/>
+    isUnderlined: <input type="checkbox" data-model="isUnderlined">
+    <br/>
+    style:
+    <textarea data-model="style"></textarea>
 </div>
-
-
-
 
     <script>
         
-var MAX = 3000;
-
-var list = [];
-
-var change = function(item){
-    item.name1 = ~~(Math.random()*100);
-    item.name2 = ~~(Math.random()*100);
-    item.name3 = ~~(Math.random()*100);
-    item.name4 = ~~(Math.random()*100);
-};
-
-var add = function(){
-    var item = {};
-    change(item);
-    list.push(item);
-};
-
-for (var i=0;i<MAX;i++) {
-    add();
-}
-
 RF.applyBindings('#app',{
-    list: list,
-    add: function() {
-        add();
-    },
-    change: function(item){
-        change(item);
-    },
-    remove: function(i){
-        this.list.splice(i,1);
-    }
+    isBordered: true,
+    isColored: false,
+    isUnderlined: false,
+    style:''
 });
     </script>
 

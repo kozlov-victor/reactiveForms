@@ -141,7 +141,6 @@ function TokenStream(input) {
 
 function parse(input) {
     var PRECEDENCE = {
-        "?":0,
         "=": 1,
         "||": 2,
         "&&": 3,
@@ -184,21 +183,21 @@ function parse(input) {
         if (his_prec > my_prec) {
             input.next();
             var right = maybe_binary(parse_atom(), his_prec);
-            if(is_op().value=='?') {
-                skip_op('?');
-                var exprA = parse_expression();
-                skip_punc(':');
-                var exprB = parse_expression();
-                return {
-                    type: 'ternary',
-                    condition: {
-                        left:left,
-                        right: right,
-                        operator:tok.value
-                    },
-                    exprA,exprB
-                }
-            }
+            // if(is_op().value=='?') {
+            //     skip_op('?');
+            //     var exprA = parse_expression();
+            //     skip_punc(':');
+            //     var exprB = parse_expression();
+            //     return {
+            //         type: 'ternary',
+            //         condition: {
+            //             left:left,
+            //             right: right,
+            //             operator:tok.value
+            //         },
+            //         exprA,exprB
+            //     }
+            // }
             return maybe_binary({
                 type     : tok.value == "=" ? "assign" : "binary",
                 operator : tok.value,
@@ -283,7 +282,6 @@ function parse(input) {
         var tok = input.next();
         if (tok.type == "var" || tok.type == "num" || tok.type == "str")
             return tok;
-        console.log(tok);
         unexpected();
     }
     function parse_toplevel() {

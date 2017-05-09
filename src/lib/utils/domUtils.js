@@ -12,12 +12,13 @@ class DomUtils {
             let scopedNode = document.createDocumentFragment();
             let hasExpressions = false;
             (textNode.textContent || textNode.innerText || textNode.data).
-                split(/(\{\{.*?}})/).
+                split(DomUtils.EXPRESSION_REGEXP).
                 forEach(item=>{
                     let newNode;
-                    if (item.indexOf('{{')==0) {
+                    let trimmed = item.trim();
+                    if (trimmed.indexOf('{{')==0) {
                         newNode = document.createTextNode('');
-                        let exp = item.split('{{').join('').split('}}').join('');
+                        let exp = trimmed.split('{{').join('').split('}}').join('');
                         if (!exp) return;
                         hasExpressions = true;
                         result.push({
@@ -193,3 +194,5 @@ class DomUtils {
     }
 
 }
+
+DomUtils.EXPRESSION_REGEXP = /(\{\{[^\t]*?}})/;

@@ -40,14 +40,17 @@ class ScopedLoopContainer extends Component {
 
         let currNodeInIteration = this.anchor;
         if (newArr instanceof Object) newArr = MiscUtils.objectToArray(newArr);
+
+        let index = 0;
         newArr.forEach((iterableItem,i)=>{
 
-            if (iterableItem.key && iterableItem.value) { // if looped object with key and value pairs
+            if ('key' in iterableItem && 'value' in iterableItem) { // if looped object with key and value pairs
                 i = iterableItem.key;
                 iterableItem = iterableItem.value;
             }
 
-            if (!this.scopedDomFragments[i]) {
+
+            if (!this.scopedDomFragments[index]) {
 
                 let props = {};
                 props[this.eachItemName] = iterableItem;
@@ -68,14 +71,14 @@ class ScopedLoopContainer extends Component {
 
             } else {
 
-                let localModelView = this.scopedDomFragments[i].modelView;
+                let localModelView = this.scopedDomFragments[index].modelView;
                 localModelView[this.eachItemName] = iterableItem;
                 if (this.indexName) localModelView[this.indexName] = i;
 
-                currNodeInIteration = this.scopedDomFragments[i].node;
-                this.scopedDomFragments[i].digest();
+                currNodeInIteration = this.scopedDomFragments[index].node;
+                this.scopedDomFragments[index].digest();
             }
-
+            index++;
         });
 
         if (this.lastFrafmentsLength>newArr.length) {

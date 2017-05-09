@@ -46,67 +46,58 @@ button:active,input:active {
 <body>
 
     
-
-<style>
-    .pointer {
-        cursor: pointer;
-    }
-    .selected {
-        outline: 1px solid darkblue;
-    }
-</style>
-<div id="app">
-    <table>
-        <tr class="pointer" data-for="item,index in list">
-            <td>{{index+1}}</td>
-            <td>{{item.name1}}</td>
-            <td>{{item.name2}}</td>
-            <td>{{item.name3}}</td>
-            <td>{{item.name4}}</td>
-            <td><button data-click="change(item)">change</button></td>
-            <td><button data-click="remove(index)">-</button></td>
-        </tr>
-    </table>
-    <button data-click="add()">add</button>
+<div id="tmpl" style="display:none;">
+    <div id="redBorderedTmpl">
+        <div style="border: 3px solid red;">
+            <div data-transclusion="red_content"></div>
+        </div>
+    </div>
+    <div id="greenBorderedTmpl">
+        <div style="border: 3px solid green;">
+            <div data-transclusion="green_content"></div>
+        </div>
+    </div>
+    <div id="rootTmpl">
+        <app-red-bordered>
+            <div data-transclusion="red_content">
+                <app-green-bordered>
+                    <div data-transclusion="green_content">
+                        {{componentContent}}
+                    </div>
+                </app-green-bordered>
+            </div>
+        </app-red-bordered>
+    </div>
 </div>
-
+<div id="application">
+    <app-root></app-root>
+</div>
 
 
 
     <script>
         
-var MAX = 3000;
 
-var list = [];
-
-var change = function(item){
-    item.name1 = ~~(Math.random()*100);
-    item.name2 = ~~(Math.random()*100);
-    item.name3 = ~~(Math.random()*100);
-    item.name4 = ~~(Math.random()*100);
-};
-
-var add = function(){
-    var item = {};
-    change(item);
-    list.push(item);
-};
-
-for (var i=0;i<MAX;i++) {
-    add();
-}
-
-RF.applyBindings('#app',{
-    list: list,
-    add: function() {
-        add();
-    },
-    change: function(item){
-        change(item);
-    },
-    remove: function(i){
-        this.list.splice(i,1);
+RF.registerComponent('app-red-bordered',{
+    template: {
+        type: 'dom',
+        value: 'redBorderedTmpl'
     }
+});
+RF.registerComponent('app-green-bordered',{
+    template: {
+        type: 'dom',
+        value: 'greenBorderedTmpl'
+    }
+});
+RF.registerComponent('app-root',{
+    template: {
+        type: 'dom',
+        value: 'rootTmpl'
+    },
+    componentContent: 'component content here'
+});
+RF.applyBindings('#application',{
 });
     </script>
 

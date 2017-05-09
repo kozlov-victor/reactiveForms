@@ -10,4 +10,4 @@ see dbMonster benchmark ([?](http://mathieuancelin.github.io/js-repaint-perfs/))
 * ie8 compatible
 * no dependencies
 * fast
-* angular-like sintax
+* angular-like syntax

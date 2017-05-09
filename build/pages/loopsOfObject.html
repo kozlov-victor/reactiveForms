@@ -39,7 +39,9 @@ button:active,input:active {
             };
         }
     </script>
-    <script src="../reactiveForms.js?{{salt}}"></script>
+    <script>
+        document.write('<script src="../reactiveForms.js?salt='+Math.random()+'"></sc'+'ript>')
+    </script>
 </head>
 <body>
 
@@ -58,13 +60,13 @@ button:active,input:active {
     <div>
         Текущий фрукт: {{currentFruit}}
     </div>
-    <select data-model="currentFruit">
+    <select data-model="currentFruitKey" data-change="setCurrentFruit(currentFruitKey)">
         <option data-value="key" data-for="value,key in fruits">
             {{value}}
         </option>
     </select>
     <table>
-        <tr class="pointer" data-class="{selected:value==currentFruit}" title="применить" data-click="setCurrentFruit(key)" data-for="value,key in fruits">
+        <tr class="pointer" data-class="{selected:key==currentFruitKey}" title="применить" data-click="setCurrentFruit(key)" data-for="value,key in fruits">
             <td>{{value}}</td>
             <td><button data-click="remove(key)">-</button></td>
         </tr>
@@ -78,9 +80,9 @@ button:active,input:active {
     <script>
         
 var fruits = {
-    0: 'fruit zero',
-    1: 'fruit one',
-    2: 'fruit two'
+    '0': 'fruit zero',
+    '1': 'fruit one',
+    '2': 'fruit two'
 };
 var rnd = function(){
     return ~~(Math.random()*100);
@@ -91,6 +93,7 @@ var cnt=3;
 RF.applyBindings('#app',{
     fruits: fruits,
     currentFruit: this.fruits[0],
+    currentFruitKey: '0',
     add: function(){
         this.fruits[(''+ cnt++ + rnd())] = rnd();
     },
@@ -99,6 +102,7 @@ RF.applyBindings('#app',{
     },
     setCurrentFruit: function(key){
         this.currentFruit = this.fruits[key];
+        this.currentFruitKey = key;
     }
 });
     </script>

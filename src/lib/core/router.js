@@ -79,6 +79,9 @@ let __showPage = (pageName,params)=>{
     if (lastPageItem) {
         lastPageItem.component.modelView.onHide();
         lastPageItem.component.modelView.onUnmount();
+        DomUtils.nodeListToArray(routeNode.childNodes).forEach(el=>{
+            lastPageItem.component.node.appendChild(el);
+        });
     }
     lastPageItem = Router._pages[pageName];
     if (!lastPageItem) throw `no page with name ${pageName} registered`;
@@ -91,8 +94,9 @@ let __showPage = (pageName,params)=>{
     } else {
         lastPageItem.component.modelView.onShow(params);
     }
-    routeNode.parentNode.replaceChild(lastPageItem.component.node,routeNode);
-    routeNode = lastPageItem.component.node;
+    DomUtils.nodeListToArray(lastPageItem.component.node.childNodes).forEach(el=>{
+        routeNode.appendChild(el);
+    });
     lastPageItem.component.modelView.onMount(params);
     Component.digestAll();
 };
@@ -104,7 +108,7 @@ class Router {
         let routePlaceholderNode = document.querySelector('[data-route]');
         if (!routePlaceholderNode) throw 'can not run Route: element with data-route attribute not found';
         routePlaceholderNode.innerHTML = '';
-        routeNode = routePlaceholderNode.parentNode.appendChild(document.createElement('div'));
+        routeNode = routePlaceholderNode;
         Object.keys(keyValues).forEach(key=>{
             Router._pages[key]={
                 componentProto: keyValues[key],

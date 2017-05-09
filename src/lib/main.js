@@ -40,6 +40,10 @@ class Core{
         return cmp.modelView;
     }
 
+    static getComponents(){
+        return Component.instances.map(c=>{return c.modelView});
+    }
+
     static _getComponentByInternalId(id){
         return Component.getComponentByInternalId(id);
     }

@@ -39,7 +39,9 @@ button:active,input:active {
             };
         }
     </script>
-    <script src="../reactiveForms.js?{{salt}}"></script>
+    <script>
+        document.write('<script src="../reactiveForms.js?salt='+Math.random()+'"></sc'+'ript>')
+    </script>
 </head>
 <body>
 
@@ -47,15 +49,28 @@ button:active,input:active {
 <div id="app">
     <input data-model="user.name"><input data-model="user.name">
     <br/>
-    Вы ввели значение: {{user.name}}
+    Вы ввели значение:
+
+    {{
+
+        user.name
+
+    }}
+    <br/>
+    nameSize:
+    {{user.nameSize()}}
 </div>
 
 
     <script>
         
+
 RF.applyBindings('#app',{
     user: {
-        name: 'defaultUserName'
+        name: 'defaultUserName',
+        nameSize: function(){
+            return this.name.length;
+        }
     }
 });
     </script>
