@@ -1452,7 +1452,7 @@
         };
         return Core;
     }();
-    Core.version = "0.7.5";
+    Core.version = "0.7.6";
     window.RF = Core;
     window.RF.Router = Router;
 }();
