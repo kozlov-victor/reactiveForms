@@ -157,7 +157,6 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
-        self;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -493,9 +492,6 @@
                 break;
 
               case "select":
-                el.value = value;
-                break;
-
               case "textarea":
                 el.value = value;
             }
@@ -524,8 +520,6 @@
                 break;
 
               case "select":
-                return el.value;
-
               case "textarea":
                 return el.value;
             }
@@ -537,8 +531,6 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
-                    return "click";
-
                   case "radio":
                     return "click";
 
@@ -569,7 +561,7 @@
         };
         DomUtils.toggleClass = function(el, className, isAdd) {
             if (!el.classList) if (isAdd) {
-                if (el.className.indexOf(className) == -1) el.className += " " + className;
+                if (-1 == el.className.indexOf(className)) el.className += " " + className;
             } else el.className = el.className.split(className).join(" "); else el.classList.toggle(className, isAdd);
         };
         DomUtils.nodeListToArray = function(nodeList) {
@@ -741,7 +733,7 @@
                 var tokens, variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, closestTransclusionEl = el.closest("[data-transclusion]");
                 if (closestTransclusionEl && !closestTransclusionEl.getAttribute("data-_processed")) return false;
                 tokens = expression.split(" ");
-                if ([ "in", "of" ].indexOf(tokens[1]) == -1) throw "can not parse expression " + expression;
+                if (-1 == [ "in", "of" ].indexOf(tokens[1])) throw "can not parse expression " + expression;
                 variables = Lexer.tokenize(tokens[0]).filter(function(t) {
                     return [ Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY ].indexOf(t.tokenType) > -1;
                 }).map(function(t) {
@@ -1026,7 +1018,7 @@
                     var name, value, resultExpArr, resultExpr;
                     if (attr) {
                         name = attr.name, value = attr.value;
-                        if (value.indexOf("{{") != -1 || value.indexOf("}}") != -1) {
+                        if (-1 != value.indexOf("{{") || -1 != value.indexOf("}}")) {
                             value = value.split(/[\n\t]|[\s]{2,}/).join(" ").trim();
                             resultExpArr = [], resultExpr = "";
                             value.split(DomUtils.EXPRESSION_REGEXP).forEach(function(token) {
@@ -1217,13 +1209,15 @@
             _classCallCheck(this, Lexer);
         }
         Lexer.tokenize = function(expression) {
-            var isEndWithSemicolon = expression[expression.length - 1] == Token.SYMBOL.SEMICOLON, tokens = [], t = void 0, lastChar = "";
+            var isStringCurrent, isEndWithSemicolon = expression[expression.length - 1] == Token.SYMBOL.SEMICOLON, tokens = [], t = void 0, lastChar = "";
             expression = expression.trim();
             if (!isEndWithSemicolon) expression += Token.SYMBOL.SEMICOLON;
+            isStringCurrent = void 0;
             expression.split("").forEach(function(char, i) {
                 var type, lastToken = tokens[tokens.length - 1];
                 if (lastToken && charInArr(lastToken.tokenValue, [ "true", "false" ])) lastToken.tokenType = Token.TYPE.BOOLEAN;
-                if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS)) {
+                if (charInArr(char, [ '"', "'" ])) isStringCurrent = false;
+                if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS) && !isStringCurrent) {
                     t = new Token(Token.TYPE.OPERATOR, char);
                     tokens.push(t);
                     lastChar = char;
@@ -1233,7 +1227,10 @@
                     if (lastToken && lastToken.tokenType != Token.TYPE.STRING && " " == char) return;
                     if (lastToken && (lastToken.tokenType == Token.TYPE.DIGIT || lastToken.tokenType == Token.TYPE.VARIABLE || lastToken.tokenType == Token.TYPE.STRING)) lastToken.tokenValue += char; else {
                         type = void 0;
-                        if (isNumber(char)) type = Token.TYPE.DIGIT; else if (charInArr(char, [ '"', "'" ])) type = Token.TYPE.STRING; else type = Token.TYPE.VARIABLE;
+                        if (isNumber(char)) type = Token.TYPE.DIGIT; else if (charInArr(char, [ '"', "'" ])) {
+                            type = Token.TYPE.STRING;
+                            isStringCurrent = true;
+                        } else type = Token.TYPE.VARIABLE;
                         t = new Token(type, char);
                         tokens.push(t);
                     }

@@ -124,10 +124,10 @@
             Lexer.convertExpression('12+(isBordered?"bordered":"")',"getVal('{expr}')"),
             `12+(getVal('isBordered')?"bordered":"")`
         );
-//        assertEqual(
-//            Lexer.convertExpression("'scale'+'('+scale.x+','+scale.y+')'","getVal({expr})"),
-//            `'scale'+'('+scale.x+','+scale.y+')';`
-//        );
+        assertEqual(
+            Lexer.convertExpression("'scale'+'('+scale.x+','+scale.y+')'","getVal({expr})"),
+            `'scale'+'('+getVal(scale.x)+','+getVal(scale.y)+')'`
+        );
        assertEqual(
            Lexer.convertExpression(
                 'editData.currProjectInEdit.oldName?i18n.edit:i18n.create',"getVal('{expr}')"),

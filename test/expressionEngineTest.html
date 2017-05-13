@@ -150,6 +150,12 @@
         }),
         {var1:1,var2:41}
     );
+    assertEqual(
+        exec("'12/2!:'+a",{
+            a:1
+        }),
+        '12/2!:1'
+    );
 //    assertEqual( // todo "object.field = null"
 //        exec("user.name = null",{
 //            user: {

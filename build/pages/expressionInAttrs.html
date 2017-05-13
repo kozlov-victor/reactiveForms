@@ -56,11 +56,15 @@ button:active,input:active {
     .colored {
         color: #0077aa;
     }
+    .displayBlock {
+        display: block;
+    }
 </style>
 
 <div id="app">
     <span
             class="
+                displayBlock
                 {{isBordered?'bordered':''}}
                 {{isUnderlined?'underlined':''}}
                 {{isColored?'colored':''}}"
