@@ -21,14 +21,19 @@ var rnd = function(){
     return Math.random().toFixed(2);
 };
 
-RF.applyBindings('#app',{
+var app = RF.registerComponent('app',{
+
+    template:{
+        type:'string',
+        value:document.getElementById('app').innerHTML
+    },
 
     dialog1Title: 'title Of Dialog One',
     dialog1Content: 'content Of Dialog One',
     dialog2Title: 'title Of Dialog Two',
     dialog2Content: 'content Of Dialog Two',
 
-    openedArr:[rnd()],
+    openedArr:[],
 
     openDialog: function(dialogId){
         this.openedArr.push(rnd());
@@ -41,3 +46,10 @@ RF.applyBindings('#app',{
         this.dialog2Content = 'content Of Dialog Two ' + rnd();
     }
 });
+
+
+RF.Router.setup({
+    app:app
+});
+
+RF.Router.navigateTo('app');

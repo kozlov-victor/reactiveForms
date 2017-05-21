@@ -71,48 +71,55 @@
             </div>
         </div>
     </div>
-</div>
 
-<div id="app">
-    <button data-click="openDialog('dialog1')">open dialog 1</button>
-    <button data-click="openDialog('dialog2')">open dialog 2</button>
+    <script type="text/tmpl" id="app">
 
-    <div>
-        dialog1Title: {{dialog1Title}}
-        <br/>
-        dialog1Content: {{dialog1Content}}
-        <br/>
-        dialog2Title: {{dialog2Title}}
-        <br/>
-        dialog2Content: {{dialog2Content}}
-        <br/>
+        <button data-click="openDialog('dialog1')">open dialog 1</button>
+        <button data-click="openDialog('dialog2')">open dialog 2</button>
 
-    </div>
-
-    <button data-click="changeDialogData()">changeDialogData()</button>
-
-    <popup-dialog id="dialog1">
-        <div data-transclusion="title">
-            {{dialog1Title}}
-        </div>
-        <div data-transclusion="content">
-            {{dialog1Content}}
-        </div>
-    </popup-dialog>
-
-    <popup-dialog id="dialog2">
-        <div data-transclusion="title">
-            {{dialog2Title}}
-        </div>
-        <div data-transclusion="content">
-            {{dialog2Content}}
+        <div>
+            dialog1Title: {{dialog1Title}}
             <br/>
-            openedArr loop
-            <span data-for="el in openedArr">
-                {{el}}
-            </span>
+            dialog1Content: {{dialog1Content}}
+            <br/>
+            dialog2Title: {{dialog2Title}}
+            <br/>
+            dialog2Content: {{dialog2Content}}
+            <br/>
         </div>
-    </popup-dialog>
+
+        <button data-click="changeDialogData()">changeDialogData()</button>
+
+        <popup-dialog id="dialog1">
+            <div data-transclusion="title">
+                {{dialog1Title}}
+            </div>
+            <div data-transclusion="content">
+                {{dialog1Content}}
+            </div>
+        </popup-dialog>
+
+        <popup-dialog id="dialog2">
+            <div data-transclusion="title">
+                {{dialog2Title}}
+            </div>
+            <div data-transclusion="content">
+                {{dialog2Content}}
+                <span data-for="w,index in openedArr">
+                    <span class="ru">{{w}}</span>
+                </span>
+            </div>
+        </popup-dialog>
+
+    </script>
+
+
+
 </div>
+
+
+
+<div data-route></div>
+
 
 

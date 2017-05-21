@@ -956,12 +956,20 @@
                 }
                 componentNodes = [];
                 domEls.forEach(function(domEl) {
-                    var domId, componentNode, dataTransclusion, dataStateAttr, dataState, component;
+                    var dataTransclusion, hasNotTranscluded, domId, componentNode, dataStateAttr, dataState, component;
                     if (!domEl.getAttribute("data-_processed")) {
                         domEl.setAttribute("data-_processed", "1");
+                        dataTransclusion = "data-transclusion";
+                        hasNotTranscluded = false;
+                        DomUtils.nodeListToArray(domEl.childNodes).forEach(function(chdrn) {
+                            if (chdrn.hasAttribute && !chdrn.hasAttribute(dataTransclusion)) hasNotTranscluded = true;
+                        });
+                        if (hasNotTranscluded) {
+                            console.warn(domEl);
+                            console.warn("children elements of component " + componentProto.name + " will be removed");
+                        }
                         domId = domEl.getAttribute("id");
                         componentNode = componentProto.node.cloneNode(true);
-                        dataTransclusion = "data-transclusion";
                         DomUtils.nodeListToArray(componentNode.querySelectorAll("[" + dataTransclusion + "]")).forEach(function(transclNode) {
                             var recipients, name = transclNode.getAttribute(dataTransclusion);
                             if (!name) {
@@ -1011,7 +1019,10 @@
                 hasStateChanged && Component.digestAll();
             });
             transclComponents.forEach(function(trnscl) {
-                trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
+                //trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
+                DomUtils.nodeListToArray(trnscl.rcp.childNodes).forEach(function(n) {
+                    trnscl.transclNode.appendChild(n);
+                });
                 var transclComponent = new ScopedDomFragment(trnscl.transclNode, new ModelView(_this14.component.name));
                 _this14.component.addChild(transclComponent);
                 transclComponent.parent = _this14.component;
@@ -1455,7 +1466,7 @@
         };
         return Core;
     }();
-    Core.version = "0.7.5";
+    Core.version = "0.7.7";
     window.RF = Core;
     window.RF.Router = Router;
 }();

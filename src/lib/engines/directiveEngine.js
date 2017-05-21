@@ -324,9 +324,22 @@ class DirectiveEngine {
 
                 if (domEl.getAttribute('data-_processed')) return;
                 domEl.setAttribute('data-_processed','1');
+
+                let dataTransclusion = 'data-transclusion';
+
+                let hasNotTranscluded = false;
+                DomUtils.nodeListToArray(domEl.childNodes).forEach(chdrn=>{
+                    if (chdrn.hasAttribute && !(chdrn.hasAttribute(dataTransclusion)))
+                        hasNotTranscluded = true;
+                });
+                if (hasNotTranscluded) {
+                    console.warn(domEl);
+                    console.warn(`children elements of component ${componentProto.name} will be removed`);
+                }
+
+
                 let domId = domEl.getAttribute('id');
                 let componentNode = componentProto.node.cloneNode(true);
-                let dataTransclusion = 'data-transclusion';
                 DomUtils.nodeListToArray(componentNode.querySelectorAll(`[${dataTransclusion}]`)).forEach(transclNode=>{
                     let name = transclNode.getAttribute(dataTransclusion);
                     if (!name) {
@@ -381,7 +394,10 @@ class DirectiveEngine {
             hasStateChanged && (Component.digestAll());
         });
         transclComponents.forEach(trnscl=>{
-            trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
+            //trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
+            DomUtils.nodeListToArray(trnscl.rcp.childNodes).forEach(n=>{
+                trnscl.transclNode.appendChild(n);
+            });
             let transclComponent = new ScopedDomFragment(trnscl.transclNode,new ModelView(this.component.name));
             this.component.addChild(transclComponent);
             transclComponent.parent = this.component;
