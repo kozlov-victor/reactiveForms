@@ -61,14 +61,17 @@ class Lexer {
         expression = expression.trim();
         if (!isEndWithSemicolon) expression = expression+Token.SYMBOL.SEMICOLON;
 
+        let isStringCurrent;
         expression.split('').forEach(function(char,i) {
 
             let lastToken = tokens[tokens.length - 1];
             if (lastToken && charInArr(lastToken.tokenValue,['true','false']))
                 lastToken.tokenType = Token.TYPE.BOOLEAN;
 
+            if (charInArr(char, ['"',"'"])) isStringCurrent = false;
+
             if (
-                charInArr(char, Token.ALL_SPECIAL_SYMBOLS)
+                charInArr(char, Token.ALL_SPECIAL_SYMBOLS) && !isStringCurrent
             ) {
                 t = new Token(Token.TYPE.OPERATOR, char);
                 tokens.push(t);
@@ -95,7 +98,10 @@ class Lexer {
                 } else {
                     let type;
                     if(isNumber(char)) type = Token.TYPE.DIGIT;
-                    else if (charInArr(char,['"',"'"])) type = Token.TYPE.STRING;
+                    else if (charInArr(char,['"',"'"])) {
+                        type = Token.TYPE.STRING;
+                        isStringCurrent = true;
+                    }
                     else type = Token.TYPE.VARIABLE;
                     t = new Token(type,char);
                     tokens.push(t);
