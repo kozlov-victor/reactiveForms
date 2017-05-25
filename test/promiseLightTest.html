@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../src/lib/miscModules/promiseLight.js"></script>
+    <script src="../src/lib/utils/miscUtils.js"></script>
+    <style>
+        .item {
+            color: white;
+            padding: 5px;
+            margin: 5px;
+        }
+        .success {
+            background-color: #dff9df;
+            color: black;
+        }
+        .error {
+            background-color: #d1232f;
+            color: white;
+        }
+    </style>
+    <script>
+        let toStr = (a)=>{
+            if (typeof a == 'object') return JSON.stringify(a);
+            return a.toString();
+        };
+        let showResult = (a,b,isSuccess)=>{
+            let msg = `
+                ${isSuccess?'ok====>':'failed====>'}
+                expected: ${toStr(b)}, received: ${toStr(a)}
+            `;
+            let item = document.createElement('div');
+            item.textContent = msg;
+            item.className = `item ${isSuccess?'success':'error'}`;
+            document.body.appendChild(item);
+        };
+
+        let assertEqual = (a,b)=>{
+            if (MiscUtils.deepEqual(a,b)) {
+                showResult(a,b,true);
+            }
+            else {
+                showResult(a,b,false);
+            }
+        };
+    </script>
+</head>
+<body>
+<script>
+    let arr = [];
+    PromiseLight.resolve(0).
+    then((data)=>{
+        console.log(data);
+        arr.push(data);
+        return 1;
+    }).
+    then((data)=>{
+        console.log(data);
+        arr.push(data);
+        return 2;
+    }).
+    then((data)=>{
+        console.log(data);
+        arr.push(data);
+        return new PromiseLight((resolve,reject)=>{
+            setTimeout(function(){resolve(3)},200)
+        });
+    }).
+    then((data)=>{
+        console.log(data);
+        arr.push(data);
+        return 4;
+    }).
+    then((data)=>{
+            console.log(data);
+            arr.push(data);
+            return 5;
+        }
+    ).
+    then((data)=>{
+        console.log(data);
+        arr.push(data);
+        return new PromiseLight((resolve)=>{
+            setTimeout(function(){resolve(6)},200)
+        });
+    }).
+    then((data)=>{
+        console.log(data);
+        arr.push(data);
+        return new PromiseLight((resolve)=>{
+            setTimeout(function(){resolve(7)},200)
+        });
+    }).
+    then((data)=>{
+            console.log(data);
+            arr.push(data);
+            return new PromiseLight((resolve)=>{
+                setTimeout(function(){resolve(8)},200)
+            });
+        }
+    ).
+    then((data)=>{
+            console.log(data);
+            arr.push(data);
+            return 9;
+        }
+    ).
+    then((data)=>{
+        console.log(data);
+        arr.push(data);
+        return new PromiseLight((resolve)=>{
+            setTimeout(function(){resolve(10)},2)
+        });
+    }).
+    then((data)=>{
+            console.log(data);
+        arr.push(data);
+        }
+    ).
+    then(()=>{
+        return new PromiseLight((resolve,reject)=>{
+            setTimeout(function(){reject('error')},2)
+        });
+    }).
+    then((data)=>{
+            console.log('not be invoked');
+            arr.push(data);
+        }
+    ).
+    catch((data)=>{
+            console.log(data);
+            arr.push(data);
+            assertEqual(
+                arr,[0,1,2,3,4,5,6,7,8,9,10,'error']
+            );
+        }
+    );
+</script>
+</body>
+</html>
