@@ -79,6 +79,7 @@ let __showPage = (pageName,params)=>{
     if (lastPageItem) {
         lastPageItem.component.modelView.onHide();
         lastPageItem.component.modelView.onUnmount();
+        lastPageItem.component.setWatch(false);
         DomUtils.nodeListToArray(routeNode.childNodes).forEach(el=>{
             lastPageItem.component.node.appendChild(el);
         });
@@ -88,6 +89,7 @@ let __showPage = (pageName,params)=>{
     if (!lastPageItem.component) {
         let componentNode = lastPageItem.componentProto.node.cloneNode(true);
         lastPageItem.component = lastPageItem.componentProto.newInstance(componentNode,{});
+        lastPageItem.component.setWatch(true);
         lastPageItem.component.run();
         lastPageItem.component.modelView.onShow(params);
         delete lastPageItem.componentProto;

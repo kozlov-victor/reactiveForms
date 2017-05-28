@@ -11,6 +11,7 @@ class Component {
         this.id = MiscUtils.getUID();
         this.domId = null;
         this.node.setAttribute('data-component-id',this.id);
+        this.isWatchEnable = true;
         DomUtils.nodeListToArray(this.node.querySelectorAll('*')).forEach(el=>{
             el.setAttribute('data-component-id',this.id);
         });
@@ -21,6 +22,10 @@ class Component {
     addChild(childComponent) {
         if (!this.children) this.children = [];
         this.children.push(childComponent);
+    }
+
+    setWatch(isWatchEnable) {
+        this.isWatchEnable = isWatchEnable;
     }
 
     addWatcher(expression, listenerFn) {
@@ -34,6 +39,7 @@ class Component {
     }
 
     digest() {
+        if (!this.isWatchEnable) return;
         this.watchers.forEach(watcher => {
             let newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, this);
             let oldValue = watcher.last;

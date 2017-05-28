@@ -28,6 +28,8 @@ class Core{
         let modelView = new ModelView(null,properties);
         let fragment = new ScopedDomFragment(domElement,modelView);
         fragment.run();
+        modelView.onMount();
+        return fragment;
     };
 
     static digest(){

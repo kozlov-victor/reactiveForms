@@ -176,6 +176,7 @@
             this.id = MiscUtils.getUID();
             this.domId = null;
             this.node.setAttribute("data-component-id", this.id);
+            this.isWatchEnable = true;
             DomUtils.nodeListToArray(this.node.querySelectorAll("*")).forEach(function(el) {
                 el.setAttribute("data-component-id", _this.id);
             });
@@ -185,6 +186,9 @@
         Component.prototype.addChild = function(childComponent) {
             if (!this.children) this.children = [];
             this.children.push(childComponent);
+        };
+        Component.prototype.setWatch = function(isWatchEnable) {
+            this.isWatchEnable = isWatchEnable;
         };
         Component.prototype.addWatcher = function(expression, listenerFn) {
             var watcherFn = ExpressionEngine.getExpressionFn(expression);
@@ -197,7 +201,7 @@
         };
         Component.prototype.digest = function() {
             var _this2 = this;
-            this.watchers.forEach(function(watcher) {
+            if (this.isWatchEnable) this.watchers.forEach(function(watcher) {
                 var newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this2), oldValue = watcher.last, newValDeepCopy = MiscUtils.deepCopy(newValue);
                 if (!MiscUtils.deepEqual(newValDeepCopy, oldValue)) watcher.listenerFn(newValue, oldValue);
                 watcher.last = newValDeepCopy;
@@ -276,7 +280,7 @@
             _classCallCheck(this, ModelView);
             this.name = componentName || "";
             this.initialProperties = properties;
-            this.externalProperties = MiscUtils.deepCopy(externalProperties);
+            this.externalProperties = externalProperties;
             this.resetState({
                 warnRedefined: true
             });
@@ -1228,13 +1232,15 @@
             _classCallCheck(this, Lexer);
         }
         Lexer.tokenize = function(expression) {
-            var isEndWithSemicolon = expression[expression.length - 1] == Token.SYMBOL.SEMICOLON, tokens = [], t = void 0, lastChar = "";
+            var isStringCurrent, isEndWithSemicolon = expression[expression.length - 1] == Token.SYMBOL.SEMICOLON, tokens = [], t = void 0, lastChar = "";
             expression = expression.trim();
             if (!isEndWithSemicolon) expression += Token.SYMBOL.SEMICOLON;
+            isStringCurrent = void 0;
             expression.split("").forEach(function(char, i) {
                 var type, lastToken = tokens[tokens.length - 1];
                 if (lastToken && charInArr(lastToken.tokenValue, [ "true", "false" ])) lastToken.tokenType = Token.TYPE.BOOLEAN;
-                if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS)) {
+                if (charInArr(char, [ '"', "'" ])) isStringCurrent = false;
+                if (charInArr(char, Token.ALL_SPECIAL_SYMBOLS) && !isStringCurrent) {
                     t = new Token(Token.TYPE.OPERATOR, char);
                     tokens.push(t);
                     lastChar = char;
@@ -1244,7 +1250,10 @@
                     if (lastToken && lastToken.tokenType != Token.TYPE.STRING && " " == char) return;
                     if (lastToken && (lastToken.tokenType == Token.TYPE.DIGIT || lastToken.tokenType == Token.TYPE.VARIABLE || lastToken.tokenType == Token.TYPE.STRING)) lastToken.tokenValue += char; else {
                         type = void 0;
-                        if (isNumber(char)) type = Token.TYPE.DIGIT; else if (charInArr(char, [ '"', "'" ])) type = Token.TYPE.STRING; else type = Token.TYPE.VARIABLE;
+                        if (isNumber(char)) type = Token.TYPE.DIGIT; else if (charInArr(char, [ '"', "'" ])) {
+                            type = Token.TYPE.STRING;
+                            isStringCurrent = true;
+                        } else type = Token.TYPE.VARIABLE;
                         t = new Token(type, char);
                         tokens.push(t);
                     }
@@ -1362,6 +1371,7 @@
         if (lastPageItem) {
             lastPageItem.component.modelView.onHide();
             lastPageItem.component.modelView.onUnmount();
+            lastPageItem.component.setWatch(false);
             DomUtils.nodeListToArray(routeNode.childNodes).forEach(function(el) {
                 lastPageItem.component.node.appendChild(el);
             });
@@ -1371,6 +1381,7 @@
         if (!lastPageItem.component) {
             var componentNode = lastPageItem.componentProto.node.cloneNode(true);
             lastPageItem.component = lastPageItem.componentProto.newInstance(componentNode, {});
+            lastPageItem.component.setWatch(true);
             lastPageItem.component.run();
             lastPageItem.component.modelView.onShow(params);
             delete lastPageItem.componentProto;
@@ -1448,6 +1459,8 @@
             modelView = new ModelView(null, properties);
             fragment = new ScopedDomFragment(domElement, modelView);
             fragment.run();
+            modelView.onMount();
+            return fragment;
         };
         Core.digest = function() {
             Component.digestAll();
@@ -1466,7 +1479,7 @@
         };
         return Core;
     }();
-    Core.version = "0.7.7";
+    Core.version = "0.7.9";
     window.RF = Core;
     window.RF.Router = Router;
 }();

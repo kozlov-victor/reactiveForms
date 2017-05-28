@@ -8,7 +8,7 @@ class ModelView{
     constructor(componentName,properties = {},externalProperties = {}){
         this.name = componentName || '';
         this.initialProperties = properties;
-        this.externalProperties = MiscUtils.deepCopy(externalProperties);
+        this.externalProperties = externalProperties;
         this.resetState({warnRedefined:true});
 
         this.onShow = this.onShow || noop;
