@@ -157,6 +157,7 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
+        self;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -232,6 +233,16 @@
             if (this.children) this.children.forEach(function(c) {
                 c.destroy();
             });
+        };
+        Component.prototype.getComponentsByName = function(name) {
+            return this.children && this.children.filter(function(child) {
+                return child.name == name;
+            });
+        };
+        Component.prototype.getComponentById = function(id) {
+            return this.children && this.children.filter(function(child) {
+                return child.domId == id;
+            })[0];
         };
         Component.digestAll = function() {
             Component.instances.forEach(function(cmp) {
@@ -515,6 +526,9 @@
                 break;
 
               case "select":
+                el.value = value;
+                break;
+
               case "textarea":
                 el.value = value;
             }
@@ -543,6 +557,8 @@
                 break;
 
               case "select":
+                return el.value;
+
               case "textarea":
                 return el.value;
             }
@@ -554,6 +570,8 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
+                    return "click";
+
                   case "radio":
                     return "click";
 
@@ -585,7 +603,7 @@
         // todo ie8 in emulation mode has classList, but it is uncorrect
         DomUtils.toggleClass = function(el, className, isAdd) {
             if (!el.classList) if (isAdd) {
-                if (-1 == el.className.indexOf(className)) el.className += " " + className;
+                if (el.className.indexOf(className) == -1) el.className += " " + className;
             } else {
                 var reg = new RegExp("(\\s|^)" + className + "(\\s|$)");
                 el.className = el.className.replace(reg, " ");
@@ -760,7 +778,7 @@
                 var tokens, variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, closestTransclusionEl = el.closest("[data-transclusion]");
                 if (closestTransclusionEl && !closestTransclusionEl.getAttribute("data-_processed")) return false;
                 tokens = expression.split(" ");
-                if (-1 == [ "in", "of" ].indexOf(tokens[1])) throw "can not parse expression " + expression;
+                if ([ "in", "of" ].indexOf(tokens[1]) == -1) throw "can not parse expression " + expression;
                 variables = Lexer.tokenize(tokens[0]).filter(function(t) {
                     return [ Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY ].indexOf(t.tokenType) > -1;
                 }).map(function(t) {
@@ -997,9 +1015,11 @@
                                 throw dataTransclusion + " attribute can not be empty";
                             }
                             recipients = DomUtils.nodeListToArray(domEl.querySelectorAll("[" + dataTransclusion + "=" + name + "]")).filter(function(el) {
-                                if (!!(el.parentNode && el.parentNode.closest("[" + dataTransclusion + "=" + name + "]"))) {
-                                    console.error(domEls);
-                                    throw "transclusion name conflict: dont use same transclusion name at different components";
+                                var closestWithSameName = el.parentNode && el.parentNode.closest("[" + dataTransclusion + "=" + name + "]");
+                                if (!!closestWithSameName) {
+                                    console.error(domEl);
+                                    console.error(closestWithSameName);
+                                    throw "transclusion name conflict: dont use same transclusion name at different components. Conflicted name: " + name;
                                 }
                                 return true;
                             });
@@ -1057,7 +1077,7 @@
                     var name, value, resultExpArr, resultExpr;
                     if (attr) {
                         name = attr.name, value = attr.value;
-                        if (-1 != value.indexOf("{{") || -1 != value.indexOf("}}")) {
+                        if (value.indexOf("{{") != -1 || value.indexOf("}}") != -1) {
                             value = value.split(/[\n\t]|[\s]{2,}/).join(" ").trim();
                             resultExpArr = [], resultExpr = "";
                             value.split(DomUtils.EXPRESSION_REGEXP).forEach(function(token) {
@@ -1495,7 +1515,7 @@
         };
         return Core;
     }();
-    Core.version = "0.7.10";
+    Core.version = "0.7.11";
     window.RF = Core;
     window.RF.Router = Router;
 }();

@@ -353,8 +353,9 @@ class DirectiveEngine {
                         filter(el=>{
                             let closestWithSameName = el.parentNode && el.parentNode.closest(`[${dataTransclusion}=${name}]`);
                             if (!!closestWithSameName) {
-                                console.error(domEls);
-                                throw `transclusion name conflict: dont use same transclusion name at different components`;
+                                console.error(domEl);
+                                console.error(closestWithSameName);
+                                throw `transclusion name conflict: dont use same transclusion name at different components. Conflicted name: ${name}`;
                             }
                             return true;
                         });

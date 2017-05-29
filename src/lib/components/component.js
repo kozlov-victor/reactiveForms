@@ -83,6 +83,18 @@ class Component {
         }
     }
 
+    getComponentsByName(name){
+        return this.children && this.children.filter(child=>{
+            return child.name==name;
+        });
+    }
+
+    getComponentById(id){
+        return this.children && this.children.filter(child=>{
+            return child.domId==id;
+        })[0];
+    }
+
     static digestAll() {
         Component.instances.forEach(cmp => {
             cmp.digest();
