@@ -157,7 +157,6 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
-        self;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -177,6 +176,7 @@
             this.domId = null;
             this.node.setAttribute("data-component-id", this.id);
             this.isWatchEnable = true;
+            this.stateExpression = null;
             DomUtils.nodeListToArray(this.node.querySelectorAll("*")).forEach(function(el) {
                 el.setAttribute("data-component-id", _this.id);
             });
@@ -189,6 +189,9 @@
         };
         Component.prototype.setWatch = function(isWatchEnable) {
             this.isWatchEnable = isWatchEnable;
+            if (this.children) this.children.forEach(function(c) {
+                c.isWatchEnable = isWatchEnable;
+            });
         };
         Component.prototype.addWatcher = function(expression, listenerFn) {
             var watcherFn = ExpressionEngine.getExpressionFn(expression);
@@ -199,13 +202,25 @@
             });
             listenerFn(ExpressionEngine.runExpressionFn(watcherFn, this));
         };
+        Component.prototype._updateExternalState = function() {
+            var newExternalState, _this2 = this;
+            if (this.stateExpression) {
+                newExternalState = ExpressionEngine.executeExpression(this.stateExpression, this.parent);
+                Object.keys(newExternalState).forEach(function(key) {
+                    if (_this2.modelView[key] !== newExternalState[key]) _this2.modelView[key] = newExternalState[key];
+                });
+            }
+        };
         Component.prototype.digest = function() {
-            var _this2 = this;
-            if (this.isWatchEnable) this.watchers.forEach(function(watcher) {
-                var newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this2), oldValue = watcher.last, newValDeepCopy = MiscUtils.deepCopy(newValue);
-                if (!MiscUtils.deepEqual(newValDeepCopy, oldValue)) watcher.listenerFn(newValue, oldValue);
-                watcher.last = newValDeepCopy;
-            });
+            var _this3 = this;
+            if (this.isWatchEnable) {
+                this._updateExternalState();
+                this.watchers.forEach(function(watcher) {
+                    var newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this3), oldValue = watcher.last, newValDeepCopy = MiscUtils.deepCopy(newValue);
+                    if (!MiscUtils.deepEqual(newValDeepCopy, oldValue)) watcher.listenerFn(newValue, oldValue);
+                    watcher.last = newValDeepCopy;
+                });
+            }
         };
         Component.prototype.run = function() {
             new DirectiveEngine(this).run();
@@ -257,8 +272,9 @@
             this.properties = properties;
         }
         ComponentProto.prototype.newInstance = function(node, externalProperties) {
-            var modelView = new ModelView(this.name, this.properties, externalProperties);
-            return new Component(this.name, node, modelView);
+            var modelView = new ModelView(this.name, this.properties, externalProperties), cmp = new Component(this.name, node, modelView);
+            modelView.component = cmp;
+            return cmp;
         };
         ComponentProto.getByName = function(name) {
             return ComponentProto.instances.filter(function(it) {
@@ -281,6 +297,7 @@
             this.name = componentName || "";
             this.initialProperties = properties;
             this.externalProperties = externalProperties;
+            this.component = null;
             this.resetState({
                 warnRedefined: true
             });
@@ -301,6 +318,7 @@
             this._applyState(this.externalProperties, {
                 strict: true
             });
+            this.component && this.component._updateExternalState();
         };
         ModelView.prototype._applyState = function() {
             var _this = this, properties = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}, opts = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {}, strict = opts.strict;
@@ -497,9 +515,6 @@
                 break;
 
               case "select":
-                el.value = value;
-                break;
-
               case "textarea":
                 el.value = value;
             }
@@ -528,8 +543,6 @@
                 break;
 
               case "select":
-                return el.value;
-
               case "textarea":
                 return el.value;
             }
@@ -541,8 +554,6 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
-                    return "click";
-
                   case "radio":
                     return "click";
 
@@ -571,10 +582,14 @@
         DomUtils.setTextNodeValue = function(el, value) {
             if ("textContent" in el) el.textContent = value; else el.nodeValue = value;
         };
+        // todo ie8 in emulation mode has classList, but it is uncorrect
         DomUtils.toggleClass = function(el, className, isAdd) {
             if (!el.classList) if (isAdd) {
-                if (el.className.indexOf(className) == -1) el.className += " " + className;
-            } else el.className = el.className.split(className).join(" "); else el.classList.toggle(className, isAdd);
+                if (-1 == el.className.indexOf(className)) el.className += " " + className;
+            } else {
+                var reg = new RegExp("(\\s|^)" + className + "(\\s|$)");
+                el.className = el.className.replace(reg, " ");
+            } else el.classList.toggle(className, isAdd);
         };
         DomUtils.nodeListToArray = function(nodeList) {
             var i, arr = [];
@@ -745,7 +760,7 @@
                 var tokens, variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, closestTransclusionEl = el.closest("[data-transclusion]");
                 if (closestTransclusionEl && !closestTransclusionEl.getAttribute("data-_processed")) return false;
                 tokens = expression.split(" ");
-                if ([ "in", "of" ].indexOf(tokens[1]) == -1) throw "can not parse expression " + expression;
+                if (-1 == [ "in", "of" ].indexOf(tokens[1])) throw "can not parse expression " + expression;
                 variables = Lexer.tokenize(tokens[0]).filter(function(t) {
                     return [ Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY ].indexOf(t.tokenType) > -1;
                 }).map(function(t) {
@@ -774,15 +789,15 @@
             this._eachElementWithAttr("data-" + eventName, function(el, expression) {
                 var fn = ExpressionEngine.getExpressionFn(expression);
                 DomUtils.addEventListener(el, eventName, function(e) {
-                    if (false) {
-                        e = e || window.e;
-                        e.preventDefault && e.preventDefault();
-                        e.stopPropagation && e.stopPropagation();
-                        e.cancelBubble = true;
-                    }
+                    // todo!
+                    // if (shouldPreventDefault) {
+                    //     e = e || window.e;
+                    //     e.preventDefault && e.preventDefault();
+                    //     e.stopPropagation && e.stopPropagation();
+                    //     e.cancelBubble = true;
+                    // }
                     ExpressionEngine.runExpressionFn(fn, _this3.component);
                     Component.digestAll();
-                    if (false) return false;
                 });
             });
         };
@@ -960,7 +975,7 @@
                 }
                 componentNodes = [];
                 domEls.forEach(function(domEl) {
-                    var dataTransclusion, hasNotTranscluded, domId, componentNode, dataStateAttr, dataState, component;
+                    var dataTransclusion, hasNotTranscluded, domId, componentNode, dataStateExpression, dataState, component;
                     if (!domEl.getAttribute("data-_processed")) {
                         domEl.setAttribute("data-_processed", "1");
                         dataTransclusion = "data-transclusion";
@@ -997,15 +1012,16 @@
                             });
                         });
                         domEl.parentNode.insertBefore(componentNode, domEl);
-                        dataStateAttr = domEl.getAttribute("data-state");
-                        dataState = dataStateAttr ? ExpressionEngine.executeExpression(dataStateAttr, _this14.component) : {};
+                        dataStateExpression = domEl.getAttribute("data-state");
+                        dataState = dataStateExpression ? ExpressionEngine.executeExpression(dataStateExpression, _this14.component) : {};
                         component = componentProto.newInstance(componentNode, dataState);
                         domId && (component.domId = domId);
-                        component.run();
                         component.parent = _this14.component;
                         component.parent.addChild(component);
+                        if (dataStateExpression) component.stateExpression = dataStateExpression;
                         component.disableParentScopeEvaluation = true;
                         // avoid recursion in Component
+                        component.run();
                         domEl.parentNode.removeChild(domEl);
                         componentNodes.push({
                             component: component,
@@ -1041,7 +1057,7 @@
                     var name, value, resultExpArr, resultExpr;
                     if (attr) {
                         name = attr.name, value = attr.value;
-                        if (value.indexOf("{{") != -1 || value.indexOf("}}") != -1) {
+                        if (-1 != value.indexOf("{{") || -1 != value.indexOf("}}")) {
                             value = value.split(/[\n\t]|[\s]{2,}/).join(" ").trim();
                             resultExpArr = [], resultExpr = "";
                             value.split(DomUtils.EXPRESSION_REGEXP).forEach(function(token) {
@@ -1479,7 +1495,7 @@
         };
         return Core;
     }();
-    Core.version = "0.7.9";
+    Core.version = "0.7.10";
     window.RF = Core;
     window.RF.Router = Router;
 }();

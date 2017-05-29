@@ -59,17 +59,16 @@ class DirectiveEngine {
         this._eachElementWithAttr('data-'+eventName,(el,expression)=>{
             let fn = ExpressionEngine.getExpressionFn(expression);
             DomUtils.addEventListener(el,eventName,e=>{
-                // todo!!!
-                let shouldPreventDefault = false && ['keypress','keydown'].indexOf(eventName)==-1;
-                if (shouldPreventDefault) {
-                    e = e || window.e;
-                    e.preventDefault && e.preventDefault();
-                    e.stopPropagation && e.stopPropagation();
-                    e.cancelBubble = true;
-                }
+                // todo!
+                // if (shouldPreventDefault) {
+                //     e = e || window.e;
+                //     e.preventDefault && e.preventDefault();
+                //     e.stopPropagation && e.stopPropagation();
+                //     e.cancelBubble = true;
+                // }
                 ExpressionEngine.runExpressionFn(fn,this.component);
                 Component.digestAll();
-                if (shouldPreventDefault) return false;
+                //if (shouldPreventDefault) return false;
             });
         });
     };
@@ -367,16 +366,19 @@ class DirectiveEngine {
                 });
                 domEl.parentNode.insertBefore(componentNode,domEl);
 
-                let dataStateAttr = domEl.getAttribute('data-state');
-                let dataState = dataStateAttr?
-                    ExpressionEngine.executeExpression(dataStateAttr,this.component):{};
+                let dataStateExpression = domEl.getAttribute('data-state');
+                let dataState = dataStateExpression?
+                    ExpressionEngine.executeExpression(dataStateExpression,this.component):{};
                 let component = componentProto.newInstance(componentNode,dataState);
                 domId && (component.domId = domId);
 
-                component.run();
                 component.parent = this.component;
                 component.parent.addChild(component);
+                if (dataStateExpression) component.stateExpression = dataStateExpression;
                 component.disableParentScopeEvaluation = true; // avoid recursion in Component
+
+                component.run();
+
                 domEl.parentNode.removeChild(domEl);
                 componentNodes.push({component,componentNode});
             });

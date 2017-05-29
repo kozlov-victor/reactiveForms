@@ -9,7 +9,9 @@ class ComponentProto{
 
     newInstance(node, externalProperties){
         let modelView = new ModelView(this.name,this.properties,externalProperties);
-        return new Component(this.name,node,modelView);
+        let cmp =  new Component(this.name,node,modelView);
+        modelView.component = cmp;
+        return cmp;
     }
 
     static getByName(name){

@@ -155,6 +155,7 @@ class DomUtils {
         }
     }
 
+    // todo ie8 in emulation mode has classList, but it is uncorrect
     static toggleClass(el,className,isAdd) {
         if (el.classList) {
             el.classList.toggle(className,isAdd);
@@ -163,7 +164,8 @@ class DomUtils {
         if (isAdd) {
             if (el.className.indexOf(className)==-1) el.className+=` ${className}`;
         } else {
-            el.className = el.className.split(className).join(' ');
+            let reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
+            el.className=el.className.replace(reg, ' ');
         }
     }
 

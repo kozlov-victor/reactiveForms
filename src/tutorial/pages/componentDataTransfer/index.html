@@ -1,0 +1,16 @@
+
+
+<div id="app">
+
+    user.name: {{user && user.name}}
+    <button data-click="changeUserName()">changeUserName</button>
+    <button data-click="changeUserObject()">changeUserObject</button>
+
+    <app-component
+        data-state="{
+            model: user,
+            field: 'name'
+        }"
+    ></app-component>
+</div>
+

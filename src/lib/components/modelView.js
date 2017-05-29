@@ -9,6 +9,7 @@ class ModelView{
         this.name = componentName || '';
         this.initialProperties = properties;
         this.externalProperties = externalProperties;
+        this.component = null;
         this.resetState({warnRedefined:true});
 
         this.onShow = this.onShow || noop;
@@ -25,6 +26,7 @@ class ModelView{
         initialState && (initialState = MiscUtils.deepCopy(initialState));
         initialState && this._applyState(initialState,{warnRedefined});
         this._applyState(this.externalProperties,{strict:true});
+        this.component && this.component._updateExternalState();
     }
 
     _applyState(properties = {},opts = {}){

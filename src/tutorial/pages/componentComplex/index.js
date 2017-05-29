@@ -5,7 +5,7 @@ var applicationModel = {
         name: 'defaultUserName',
         power: 100,
         karmaLevel: 42,
-        calculateSkill(){
+        calculateSkill: function(){
             return +this.power + +this.karmaLevel;
         }
     }

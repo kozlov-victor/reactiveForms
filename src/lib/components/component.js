@@ -12,6 +12,7 @@ class Component {
         this.domId = null;
         this.node.setAttribute('data-component-id',this.id);
         this.isWatchEnable = true;
+        this.stateExpression = null;
         DomUtils.nodeListToArray(this.node.querySelectorAll('*')).forEach(el=>{
             el.setAttribute('data-component-id',this.id);
         });
@@ -26,6 +27,11 @@ class Component {
 
     setWatch(isWatchEnable) {
         this.isWatchEnable = isWatchEnable;
+        if (this.children) {
+            this.children.forEach(c=>{
+                c.isWatchEnable = isWatchEnable;
+            });
+        }
     }
 
     addWatcher(expression, listenerFn) {
@@ -38,8 +44,19 @@ class Component {
         listenerFn(ExpressionEngine.runExpressionFn(watcherFn, this));
     }
 
+    _updateExternalState(){
+        if (!this.stateExpression) return;
+        let newExternalState = ExpressionEngine.executeExpression(this.stateExpression,this.parent);
+        Object.keys(newExternalState).forEach(key=>{
+            if (this.modelView[key]!==newExternalState[key])
+                this.modelView[key]=newExternalState[key];
+        });
+    }
+
     digest() {
         if (!this.isWatchEnable) return;
+
+        this._updateExternalState();
         this.watchers.forEach(watcher => {
             let newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, this);
             let oldValue = watcher.last;
@@ -49,11 +66,6 @@ class Component {
             }
             watcher.last = newValDeepCopy;
         });
-        // if (this.children) { // todo need??
-        //     this.children.forEach(c=>{
-        //         c.digest();
-        //     });
-        // }
     };
 
     run() {

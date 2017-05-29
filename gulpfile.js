@@ -36,7 +36,7 @@ gulp.task('engine', ()=> {
     let debug = !argv.prod;
     return (
         gulp.src([
-            'src/lib/polifils/*.js',
+            'src/lib/polyfills/*.js',
             'src/lib/components/*.js',
             'src/lib/utils/*.js',
             'src/lib/engines/*.js',
