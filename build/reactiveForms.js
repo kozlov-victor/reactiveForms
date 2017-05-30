@@ -1102,7 +1102,7 @@
             this.runTextNodes();
             this.runDirective_Model();
             // todo check event sequence in legacy browsers
-            [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown" ].forEach(function(eventName) {
+            [ "click", "blur", "focus", "submit", "change", "keypress", "keyup", "keydown", "input" ].forEach(function(eventName) {
                 _this16.runDomEvent(eventName);
             });
             this.runDirective_Bind();

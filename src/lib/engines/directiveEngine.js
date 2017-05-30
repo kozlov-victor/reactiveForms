@@ -446,7 +446,8 @@ class DirectiveEngine {
         [
             'click','blur','focus',
             'submit','change',
-            'keypress','keyup','keydown'
+            'keypress','keyup','keydown',
+            'input'
 
         ].forEach(eventName =>{
             this.runDomEvent(eventName);
