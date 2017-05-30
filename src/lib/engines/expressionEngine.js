@@ -48,6 +48,9 @@ class ExpressionEngine {
         }
 
     }
+
+    // todo cache compiled functions
+
     static runExpressionFn(fn,component){
         try {
             return fn.call(component.modelView,component,RF_API);
@@ -66,19 +69,26 @@ class ExpressionEngine {
     }
 
     /**
-     * expression = 'user.name' object[field] = value
+     * i.e.
+     * object[field] = value
+     * object.field = value
+     * object['field'] = value
      */
     static setValueToContext(component,expression,value){
         let fn = null;
         try {
-            let code = Lexer.convertExpression(
-                expression,
-                `${RF_API_STR}.getVal(component,'{expr}')`
-            );
-            code = `${RF_API_STR}.setVal(${code},value)`;
-            fn = new Function('component',`${RF_API_STR}`,'value',code);
+            let exprTokens = expression.split(/(\..[_$a-zA-Z0-9]+)|(\[.+])/).filter(it=>{return !!it;});
+            let lastToken = exprTokens.pop();
+            if (lastToken.indexOf('[')==0) {
+                lastToken = lastToken.replace('[','').replace(']','');
+                lastToken = Lexer.convertExpression(lastToken,`${RF_API_STR}.getVal(component,'{expr}')`);
+                lastToken = `[${lastToken}]`;
+            }
+            expression = exprTokens.join('');
+            expression = Lexer.convertExpression(expression,`${RF_API_STR}.getVal(component,'{expr}')`);
+            expression = `${expression}${lastToken}=value`;
+            let fn = new Function('component',`${RF_API_STR}`,'value',expression);
             fn(component,RF_API,value);
-            // 'a[d].val[a]'.split(/\.(.[_$a-zA-Z]+)|(\[.?\])/)
         } catch(e){
             console.error('setting value error');
             console.error('current component',component);
