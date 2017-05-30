@@ -1,6 +1,6 @@
 !function() {
     "use strict";
-    var ElementPrototype, Component, ComponentProto, noop, ModelView, ScopedDomFragment, ScopedLoopContainer, DomUtils, MiscUtils, cnt, TemplateLoader, DirectiveEngine, _getValByPath, getVal, external, ExpressionEngine, Token, Lexer, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, lastPageItem, __showPage, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+    var ElementPrototype, Component, ComponentProto, noop, ModelView, ScopedDomFragment, ScopedLoopContainer, DomUtils, MiscUtils, cnt, TemplateLoader, DirectiveEngine, getRef, _getValByPath, getVal, setVal, RF_API, RF_API_STR, ExpressionEngine, Token, Lexer, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, lastPageItem, __showPage, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
@@ -157,7 +157,6 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
-        self;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -526,9 +525,6 @@
                 break;
 
               case "select":
-                el.value = value;
-                break;
-
               case "textarea":
                 el.value = value;
             }
@@ -557,8 +553,6 @@
                 break;
 
               case "select":
-                return el.value;
-
               case "textarea":
                 return el.value;
             }
@@ -570,8 +564,6 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
-                    return "click";
-
                   case "radio":
                     return "click";
 
@@ -603,7 +595,7 @@
         // todo ie8 in emulation mode has classList, but it is uncorrect
         DomUtils.toggleClass = function(el, className, isAdd) {
             if (!el.classList) if (isAdd) {
-                if (el.className.indexOf(className) == -1) el.className += " " + className;
+                if (-1 == el.className.indexOf(className)) el.className += " " + className;
             } else {
                 var reg = new RegExp("(\\s|^)" + className + "(\\s|$)");
                 el.className = el.className.replace(reg, " ");
@@ -778,7 +770,7 @@
                 var tokens, variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, closestTransclusionEl = el.closest("[data-transclusion]");
                 if (closestTransclusionEl && !closestTransclusionEl.getAttribute("data-_processed")) return false;
                 tokens = expression.split(" ");
-                if ([ "in", "of" ].indexOf(tokens[1]) == -1) throw "can not parse expression " + expression;
+                if (-1 == [ "in", "of" ].indexOf(tokens[1])) throw "can not parse expression " + expression;
                 variables = Lexer.tokenize(tokens[0]).filter(function(t) {
                     return [ Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY ].indexOf(t.tokenType) > -1;
                 }).map(function(t) {
@@ -838,7 +830,7 @@
                 component = Component.getComponentByInternalId(selectedEl.getAttribute("data-component-id"));
                 if (component && dataValueAttr) val.push(ExpressionEngine.executeExpression(dataValueAttr, component)); else val.push(selectedEl.getAttribute("value"));
             });
-            ExpressionEngine.setValueToContext(this.component.modelView, modelExpression, isMultiple ? val : val[0]);
+            ExpressionEngine.setValueToContext(this.component, modelExpression, isMultiple ? val : val[0]);
         };
         DirectiveEngine.prototype.runDirective_Model = function() {
             var _this5 = this;
@@ -849,7 +841,7 @@
                         _this5._runDirective_Model_OfSelect(el, expression);
                         Component.digestAll();
                     }); else DomUtils.addEventListener(el, eventName, function(e) {
-                        ExpressionEngine.setValueToContext(_this5.component.modelView, expression, DomUtils.getInputValue(el));
+                        ExpressionEngine.setValueToContext(_this5.component, expression, DomUtils.getInputValue(el));
                         Component.digestAll();
                     });
                 });
@@ -1077,7 +1069,7 @@
                     var name, value, resultExpArr, resultExpr;
                     if (attr) {
                         name = attr.name, value = attr.value;
-                        if (value.indexOf("{{") != -1 || value.indexOf("}}") != -1) {
+                        if (-1 != value.indexOf("{{") || -1 != value.indexOf("}}")) {
                             value = value.split(/[\n\t]|[\s]{2,}/).join(" ").trim();
                             resultExpArr = [], resultExpr = "";
                             value.split(DomUtils.EXPRESSION_REGEXP).forEach(function(token) {
@@ -1126,6 +1118,20 @@
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
+    getRef = function(component, path) {
+        var keys = path.split("."), lastKey = keys.pop(), contextForPath = component.modelView, res = component.modelView;
+        keys.forEach(function(key) {
+            if (void 0 !== res) {
+                res = res[key];
+                if ("object" === (void 0 === res ? "undefined" : _typeof(res))) contextForPath = res;
+            }
+        });
+        if (void 0 !== res) return {
+            context: contextForPath,
+            model: res,
+            field: lastKey
+        };
+    };
     _getValByPath = function _getValByPath(component, path) {
         var keys = path.split("."), lastKey = keys.pop(), contextForPath = component.modelView, res = component.modelView;
         keys.forEach(function(key) {
@@ -1142,22 +1148,33 @@
     getVal = function(component, path) {
         return _getValByPath(component, path);
     };
-    external = {
-        getVal: getVal
+    (function(s) {
+        if (!s) return s; else return "string" == typeof s ? s.split('"').join("&quote;").split("'").join("&apos;") : s;
+    });
+    (function(s) {
+        if (!s) return s; else return "string" == typeof s ? s.split("&quote;").join('"').split("&apos;").join("'") : s;
+    });
+    setVal = function(obj, value) {
+        console.log(obj, value);
     };
+    RF_API = {
+        getVal: getVal,
+        setVal: setVal,
+        getRef: getRef
+    };
+    RF_API_STR = "__RF__";
     ExpressionEngine = function() {
         function ExpressionEngine() {
             _classCallCheck(this, ExpressionEngine);
         }
         ExpressionEngine.getExpressionFn = function(code) {
-            var codeProcessed, fn;
+            var codeProcessed, fn, unconvertedCodeTail = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "";
             code = code.split("\n").join("").split("'").join('"');
-            codeProcessed = "\n                return " + Lexer.convertExpression(code, "external.getVal(component,'{expr}')") + "\n        ";
+            codeProcessed = "\n                return " + Lexer.convertExpression(code, RF_API_STR + ".getVal(component,'{expr}')") + "\n        " + unconvertedCodeTail;
             try {
-                fn = new Function("component", "external", codeProcessed);
+                fn = new Function("component", "" + RF_API_STR, codeProcessed);
                 fn.expression = code;
                 fn.fnProcessed = fn.toString();
-                //console.log(fn.fnProcessed);
                 return fn;
             } catch (e) {
                 console.error("can not compile function from expression");
@@ -1167,7 +1184,7 @@
         };
         ExpressionEngine.runExpressionFn = function(fn, component) {
             try {
-                return fn.call(component.modelView, component, external);
+                return fn.call(component.modelView, component, RF_API);
             } catch (e) {
                 console.error("getting value error");
                 console.error("can not evaluate expression:" + fn.expression);
@@ -1183,16 +1200,22 @@
         /**
      * expression = 'user.name' object[field] = value
      */
-        ExpressionEngine.setValueToContext = function(context, expression, value) {
-            var fn, code = Lexer.convertExpression(expression, "context.{expr}") + "=value";
+        ExpressionEngine.setValueToContext = function(component, expression, value) {
+            var code, fn = null;
             try {
-                fn = new Function("context", "value", code);
-                fn(context, value);
+                // let codeTail = `=${RF_API_STR}.unescape("${RF_API.escape(value)}");`;
+                // let fn = ExpressionEngine.getExpressionFn(expression,codeTail);
+                // ExpressionEngine.runExpressionFn(fn,component);
+                code = Lexer.convertExpression(expression, RF_API_STR + ".getVal(component,'{expr}')");
+                code = RF_API_STR + ".setVal(" + code + ",value)";
+                console.log(code, fn);
+                fn = new Function("component", "" + RF_API_STR, "value", code);
+                fn(component, RF_API, value);
             } catch (e) {
                 console.error("setting value error");
+                console.error("current component", component);
                 console.error("can not evaluate expression:" + expression);
-                console.error("     at compiled function", code);
-                console.error("current context", context);
+                console.error(" at compiled fn:", fn);
                 console.error("desired value to set", value);
                 throw e;
             }

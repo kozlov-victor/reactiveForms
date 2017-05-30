@@ -1,4 +1,5 @@
 
+
 let _getValByPath = function(component, path) {
     let keys = path.split('.');
     let lastKey = keys.pop();
@@ -23,22 +24,22 @@ let _getValByPath = function(component, path) {
         return res;
     }
 };
-let getVal = function(component,path){
+let getVal = (component,path)=>{
     return _getValByPath(component,path);
 };
-let external = {getVal};
+let RF_API = {getVal};
+let RF_API_STR = '__RF__';
 
 class ExpressionEngine {
-    static getExpressionFn(code){
+    static getExpressionFn(code,unconvertedCodeTail = ''){
         code = code.split('\n').join('').split("'").join('"');
         let codeProcessed = `
-                return ${Lexer.convertExpression(code,"external.getVal(component,'{expr}')")}
-        `;
+                return ${Lexer.convertExpression(code,`${RF_API_STR}.getVal(component,'{expr}')`)}
+        ` + unconvertedCodeTail;
         try {
-            let fn = new Function('component','external',codeProcessed);
+            let fn = new Function('component',`${RF_API_STR}`,codeProcessed);
             fn.expression = code;
             fn.fnProcessed = fn.toString();
-            //console.log(fn.fnProcessed);
             return fn;
         } catch(e){
             console.error('can not compile function from expression');
@@ -49,7 +50,7 @@ class ExpressionEngine {
     }
     static runExpressionFn(fn,component){
         try {
-            return fn.call(component.modelView,component,external);
+            return fn.call(component.modelView,component,RF_API);
         } catch(e){
             console.error('getting value error');
             console.error('can not evaluate expression:' + fn.expression);
@@ -67,16 +68,22 @@ class ExpressionEngine {
     /**
      * expression = 'user.name' object[field] = value
      */
-    static setValueToContext(context,expression,value){
-        let code = Lexer.convertExpression(expression,'context.{expr}')+`=value`;
+    static setValueToContext(component,expression,value){
+        let fn = null;
         try {
-            let fn = new Function('context','value',code);
-            fn(context,value);
+            let code = Lexer.convertExpression(
+                expression,
+                `${RF_API_STR}.getVal(component,'{expr}')`
+            );
+            code = `${RF_API_STR}.setVal(${code},value)`;
+            fn = new Function('component',`${RF_API_STR}`,'value',code);
+            fn(component,RF_API,value);
+            // 'a[d].val[a]'.split(/\.(.[_$a-zA-Z]+)|(\[.?\])/)
         } catch(e){
             console.error('setting value error');
+            console.error('current component',component);
             console.error('can not evaluate expression:' + expression);
-            console.error('     at compiled function',code);
-            console.error('current context',context);
+            console.error(' at compiled fn:',fn);
             console.error('desired value to set',value);
             throw e;
         }

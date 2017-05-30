@@ -102,7 +102,7 @@ class DirectiveEngine {
                 val.push(selectedEl.getAttribute('value'));
             }
         });
-        ExpressionEngine.setValueToContext(this.component.modelView,modelExpression,isMultiple?val:val[0]);
+        ExpressionEngine.setValueToContext(this.component,modelExpression,isMultiple?val:val[0]);
     }
 
     runDirective_Model(){
@@ -118,7 +118,7 @@ class DirectiveEngine {
                     });
                 } else {
                     DomUtils.addEventListener(el,eventName,e=>{
-                        ExpressionEngine.setValueToContext(this.component.modelView,expression,DomUtils.getInputValue(el));
+                        ExpressionEngine.setValueToContext(this.component,expression,DomUtils.getInputValue(el));
                         Component.digestAll();
                     });
                 }

@@ -20,7 +20,10 @@
 
     <table>
         <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(item)" data-for="item,index in fruits">
-            <td><input data-model="fruits[index].name"></td>
+            <td>{{item.name}}</td>
+            <td><input data-model="item.name"></td>
+            <!--<td><input data-model="item['name']"></td>-->
+            <!--<td><input data-model="item.name"></td>-->
             <td><button data-click="remove(index)">-</button></td>
         </tr>
     </table>
