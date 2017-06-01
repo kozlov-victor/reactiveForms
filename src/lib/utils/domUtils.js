@@ -131,7 +131,7 @@ class DomUtils {
                 }
                 break;
             case 'select':
-                return 'change'; // DOMNodeRemoved
+                return 'change'; // todo DOMNodeRemoved
                 break;
             case 'textarea':
                 return 'keyup';

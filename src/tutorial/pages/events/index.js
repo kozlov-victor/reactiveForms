@@ -6,7 +6,8 @@ var evnts = [
     'submit',
     'keypress',
     'keyup',
-    'keydown'
+    'keydown',
+    'input'
 ];
 
 
