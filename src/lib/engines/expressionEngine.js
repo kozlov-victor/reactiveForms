@@ -31,6 +31,8 @@ let getVal = (component,path)=>{
 let RF_API = {getVal};
 let RF_API_STR = '__RF__';
 
+let cache = {};
+
 class ExpressionEngine {
     static getExpressionFn(code,unconvertedCodeTail = ''){
         code = code.split('\n').join('').split("'").join('"');
@@ -62,10 +64,12 @@ class ExpressionEngine {
             throw e;
         }
     }
-    // todo cache compiled functions
 
     static executeExpression(code,component){
-        let fn = ExpressionEngine.getExpressionFn(code);
+        let fn = cache[code];
+        if (!fn) {
+            fn = cache[code] = ExpressionEngine.getExpressionFn(code)
+        }
         return ExpressionEngine.runExpressionFn(fn,component);
     }
 
@@ -76,21 +80,23 @@ class ExpressionEngine {
      * object['field'] = value
      */
     static setValueToContext(component,expression,value){
-        let fn = null;
+        let fn = cache[expression];
         try {
-            let exprTokens = expression.split(/(\..[_$a-zA-Z0-9]+)|(\[.+])/).filter(it=>{return !!it;});
-            let lastToken = exprTokens.pop();
-            if (lastToken.indexOf('[')==0) {
-                lastToken = lastToken.replace('[','').replace(']','');
-                lastToken = Lexer.convertExpression(lastToken,`${RF_API_STR}.getVal(component,'{expr}')`);
-                lastToken = `[${lastToken}]`;
-            } else if (!exprTokens.length) {
-                lastToken = `.${lastToken}`;
+            if (!fn) {
+                let exprTokens = expression.split(/(\..[_$a-zA-Z0-9]+)|(\[.+])/).filter(it=>{return !!it;});
+                let lastToken = exprTokens.pop();
+                if (lastToken.indexOf('[')==0) {
+                    lastToken = lastToken.replace('[','').replace(']','');
+                    lastToken = Lexer.convertExpression(lastToken,`${RF_API_STR}.getVal(component,'{expr}')`);
+                    lastToken = `[${lastToken}]`;
+                } else if (!exprTokens.length) {
+                    lastToken = `.${lastToken}`;
+                }
+                expression = exprTokens.join('');
+                expression = Lexer.convertExpression(expression,`${RF_API_STR}.getVal(component,'{expr}')`);
+                expression = `${expression}${lastToken}=value`;
+                cache[expression] = fn = new Function('component',`${RF_API_STR}`,'value',expression);
             }
-            expression = exprTokens.join('');
-            expression = Lexer.convertExpression(expression,`${RF_API_STR}.getVal(component,'{expr}')`);
-            expression = `${expression}${lastToken}=value`;
-            let fn = new Function('component',`${RF_API_STR}`,'value',expression);
             fn(component,RF_API,value);
         } catch(e){
             console.error('setting value error');

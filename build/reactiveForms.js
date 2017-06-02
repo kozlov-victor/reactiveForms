@@ -1,6 +1,6 @@
 !function() {
     "use strict";
-    var ElementPrototype, Component, ComponentProto, noop, ModelView, ScopedDomFragment, ScopedLoopContainer, DomUtils, MiscUtils, cnt, TemplateLoader, DirectiveEngine, _getValByPath, getVal, RF_API, RF_API_STR, ExpressionEngine, Token, Lexer, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, lastPageItem, __showPage, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+    var ElementPrototype, Component, ComponentProto, noop, ModelView, ScopedDomFragment, ScopedLoopContainer, DomUtils, MiscUtils, cnt, TemplateLoader, DirectiveEngine, _getValByPath, getVal, RF_API, RF_API_STR, cache, ExpressionEngine, Token, Lexer, HashRouterStrategy, ManualRouterStrategy, RouterStrategyProvider, routeNode, lastPageItem, __showPage, Router, Core, _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
         return typeof obj;
     } : function(obj) {
         return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
@@ -1143,6 +1143,7 @@
         getVal: getVal
     };
     RF_API_STR = "__RF__";
+    cache = {};
     ExpressionEngine = function() {
         function ExpressionEngine() {
             _classCallCheck(this, ExpressionEngine);
@@ -1173,9 +1174,9 @@
                 throw e;
             }
         };
-        // todo cache compiled functions
         ExpressionEngine.executeExpression = function(code, component) {
-            var fn = ExpressionEngine.getExpressionFn(code);
+            var fn = cache[code];
+            if (!fn) fn = cache[code] = ExpressionEngine.getExpressionFn(code);
             return ExpressionEngine.runExpressionFn(fn, component);
         };
         /**
@@ -1185,27 +1186,29 @@
      * object['field'] = value
      */
         ExpressionEngine.setValueToContext = function(component, expression, value) {
-            var exprTokens, lastToken, _fn;
+            var exprTokens, lastToken, fn = cache[expression];
             try {
-                exprTokens = expression.split(/(\..[_$a-zA-Z0-9]+)|(\[.+])/).filter(function(it) {
-                    return !!it;
-                });
-                lastToken = exprTokens.pop();
-                if (0 == lastToken.indexOf("[")) {
-                    lastToken = lastToken.replace("[", "").replace("]", "");
-                    lastToken = Lexer.convertExpression(lastToken, RF_API_STR + ".getVal(component,'{expr}')");
-                    lastToken = "[" + lastToken + "]";
-                } else if (!exprTokens.length) lastToken = "." + lastToken;
-                expression = exprTokens.join("");
-                expression = Lexer.convertExpression(expression, RF_API_STR + ".getVal(component,'{expr}')");
-                expression = "" + expression + lastToken + "=value";
-                _fn = new Function("component", "" + RF_API_STR, "value", expression);
-                _fn(component, RF_API, value);
+                if (!fn) {
+                    exprTokens = expression.split(/(\..[_$a-zA-Z0-9]+)|(\[.+])/).filter(function(it) {
+                        return !!it;
+                    });
+                    lastToken = exprTokens.pop();
+                    if (0 == lastToken.indexOf("[")) {
+                        lastToken = lastToken.replace("[", "").replace("]", "");
+                        lastToken = Lexer.convertExpression(lastToken, RF_API_STR + ".getVal(component,'{expr}')");
+                        lastToken = "[" + lastToken + "]";
+                    } else if (!exprTokens.length) lastToken = "." + lastToken;
+                    expression = exprTokens.join("");
+                    expression = Lexer.convertExpression(expression, RF_API_STR + ".getVal(component,'{expr}')");
+                    expression = "" + expression + lastToken + "=value";
+                    cache[expression] = fn = new Function("component", "" + RF_API_STR, "value", expression);
+                }
+                fn(component, RF_API, value);
             } catch (e) {
                 console.error("setting value error");
                 console.error("current component", component);
                 console.error("can not evaluate expression:" + expression);
-                console.error(" at compiled fn:", null);
+                console.error(" at compiled fn:", fn);
                 console.error("desired value to set", value);
                 throw e;
             }
@@ -1511,6 +1514,7 @@
             fragment = new ScopedDomFragment(domElement, modelView);
             fragment.run();
             modelView.onMount();
+            modelView.component = fragment;
             return fragment;
         };
         Core.digest = function() {
@@ -1530,7 +1534,7 @@
         };
         return Core;
     }();
-    Core.version = "0.7.11";
+    Core.version = "0.7.12";
     window.RF = Core;
     window.RF.Router = Router;
 }();

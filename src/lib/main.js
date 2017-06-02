@@ -29,6 +29,7 @@ class Core{
         let fragment = new ScopedDomFragment(domElement,modelView);
         fragment.run();
         modelView.onMount();
+        modelView.component = fragment;
         return fragment;
     };
 
