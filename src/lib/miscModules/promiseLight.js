@@ -3,7 +3,7 @@ class PromiseLight{
     constructor(resolveFn){
         this.resolveFn = resolveFn;
         this.catchFn = null;
-        this.chain = [];
+        this.chain = [{fn:resolveFn}];
         this.currentChainPointer = -1;
         this.lastResult = undefined;
         this.rejected = false;
@@ -15,27 +15,48 @@ class PromiseLight{
     static _executeChain(self){
         if (self.rejected || self.resolved) return;
         self.currentChainPointer++;
+
+        let resolve = (data)=>{
+            self.lastResult = data;
+            PromiseLight._executeChain(self);
+        };
+        let reject = (data)=>{
+            self.catchFn && self.catchFn(data);
+            self.rejected = true;
+        };
+
+        if (self.currentChainPointer==0){
+            if (self.resolveFn) {
+                self.resolveFn(resolve,reject);
+                return;
+            } else {
+                self.chain.shift();
+            }
+        }
+
+
         let next = self.chain[self.currentChainPointer];
         if (!next) {
-            RF.digest();
+            if (!self.isSecondary) {
+                clearTimeout(PromiseLight._resolve_tid);
+                PromiseLight._resolve_tid = setTimeout(()=>{
+                    RF.digest();
+                },100);
+            }
             return;
         }
         try {
             self.lastResult = next.fn(self.lastResult);
         } catch (e){
-            self.rejectFn && self.rejectFn(e);
+            if (self.rejectFn) {
+                self.rejectFn(e);
+            } else {
+                console.error(e);
+            }
             return;
         }
         if (self.lastResult instanceof PromiseLight) {
             self.lastResult.isSecondary = true;
-            let resolve = (data)=>{
-                self.lastResult = data;
-                PromiseLight._executeChain(self);
-            };
-            let reject = (data)=>{
-                self.catchFn && self.catchFn(data);
-                self.rejected = true;
-            };
             self.lastResult.resolveFn(resolve,reject);
         } else {
             setTimeout(()=>{
@@ -68,3 +89,5 @@ class PromiseLight{
     }
 
 }
+
+PromiseLight._resolve_tid = null;

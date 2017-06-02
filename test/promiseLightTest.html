@@ -21,6 +21,7 @@
         }
     </style>
     <script>
+        let RF = {digest:()=>{console.log('completed');}};
         let toStr = (a)=>{
             if (typeof a == 'object') return JSON.stringify(a);
             return a.toString();
@@ -48,122 +49,140 @@
 </head>
 <body>
 <script>
-//    let arr = [];
-//    PromiseLight.resolve(0).
-//    then((data)=>{
-//        console.log(data);
-//        arr.push(data);
-//        return 1;
-//    }).
-//    then((data)=>{
-//        console.log(data);
-//        arr.push(data);
-//        return 2;
-//    }).
-//    then((data)=>{
-//        console.log(data);
-//        arr.push(data);
-//        return new PromiseLight((resolve,reject)=>{
-//            setTimeout(function(){resolve(3)},200)
-//        });
-//    }).
-//    then((data)=>{
-//        console.log(data);
-//        arr.push(data);
-//        return 4;
-//    }).
-//    then((data)=>{
-//            console.log(data);
-//            arr.push(data);
-//            return 5;
-//        }
-//    ).
-//    then((data)=>{
-//        console.log(data);
-//        arr.push(data);
-//        return new PromiseLight((resolve)=>{
-//            setTimeout(function(){resolve(6)},200)
-//        });
-//    }).
-//    then((data)=>{
-//        console.log(data);
-//        arr.push(data);
-//        return new PromiseLight((resolve)=>{
-//            setTimeout(function(){resolve(7)},200)
-//        });
-//    }).
-//    then((data)=>{
-//            console.log(data);
-//            arr.push(data);
-//            return new PromiseLight((resolve)=>{
-//                setTimeout(function(){resolve(8)},200)
-//            });
-//        }
-//    ).
-//    then((data)=>{
-//            console.log(data);
-//            arr.push(data);
-//            return 9;
-//        }
-//    ).
-//    then((data)=>{
-//        console.log(data);
-//        arr.push(data);
-//        return new PromiseLight((resolve)=>{
-//            setTimeout(function(){resolve(10)},2)
-//        });
-//    }).
-//    then((data)=>{
-//            console.log(data);
-//        arr.push(data);
-//        }
-//    ).
-//    then(()=>{
-//        return new PromiseLight((resolve,reject)=>{
-//            setTimeout(function(){reject('error')},2)
-//        });
-//    }).
-//    then((data)=>{
-//            console.log('not be invoked');
-//            arr.push(data);
-//        }
-//    ).
-//    catch((data)=>{
-//            console.log(data);
-//            arr.push(data);
-//            assertEqual(
-//                arr,[0,1,2,3,4,5,6,7,8,9,10,'error']
-//            );
-//        }
-//    );
+    var arr1 = [];
+    //PromiseLight.resolve(0).
+    new PromiseLight((resolve)=>{
+        console.log('resolved in constructor');
+        resolve(0);
+    }).
+    then((data)=>{
+        console.log(data);
+        arr1.push(data);
+        return 1;
+    }).
+    then((data)=>{
+        console.log(data);
+        arr1.push(data);
+        return 2;
+    }).
+    then((data)=>{
+        console.log(data);
+        arr1.push(data);
+        return new PromiseLight((resolve,reject)=>{
+            setTimeout(function(){resolve(3)},200)
+        });
+    }).
+    then((data)=>{
+        console.log(data);
+        arr1.push(data);
+        return 4;
+    }).
+    then((data)=>{
+            console.log(data);
+            arr1.push(data);
+            return 5;
+        }
+    ).
+    then((data)=>{
+        console.log(data);
+        arr1.push(data);
+        return new PromiseLight((resolve)=>{
+            setTimeout(function(){resolve(6)},200)
+        });
+    }).
+    then((data)=>{
+        console.log(data);
+        arr1.push(data);
+        return new PromiseLight((resolve)=>{
+            setTimeout(function(){resolve(7)},200)
+        });
+    }).
+    then((data)=>{
+            console.log(data);
+            arr1.push(data);
+            return new PromiseLight((resolve)=>{
+                setTimeout(function(){resolve(8)},200)
+            });
+        }
+    ).
+    then((data)=>{
+            console.log(data);
+            arr1.push(data);
+            return 9;
+        }
+    ).
+    then((data)=>{
+        console.log(data);
+        arr1.push(data);
+        return new PromiseLight((resolve)=>{
+            setTimeout(function(){resolve(10)},2)
+        });
+    }).
+    then((data)=>{
+            console.log(data);
+        arr1.push(data);
+        }
+    ).
+    then(()=>{
+        return new PromiseLight((resolve,reject)=>{
+            setTimeout(function(){reject('error')},2)
+        });
+    }).
+    then((data)=>{
+            console.log('not be invoked');
+            arr1.push(data);
+        }
+    ).
+    catch((data)=>{
+            console.log(data);
+            arr1.push(data);
+            assertEqual(
+                arr1,[0,1,2,3,4,5,6,7,8,9,10,'error']
+            );
+        }
+    );
 </script>
 
 <script>
+    var arr2 = [];
     new PromiseLight((resolve)=>{
         console.log(1);
+        arr2.push(1);
         setTimeout(()=>{
             console.log(2);
+            arr2.push(2);
             resolve();
         },1000);
     }).then(()=>{
         console.log(3);
+        arr2.push(3);
+        assertEqual(
+            arr2,[1,2,3]
+        );
     });
 
 
-//    PromiseLight.
-//    resolve(0).
-//    then(()=>{
-//        return new PromiseLight((resolve)=>{
-//            console.log(1);
-//            setTimeout(()=>{
-//                console.log(2);
-//                resolve();
-//            },1000)
-//        })
-//    }).
-//    then(()=>{
-//        console.log(3);
-//    });
+    var arr3 = [];
+    PromiseLight.
+    resolve(0).
+    then(()=>{
+        return new PromiseLight((resolve)=>{
+            console.log(1);
+            arr3.push(1);
+            setTimeout(()=>{
+                console.log(2);
+                arr3.push(2);
+                resolve();
+            },1000)
+        })
+    }).
+    then(()=>{
+        console.log(3);
+        arr3.push(3);
+        assertEqual(
+            arr3,[1,2,3]
+        );
+    });
 
 
 

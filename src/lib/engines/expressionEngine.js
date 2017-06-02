@@ -1,6 +1,7 @@
 
 
 let _getValByPath = function(component, path) {
+    if (!path) return component.modelView;
     let keys = path.split('.');
     let lastKey = keys.pop();
     let contextForPath = component.modelView;
@@ -49,7 +50,6 @@ class ExpressionEngine {
 
     }
 
-    // todo cache compiled functions
 
     static runExpressionFn(fn,component){
         try {
@@ -62,6 +62,7 @@ class ExpressionEngine {
             throw e;
         }
     }
+    // todo cache compiled functions
 
     static executeExpression(code,component){
         let fn = ExpressionEngine.getExpressionFn(code);
@@ -83,6 +84,8 @@ class ExpressionEngine {
                 lastToken = lastToken.replace('[','').replace(']','');
                 lastToken = Lexer.convertExpression(lastToken,`${RF_API_STR}.getVal(component,'{expr}')`);
                 lastToken = `[${lastToken}]`;
+            } else if (!exprTokens.length) {
+                lastToken = `.${lastToken}`;
             }
             expression = exprTokens.join('');
             expression = Lexer.convertExpression(expression,`${RF_API_STR}.getVal(component,'{expr}')`);

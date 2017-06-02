@@ -157,7 +157,6 @@
         String.prototype.split = function(separator, limit) {
             return self(this, separator, limit);
         };
-        self;
     }();
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
@@ -526,9 +525,6 @@
                 break;
 
               case "select":
-                el.value = value;
-                break;
-
               case "textarea":
                 el.value = value;
             }
@@ -557,8 +553,6 @@
                 break;
 
               case "select":
-                return el.value;
-
               case "textarea":
                 return el.value;
             }
@@ -570,8 +564,6 @@
                 type = el.getAttribute("type");
                 switch (type) {
                   case "checkbox":
-                    return "click";
-
                   case "radio":
                     return "click";
 
@@ -603,7 +595,7 @@
         // todo ie8 in emulation mode has classList, but it is uncorrect
         DomUtils.toggleClass = function(el, className, isAdd) {
             if (!el.classList) if (isAdd) {
-                if (el.className.indexOf(className) == -1) el.className += " " + className;
+                if (-1 == el.className.indexOf(className)) el.className += " " + className;
             } else {
                 var reg = new RegExp("(\\s|^)" + className + "(\\s|$)");
                 el.className = el.className.replace(reg, " ");
@@ -778,7 +770,7 @@
                 var tokens, variables, eachItemName, indexName, iterableObjectName, scopedLoopContainer, closestTransclusionEl = el.closest("[data-transclusion]");
                 if (closestTransclusionEl && !closestTransclusionEl.getAttribute("data-_processed")) return false;
                 tokens = expression.split(" ");
-                if ([ "in", "of" ].indexOf(tokens[1]) == -1) throw "can not parse expression " + expression;
+                if (-1 == [ "in", "of" ].indexOf(tokens[1])) throw "can not parse expression " + expression;
                 variables = Lexer.tokenize(tokens[0]).filter(function(t) {
                     return [ Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY ].indexOf(t.tokenType) > -1;
                 }).map(function(t) {
@@ -1077,7 +1069,7 @@
                     var name, value, resultExpArr, resultExpr;
                     if (attr) {
                         name = attr.name, value = attr.value;
-                        if (value.indexOf("{{") != -1 || value.indexOf("}}") != -1) {
+                        if (-1 != value.indexOf("{{") || -1 != value.indexOf("}}")) {
                             value = value.split(/[\n\t]|[\s]{2,}/).join(" ").trim();
                             resultExpArr = [], resultExpr = "";
                             value.split(DomUtils.EXPRESSION_REGEXP).forEach(function(token) {
@@ -1127,7 +1119,12 @@
         if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
     }
     _getValByPath = function _getValByPath(component, path) {
-        var keys = path.split("."), lastKey = keys.pop(), contextForPath = component.modelView, res = component.modelView;
+        var keys, lastKey, contextForPath, res;
+        if (!path) return component.modelView;
+        keys = path.split(".");
+        lastKey = keys.pop();
+        contextForPath = component.modelView;
+        res = component.modelView;
         keys.forEach(function(key) {
             if (void 0 !== res) {
                 res = res[key];
@@ -1165,7 +1162,6 @@
                 console.error("compiled code", codeProcessed);
             }
         };
-        // todo cache compiled functions
         ExpressionEngine.runExpressionFn = function(fn, component) {
             try {
                 return fn.call(component.modelView, component, RF_API);
@@ -1177,6 +1173,7 @@
                 throw e;
             }
         };
+        // todo cache compiled functions
         ExpressionEngine.executeExpression = function(code, component) {
             var fn = ExpressionEngine.getExpressionFn(code);
             return ExpressionEngine.runExpressionFn(fn, component);
@@ -1198,7 +1195,7 @@
                     lastToken = lastToken.replace("[", "").replace("]", "");
                     lastToken = Lexer.convertExpression(lastToken, RF_API_STR + ".getVal(component,'{expr}')");
                     lastToken = "[" + lastToken + "]";
-                }
+                } else if (!exprTokens.length) lastToken = "." + lastToken;
                 expression = exprTokens.join("");
                 expression = Lexer.convertExpression(expression, RF_API_STR + ".getVal(component,'{expr}')");
                 expression = "" + expression + lastToken + "=value";
@@ -1329,7 +1326,9 @@
             return tokens;
         };
         Lexer.convertExpression = function(expression) {
-            var variableReplacerStr = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "{expr}", out = "";
+            var out, variableReplacerStr = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "{expr}";
+            if (!expression) return variableReplacerStr.replace("{expr}", "");
+            out = "";
             expression = expression.split("\n").join("");
             Lexer.tokenize(expression).forEach(function(token, index) {
                 if (token.tokenValue == Token.SYMBOL.EQUAL && token[index + 1] && token[index + 1].tokenValue != Token.SYMBOL.EQUAL) throw 'assign (like "a=b") not supported at directives for now, change your expression: ' + expression;

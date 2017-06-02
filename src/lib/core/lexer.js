@@ -144,6 +144,9 @@ class Lexer {
     }
 
     static convertExpression(expression,variableReplacerStr = '{expr}'){
+        if (!expression) return (
+            variableReplacerStr.replace('{expr}','')
+        );
         let out = ``;
         expression = expression.split('\n').join('');
         Lexer.tokenize(expression).forEach(function(token,index){
