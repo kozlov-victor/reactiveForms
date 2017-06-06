@@ -126,7 +126,7 @@ class DomUtils {
                         return 'input,change';
                         break;
                     default:
-                        return 'keyup,change';
+                        return 'keyup,input,change';
                         break;
                 }
                 break;
@@ -185,6 +185,14 @@ class DomUtils {
         }
         nodeToBeRemoved.parentNode.removeChild(nodeToBeRemoved);
         return children;
+    }
+
+    static preventDefault(e){
+        e = e || window.e;
+        e.preventDefault && e.preventDefault();
+        e.stopPropagation && e.stopPropagation();
+        e.cancelBubble = true;
+        e.returnValue = false;
     }
 
     static getClosestElWithDataAttr(node,dataAttr){

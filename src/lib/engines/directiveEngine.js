@@ -55,27 +55,43 @@ class DirectiveEngine {
         });
     };
 
+    _runDomEvent(el,expression,eventName){
+        let closestForm = el.closest('form');
+        let shouldPreventDefault = !!closestForm && !closestForm.__shouldPreventDefault__;
+        let fn = ExpressionEngine.getExpressionFn(expression);
+        if (shouldPreventDefault && el!==closestForm) {
+            DomUtils.addEventListener(closestForm,'submit',e=>{
+                DomUtils.preventDefault(e);
+                return false;
+            });
+        }
+        DomUtils.addEventListener(el,eventName,e=>{
+            ExpressionEngine.runExpressionFn(fn,this.component);
+            Component.digestAll();
+            if (eventName=='submit') {
+                DomUtils.preventDefault(e);
+                return false;
+            }
+        });
+        closestForm && (closestForm.__shouldPreventDefault__ = '__shouldPreventDefault__');
+    }
+
     runDomEvent(eventName) {
         this._eachElementWithAttr('data-'+eventName,(el,expression)=>{
-            let fn = ExpressionEngine.getExpressionFn(expression);
-            DomUtils.addEventListener(el,eventName,e=>{
-                // todo!
-                // if (shouldPreventDefault) {
-                //     e = e || window.e;
-                //     e.preventDefault && e.preventDefault();
-                //     e.stopPropagation && e.stopPropagation();
-                //     e.cancelBubble = true;
-                // }
-                ExpressionEngine.runExpressionFn(fn,this.component);
-                Component.digestAll();
-                //if (shouldPreventDefault) return false;
-            });
+            this._runDomEvent(el,expression,eventName);
         });
     };
 
+    runDomEvent_Change(){
+        this._eachElementWithAttr('data-'+'change',(el,expression)=>{
+            ['keyup','blur','input','change'].forEach(eventName=>{
+                this._runDomEvent(el,expression,eventName);
+            });
+        });
+    }
+
     runDirective_Bind(){
         this._eachElementWithAttr('data-bind',(el,expression)=>{
-            let fn = ExpressionEngine.getExpressionFn(expression);
             ExpressionEngine.runExpressionFn(fn,this.component);
             this.component.addWatcher(
                 expression,
@@ -291,17 +307,33 @@ class DirectiveEngine {
         });
     };
 
+    _runAttributes(el,properties){
+        Object.keys(properties).forEach(key=>{
+            let val = properties[key];
+            if (typeof val == 'boolean')
+                val?el.setAttribute(key,key):el.removeAttribute(key);
+            else el.setAttribute(key,val);
+        });
+    }
+
     runDirective_Attributes(){
         this._eachElementWithAttr('data-attributes',(el,expression)=>{
             this.component.addWatcher(
                 expression,
                 properties=>{
-                    Object.keys(properties).forEach(key=>{
-                        let val = properties[key];
-                        if (typeof val == 'boolean')
-                            val?el.setAttribute(key,key):el.removeAttribute(key);
-                        else el.setAttribute(key,val);
-                    })
+                    this._runAttributes(el,properties);
+                }
+            );
+        });
+    };
+
+    runDirective_Attribute(){
+        this._eachElementWithAttr('data-attribute',(el,expression)=>{
+            expression = `{${expression}`;
+            this.component.addWatcher(
+                expression,
+                properties=>{
+                    this._runAttributes(el,properties);
                 }
             );
         });
@@ -445,13 +477,14 @@ class DirectiveEngine {
         this.runDirective_Model(); // todo check event sequence in legacy browsers
         [
             'click','blur','focus',
-            'submit','change',
+            'submit',
             'keypress','keyup','keydown',
             'input'
 
         ].forEach(eventName =>{
             this.runDomEvent(eventName);
         });
+        this.runDomEvent_Change();
         this.runDirective_Bind();
         this.runDirective_Class();
         this.runDirective_Style();

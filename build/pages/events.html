@@ -48,7 +48,7 @@ button:active,input:active {
     
 <form id="bind_change">
     change:
-    <input data-model="app.model" data-change="modelToResult()">
+    <input data-model="app.model" type="range" data-change="modelToResult()">
     <div>
         {{app.result}}
     </div>
@@ -113,7 +113,7 @@ button:active,input:active {
 
 <form id="bind_input">
     input:
-    <input type="range" data-model="app.model" data-input="modelToResult()">
+    <input type="number" data-model="app.model" data-input="modelToResult()">
     <div>
         {{app.result}}
     </div>

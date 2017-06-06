@@ -66,7 +66,7 @@ gulp.task('engine', ()=> {
                 hoist_vars: debug,
                 warnings: debug
             },
-            mangle: !debug,
+            mangle: {toplevel: !debug},
             outSourceMap: true,
             basePath: 'www',
             sourceRoot: '/'

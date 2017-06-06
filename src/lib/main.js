@@ -19,7 +19,7 @@ class Core{
     }
 
     static applyBindings(domElementSelector,properties = {}){
-        if (!domElementSelector) throw `ca not applyBindings: element selector not provided`;
+        if (!domElementSelector) throw `can not applyBindings: element selector not provided`;
         if (typeof domElementSelector!='string') throw (
             `element selector parameter mast me a string,
             but ${typeof domElementSelector} found}`);
