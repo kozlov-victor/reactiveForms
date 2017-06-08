@@ -40,9 +40,15 @@ gulp.task('engine', ()=> {
             'src/lib/components/*.js',
             'src/lib/utils/*.js',
             'src/lib/engines/*.js',
-            'src/lib/core/*.js',
-            'src/lib/main.js'
+            'src/lib/core/*.js'
         ])
+        // browserify({
+        //     entries: [
+        //         './js/jqHelpers.js',
+        //         './js/index.js'
+        //     ],
+        //     paths: ['../src/js/']
+        // })
         .pipe(babel({
             //presets: ['es2015'],
             presets: [ ["es2015", {"loose": true}] ]
@@ -53,31 +59,30 @@ gulp.task('engine', ()=> {
             return code.replace('{{version}}',packageJson.version);
         }))
         .pipe(iife())
-        .pipe(uglify({
-            output: { // http://lisperator.net/uglifyjs/codegen
-                beautify: debug,
-                comments: debug ? true : /^!|\b(copyright|license)\b|@(preserve|license|cc_on)\b/i
-            },
-            compress: { // http://lisperator.net/uglifyjs/compress, http://davidwalsh.name/compress-uglify
-                sequences: !debug,
-                booleans: !debug,
-                conditionals: !debug,
-                hoist_funs: false,
-                hoist_vars: debug,
-                warnings: debug
-            },
-            mangle: {toplevel: !debug},
-            outSourceMap: true,
-            basePath: 'www',
-            sourceRoot: '/'
-        }))
+        // .pipe(uglify({
+        //     output: { // http://lisperator.net/uglifyjs/codegen
+        //         beautify: debug,
+        //         comments: /^!|\b(copyright|license)\b|@(preserve|license|cc_on)\b/i
+        //     },
+        //     compress: { // http://lisperator.net/uglifyjs/compress, http://davidwalsh.name/compress-uglify
+        //         sequences: !debug,
+        //         booleans: !debug,
+        //         conditionals: !debug,
+        //         hoist_funs: false,
+        //         hoist_vars: debug,
+        //         warnings: debug
+        //     },
+        //     mangle: {toplevel: !debug},
+        //     outSourceMap: true,
+        //     basePath: 'www',
+        //     sourceRoot: '/'
+        // }))
         .pipe(gulp.dest('build/'))
     );
 });
 
 gulp.task('tutor', ()=> {
     let pageNames = fs.getDirListSync('src/tutorial/pages');
-    let res = [];
     let css = fs.readFileSync(`src/tutorial/tmpl/prism.css`);
     let headers = fs.readFileSync(`src/tutorial/tmpl/headers.html`);
     let packageJson = JSON.parse(fs.readFileSync('package.json'));

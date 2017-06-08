@@ -77,29 +77,25 @@ let routeNode = null;
 let lastPageItem;
 let __showPage = (pageName,params)=>{
     if (lastPageItem) {
-        lastPageItem.component.modelView.onHide();
-        lastPageItem.component.modelView.onUnmount();
-        lastPageItem.component.setWatch(false);
+        lastPageItem.component.setShown(false);
         DomUtils.nodeListToArray(routeNode.childNodes).forEach(el=>{
             lastPageItem.component.node.appendChild(el);
         });
+        lastPageItem.component.setMounted(false);
     }
     lastPageItem = Router._pages[pageName];
     if (!lastPageItem) throw `no page with name ${pageName} registered`;
     if (!lastPageItem.component) {
         let componentNode = lastPageItem.componentProto.node.cloneNode(true);
         lastPageItem.component = lastPageItem.componentProto.newInstance(componentNode,{});
-        lastPageItem.component.setWatch(true);
         lastPageItem.component.run();
-        lastPageItem.component.modelView.onShow(params);
         delete lastPageItem.componentProto;
-    } else {
-        lastPageItem.component.modelView.onShow(params);
     }
     DomUtils.nodeListToArray(lastPageItem.component.node.childNodes).forEach(el=>{
         routeNode.appendChild(el);
     });
-    lastPageItem.component.modelView.onMount(params);
+    lastPageItem.component.setMounted(true,params);
+    lastPageItem.component.setShown(true,params);
     Component.digestAll();
 };
 

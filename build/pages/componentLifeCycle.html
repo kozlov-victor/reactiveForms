@@ -67,13 +67,16 @@ button:active,input:active {
     noop: <input type="checkbox" data-model="app.noop"> {{app.noop}}
     <br/>
 
-    <simple-component data-show="app.shown" data-if="app.mounted"></simple-component>
 
-    <ul>
+    <div data-show="app.shown" data-if="app.mounted">
+        <simple-component></simple-component>
+    </div>
+
+    <ol>
         <li data-for="state of app.states">
             {{state}}
         </li>
-    </ul>
+    </ol>
 </div>
 
 

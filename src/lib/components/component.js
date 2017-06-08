@@ -12,6 +12,8 @@ class Component {
         this.domId = null;
         this.node.setAttribute('data-component-id',this.id);
         this.isWatchEnable = true;
+        this.isMounted = false;
+        this.isShown = false;
         this.stateExpression = null;
         DomUtils.nodeListToArray(this.node.querySelectorAll('*')).forEach(el=>{
             el.setAttribute('data-component-id',this.id);
@@ -25,13 +27,41 @@ class Component {
         this.children.push(childComponent);
     }
 
-    setWatch(isWatchEnable) {
-        this.isWatchEnable = isWatchEnable;
+
+    setShown(val,params){
+        let res = 'noChanged';
+        if (this.isShown==val) return res;
+        this.isShown = val;
+        if (this.isShown) {
+            res = this.modelView.onShow(params);
+        } else {
+            this.modelView.onHide();
+        }
+        this.isWatchEnable = val;
         if (this.children) {
             this.children.forEach(c=>{
-                c.isWatchEnable = isWatchEnable;
+                c.setShown(this.isShown);
             });
         }
+        return res;
+    }
+
+    setMounted(val,params){
+        let res = 'noChanged';
+        if (this.isMounted==val) return res;
+        this.isMounted = val;
+        if (this.isMounted) {
+            res = this.modelView.onMount(params);
+        } else {
+            this.modelView.onUnmount();
+        }
+        this.isWatchEnable = val;
+        if (this.children) {
+            this.children.forEach(c=>{
+                c.setMounted(this.isMounted);
+            });
+        }
+        return res;
     }
 
     addWatcher(expression, listenerFn) {

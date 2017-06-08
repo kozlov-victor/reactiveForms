@@ -1,5 +1,5 @@
 
-const noop = function(){
+const noop = ()=>{
     return 'noChanged';
 };
 

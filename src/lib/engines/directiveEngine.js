@@ -237,23 +237,47 @@ class DirectiveEngine {
         });
     };
 
+
+    _getChildComponents(el){
+        let componentIds = {};
+        let thisId = el.getAttribute('data-component-id');
+        let res = [];
+        if (!el.children) return [];
+        DomUtils.nodeListToArray(el.children).
+        map(it=>{
+            return it.getAttribute('data-component-id');
+        }).
+        forEach(componentId=>{
+            if (!componentIds[componentId]) {
+                componentIds[componentId] = true;
+                if (thisId!=componentId) res.push(RF._getComponentByInternalId(componentId));
+            }
+        });
+        return res;
+    }
+
     runDirective_If(){
         this._eachElementWithAttr('data-if',(el,expression)=>{
             let comment = document.createComment('');
             el.parentNode.insertBefore(comment,el);
+            let childComponents = this._getChildComponents(el);
             this.component.addWatcher(
                 expression,
                 val=>{
                     if (val) {
                         if (!el.parentElement) {
                             comment.parentNode.insertBefore(el,comment.nextSibling);
-                            this.component.modelView.onMount();
-                            this.component.modelView.onShow();
+                            childComponents.forEach(cmp=>{
+                                cmp.setMounted(true);
+                                cmp.setShown(true);
+                            });
                         }
                     } else {
-                        this.component.modelView.onHide();
-                        this.component.modelView.onUnmount();
                         el.remove();
+                        childComponents.forEach(cmp=>{
+                            cmp.setMounted(false);
+                            cmp.setShown(false);
+                        });
                     }
                 }
             );
@@ -263,15 +287,20 @@ class DirectiveEngine {
     runDirective_Show(){
         this._eachElementWithAttr('data-show',(el,expression)=>{
             let initialStyle = el.style.display || '';
+            let childComponents = this._getChildComponents(el);
             this.component.addWatcher(
                 expression,
                 val=>{
                     if (val) {
                         el.style.display = initialStyle;
-                        this.component.modelView.onShow();
+                        childComponents.forEach(cmp=>{
+                            cmp.setShown(true);
+                        });
                     } else {
                         el.style.display = 'none';
-                        this.component.modelView.onHide();
+                        childComponents.forEach(cmp=>{
+                            cmp.setShown(false);
+                        });
                     }
                 }
             );
@@ -281,15 +310,20 @@ class DirectiveEngine {
     runDirective_Hide(){
         this._eachElementWithAttr('data-hide',(el,expression)=>{
             let initialStyle = el.style.display || '';
+            let childComponents = this._getChildComponents(el);
             this.component.addWatcher(
                 expression,
                 val=>{
                     if (val) {
                         el.style.display = 'none';
-                        this.component.modelView.onHide();
+                        childComponents.forEach(cmp=>{
+                            cmp.setShown(false);
+                        });
                     } else {
                         el.style.display = initialStyle;
-                        this.component.modelView.onShow();
+                        childComponents.forEach(cmp=>{
+                            cmp.setShown(true);
+                        });
                     }
                 }
             );
@@ -423,8 +457,8 @@ class DirectiveEngine {
                 } else {
                     item.component.modelView.$el = children;
                 }
-                hasStateChanged = item.component.modelView.onMount()!='noChanged' || hasStateChanged;
-                hasStateChanged = item.component.modelView.onShow()!='noChanged' || hasStateChanged;
+                hasStateChanged = item.component.setMounted(true)!='noChanged' || hasStateChanged;
+                hasStateChanged = item.component.setShown(true)!='noChanged' || hasStateChanged;
             });
             hasStateChanged && (Component.digestAll());
         });
