@@ -1,13 +1,4 @@
 transclusion with id
 transclusion $el array = 0
-parent of transclusion  - children is null
 isWatchable is true in transclusion
-data-attribute error
-parsing error message when
-
-{
-    position:'absolute',
-    left:item.pos.x+'px',
-    top: item.pos.y+'px',
-    pointerEvents:'none';
-}
+disable processing when if false

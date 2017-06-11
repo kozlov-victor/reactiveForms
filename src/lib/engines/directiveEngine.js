@@ -26,14 +26,15 @@ class DirectiveEngine {
             let closestTransclusionEl = el.closest('[data-transclusion]');
 
             if (closestTransclusionEl && !closestTransclusionEl.getAttribute('data-_processed')) return false;
-            let tokens = expression.split(' ');
-            if (['in','of'].indexOf(tokens[1])==-1) throw 'can not parse expression ' + expression;
+            expression = expression.replace(/,\s+/,',').replace(/[\t\n]+/,' ');
+            let tokens = expression.split(' ').filter(it=>{return it.length});
+            if (['in','of'].indexOf(tokens[1])==-1) throw 'can not parse expression: ' + expression;
             let variables =
                 Lexer.tokenize(tokens[0]).
                 filter(t=>{return [Token.TYPE.VARIABLE,Token.TYPE.OBJECT_KEY].indexOf(t.tokenType)>-1}).
                 map(t=>{return t.tokenValue});
 
-            if (!variables.length) throw  'can not parse expression ' + expression;
+            if (!variables.length) throw  'can not parse expression: ' + expression;
             let eachItemName = variables[0];
             let indexName = variables[1];
             let iterableObjectName = tokens[2];
@@ -521,7 +522,9 @@ class DirectiveEngine {
             'submit',
             'keypress','keyup','keydown',
             'input',
-            'mousemove','mouseleave','mouseenter','mouseover','mousout'
+            'mousedown','mouseup',
+            'mousemove','mouseleave',
+            'mouseenter','mouseover','mousout'
 
         ].forEach(eventName =>{
             this.runDomEvent(eventName);

@@ -1102,15 +1102,18 @@ var DirectiveEngine = function () {
             var closestTransclusionEl = el.closest('[data-transclusion]');
 
             if (closestTransclusionEl && !closestTransclusionEl.getAttribute('data-_processed')) return false;
-            var tokens = expression.split(' ');
-            if (['in', 'of'].indexOf(tokens[1]) == -1) throw 'can not parse expression ' + expression;
+            expression = expression.replace(/,\s+/, ',').replace(/[\t\n]+/, ' ');
+            var tokens = expression.split(' ').filter(function (it) {
+                return it.length;
+            });
+            if (['in', 'of'].indexOf(tokens[1]) == -1) throw 'can not parse expression: ' + expression;
             var variables = Lexer.tokenize(tokens[0]).filter(function (t) {
                 return [Token.TYPE.VARIABLE, Token.TYPE.OBJECT_KEY].indexOf(t.tokenType) > -1;
             }).map(function (t) {
                 return t.tokenValue;
             });
 
-            if (!variables.length) throw 'can not parse expression ' + expression;
+            if (!variables.length) throw 'can not parse expression: ' + expression;
             var eachItemName = variables[0];
             var indexName = variables[1];
             var iterableObjectName = tokens[2];
@@ -1568,7 +1571,7 @@ var DirectiveEngine = function () {
         this.runComponents();
         this.runTextNodes();
         this.runDirective_Model(); // todo check event sequence in legacy browsers
-        ['click', 'blur', 'focus', 'submit', 'keypress', 'keyup', 'keydown', 'input', 'mousemove', 'mouseleave', 'mouseenter', 'mouseover', 'mousout'].forEach(function (eventName) {
+        ['click', 'blur', 'focus', 'submit', 'keypress', 'keyup', 'keydown', 'input', 'mousedown', 'mouseup', 'mousemove', 'mouseleave', 'mouseenter', 'mouseover', 'mousout'].forEach(function (eventName) {
             _this19.runDomEvent(eventName);
         });
         this.runDomEvent_Change();
@@ -2095,7 +2098,7 @@ var Core = function () {
     return Core;
 }();
 
-Core.version = '0.7.16';
+Core.version = '0.7.17';
 
 window.RF = Core;
 window.RF.Router = Router;
