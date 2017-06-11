@@ -414,9 +414,8 @@ var Component = function () {
     };
 
     Component.prototype.destroy = function destroy() {
-        // todo not implemented yet! todo remove watchers
         this.node.remove();
-        //Component.instances.splice(Component.instances.indexOf(this),1);
+        Component.instances.splice(Component.instances.indexOf(this), 1);
         if (this.children) {
             this.children.forEach(function (c) {
                 c.destroy();
@@ -636,6 +635,11 @@ var ScopedLoopContainer = function (_Component) {
 
         var currNodeInIteration = this.anchor;
         if (newArr instanceof Object) newArr = MiscUtils.objectToArray(newArr);
+
+        if (!newArr.forEach) {
+            console.error(this.node);
+            throw 'can not evaluate loop expression: ' + this.eachItemName + (this.indexName ? ',' + this.eachItemName : '') + '. Expected object or array, but ' + newArr + ' found.';
+        }
 
         var index = 0;
         newArr.forEach(function (iterableItem, i) {
@@ -914,23 +918,40 @@ var MiscUtils = function () {
 
     /**
      * @param obj
+     * @param _clonedObjects - internal store of cloned object to avoid self-cycled object recursion
      * @returns {*}
      */
     MiscUtils.deepCopy = function deepCopy(obj) {
+        var _clonedObjects = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
         if (obj === undefined) return undefined;else if (obj === null) return null;
         if (Object.prototype.toString.call(obj) === '[object Array]') {
             var out = [],
                 i = 0,
                 len = obj.length;
             for (; i < len; i++) {
-                out[i] = MiscUtils.deepCopy(obj[i]);
+                var clonedObject = void 0;
+                if (_clonedObjects.indexOf(obj[i]) > -1) {
+                    clonedObject = obj[i];
+                } else {
+                    _clonedObjects.push(obj[i]);
+                    clonedObject = MiscUtils.deepCopy(obj[i], _clonedObjects);
+                }
+                out[i] = clonedObject;
             }
             return out;
         }
         if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
             var _out = {};
             for (var _i in obj) {
-                _out[_i] = MiscUtils.deepCopy(obj[_i]);
+                var _clonedObject = void 0;
+                if (_clonedObjects.indexOf(obj[_i]) > -1) {
+                    _clonedObject = obj[_i];
+                } else {
+                    _clonedObjects.push(obj[_i]);
+                    _clonedObject = MiscUtils.deepCopy(obj[_i], _clonedObjects);
+                }
+                _out[_i] = _clonedObject;
             }
             return _out;
         }
@@ -953,9 +974,14 @@ var MiscUtils = function () {
 
     MiscUtils.deepEqual = function deepEqual(x, y) {
         //if (isNaN(x) && isNaN(y)) return true;
-        return x && y && (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && (typeof y === 'undefined' ? 'undefined' : _typeof(y)) === 'object' ? Object.keys(x).length === Object.keys(y).length && Object.keys(x).reduce(function (isEqual, key) {
-            return isEqual && MiscUtils.deepEqual(x[key], y[key]);
-        }, true) : x === y;
+        if (x && y && (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && (typeof y === 'undefined' ? 'undefined' : _typeof(y)) === 'object') {
+            if (x === y) return true;
+            return Object.keys(x).length === Object.keys(y).length && Object.keys(x).reduce(function (isEqual, key) {
+                return isEqual && MiscUtils.deepEqual(x[key], y[key]);
+            }, true);
+        } else {
+            return x === y;
+        }
     };
 
     MiscUtils.camelToSnake = function camelToSnake(str) {
@@ -1031,6 +1057,15 @@ var TemplateLoader = function () {
 
     return TemplateLoader;
 }();
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var dataTransclusion = 'data-transclusion';
+
+var ComponentHelper = function ComponentHelper() {
+    _classCallCheck(this, ComponentHelper);
+};
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1109,7 +1144,9 @@ var DirectiveEngine = function () {
             });
         }
         DomUtils.addEventListener(el, eventName, function (e) {
+            _this3.component.modelView.$event = e;
             ExpressionEngine.runExpressionFn(fn, _this3.component);
+            delete _this3.component.modelView.$event;
             Component.digestAll();
             if (eventName == 'submit') {
                 DomUtils.preventDefault(e);
@@ -1276,7 +1313,7 @@ var DirectiveEngine = function () {
         var thisId = el.getAttribute('data-component-id');
         var res = [];
         if (!el.children) return [];
-        DomUtils.nodeListToArray(el.children).map(function (it) {
+        DomUtils.nodeListToArray(el.querySelectorAll('*')).map(function (it) {
             return it.getAttribute('data-component-id');
         }).forEach(function (componentId) {
             if (!componentIds[componentId]) {
@@ -1389,7 +1426,7 @@ var DirectiveEngine = function () {
         var _this16 = this;
 
         this._eachElementWithAttr('data-attribute', function (el, expression) {
-            expression = '{' + expression;
+            expression = '{' + expression + '}';
             _this16.component.addWatcher(expression, function (properties) {
                 _this16._runAttributes(el, properties);
             });
@@ -1440,7 +1477,7 @@ var DirectiveEngine = function () {
                         if (!!closestWithSameName) {
                             console.error(domEl);
                             console.error(closestWithSameName);
-                            throw 'transclusion name conflict: dont use same transclusion name at different components. Conflicted name: ' + name;
+                            throw '\n                                    transclusion name conflict: \n                                    dont use same transclusion name at different components with parent-child relations. \n                                    Conflicted name: "' + name + '"';
                         }
                         return true;
                     });
@@ -1531,7 +1568,7 @@ var DirectiveEngine = function () {
         this.runComponents();
         this.runTextNodes();
         this.runDirective_Model(); // todo check event sequence in legacy browsers
-        ['click', 'blur', 'focus', 'submit', 'keypress', 'keyup', 'keydown', 'input'].forEach(function (eventName) {
+        ['click', 'blur', 'focus', 'submit', 'keypress', 'keyup', 'keydown', 'input', 'mousemove', 'mouseleave', 'mouseenter', 'mouseover', 'mousout'].forEach(function (eventName) {
             _this19.runDomEvent(eventName);
         });
         this.runDomEvent_Change();
@@ -1542,6 +1579,7 @@ var DirectiveEngine = function () {
         this.runDirective_Hide();
         this.runDirective_Disabled();
         this.runDirective_Html();
+        this.runDirective_Attribute();
         this.runDirective_Attributes();
         this.runExpressionsInAttrs();
         this.runDirective_If();
@@ -1606,6 +1644,7 @@ var ExpressionEngine = function () {
             console.error('can not compile function from expression');
             console.error('expression', code);
             console.error('compiled code', codeProcessed);
+            throw e;
         }
     };
 
@@ -1686,77 +1725,6 @@ var ExpressionEngine = function () {
 
     return ExpressionEngine;
 }();
-'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Core = function () {
-    function Core() {
-        _classCallCheck(this, Core);
-    }
-
-    Core.registerComponent = function registerComponent(name) {
-        var properties = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-        var nameOriginal = name;
-        name = MiscUtils.camelToSnake(name);
-        if (ComponentProto.getByName(name)) throw 'component with name ' + nameOriginal + ' already registered';
-        var tmpl = TemplateLoader.getNode(properties, name);
-        var domTemplate = tmpl.innerHTML;
-        tmpl.remove();
-        var node = document.createElement('div');
-        node.innerHTML = domTemplate;
-
-        var componentProto = new ComponentProto(name, node, properties);
-        ComponentProto.instances.push(componentProto);
-        return componentProto;
-    };
-
-    Core.applyBindings = function applyBindings(domElementSelector) {
-        var properties = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-        if (!domElementSelector) throw 'can not applyBindings: element selector not provided';
-        if (typeof domElementSelector != 'string') throw 'element selector parameter mast me a string,\n            but ' + (typeof domElementSelector === 'undefined' ? 'undefined' : _typeof(domElementSelector)) + ' found}';
-        var domElement = document.querySelector(domElementSelector);
-        if (!domElement) throw 'can not apply bindings: root element with selector ' + domElementSelector + ' not defined';
-        var modelView = new ModelView(null, properties);
-        var fragment = new ScopedDomFragment(domElement, modelView);
-        fragment.run();
-        fragment.setMounted(true);
-        fragment.setShown(true);
-        modelView.component = fragment;
-        return fragment;
-    };
-
-    Core.digest = function digest() {
-        Component.digestAll();
-    };
-
-    Core.getComponentById = function getComponentById(id) {
-        var cmp = Component.getComponentByDomId(id);
-        if (!cmp) return null;
-        return cmp.modelView;
-    };
-
-    Core.getComponents = function getComponents() {
-        return Component.instances.map(function (c) {
-            return c.modelView;
-        });
-    };
-
-    Core._getComponentByInternalId = function _getComponentByInternalId(id) {
-        return Component.getComponentByInternalId(id);
-    };
-
-    return Core;
-}();
-
-Core.version = '0.7.14';
-
-window.RF = Core;
-window.RF.Router = Router;
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2060,4 +2028,75 @@ Router.STRATEGY = {
     MANUAL: 0,
     HASH: 1
 };
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Core = function () {
+    function Core() {
+        _classCallCheck(this, Core);
+    }
+
+    Core.registerComponent = function registerComponent(name) {
+        var properties = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+        var nameOriginal = name;
+        name = MiscUtils.camelToSnake(name);
+        if (ComponentProto.getByName(name)) throw 'component with name ' + nameOriginal + ' already registered';
+        var tmpl = TemplateLoader.getNode(properties, name);
+        var domTemplate = tmpl.innerHTML;
+        tmpl.remove();
+        var node = document.createElement('div');
+        node.innerHTML = domTemplate;
+
+        var componentProto = new ComponentProto(name, node, properties);
+        ComponentProto.instances.push(componentProto);
+        return componentProto;
+    };
+
+    Core.applyBindings = function applyBindings(domElementSelector) {
+        var properties = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+        if (!domElementSelector) throw 'can not applyBindings: element selector not provided';
+        if (typeof domElementSelector != 'string') throw 'element selector parameter mast me a string,\n            but ' + (typeof domElementSelector === 'undefined' ? 'undefined' : _typeof(domElementSelector)) + ' found}';
+        var domElement = document.querySelector(domElementSelector);
+        if (!domElement) throw 'can not apply bindings: root element with selector ' + domElementSelector + ' not defined';
+        var modelView = new ModelView(null, properties);
+        var fragment = new ScopedDomFragment(domElement, modelView);
+        fragment.run();
+        fragment.setMounted(true);
+        fragment.setShown(true);
+        modelView.component = fragment;
+        return fragment;
+    };
+
+    Core.digest = function digest() {
+        Component.digestAll();
+    };
+
+    Core.getComponentById = function getComponentById(id) {
+        var cmp = Component.getComponentByDomId(id);
+        if (!cmp) return null;
+        return cmp.modelView;
+    };
+
+    Core.getComponents = function getComponents() {
+        return Component.instances.map(function (c) {
+            return c.modelView;
+        });
+    };
+
+    Core._getComponentByInternalId = function _getComponentByInternalId(id) {
+        return Component.getComponentByInternalId(id);
+    };
+
+    return Core;
+}();
+
+Core.version = '0.7.16';
+
+window.RF = Core;
+window.RF.Router = Router;
 }());

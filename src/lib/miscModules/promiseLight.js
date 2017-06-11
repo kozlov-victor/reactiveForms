@@ -1,5 +1,5 @@
 
-class PromiseLight{
+export default class PromiseLight{
     constructor(resolveFn){
         this.resolveFn = resolveFn;
         this.catchFn = null;

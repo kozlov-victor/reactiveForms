@@ -66,7 +66,9 @@ class DirectiveEngine {
             });
         }
         DomUtils.addEventListener(el,eventName,e=>{
+            this.component.modelView.$event = e;
             ExpressionEngine.runExpressionFn(fn,this.component);
+            delete this.component.modelView.$event;
             Component.digestAll();
             if (eventName=='submit') {
                 DomUtils.preventDefault(e);
@@ -243,7 +245,7 @@ class DirectiveEngine {
         let thisId = el.getAttribute('data-component-id');
         let res = [];
         if (!el.children) return [];
-        DomUtils.nodeListToArray(el.children).
+        DomUtils.nodeListToArray(el.querySelectorAll('*')).
         map(it=>{
             return it.getAttribute('data-component-id');
         }).
@@ -363,7 +365,7 @@ class DirectiveEngine {
 
     runDirective_Attribute(){
         this._eachElementWithAttr('data-attribute',(el,expression)=>{
-            expression = `{${expression}`;
+            expression = `{${expression}}`;
             this.component.addWatcher(
                 expression,
                 properties=>{
@@ -421,7 +423,12 @@ class DirectiveEngine {
                             if (!!closestWithSameName) {
                                 console.error(domEl);
                                 console.error(closestWithSameName);
-                                throw `transclusion name conflict: dont use same transclusion name at different components. Conflicted name: ${name}`;
+                                throw (
+                                    `
+                                    transclusion name conflict: 
+                                    dont use same transclusion name at different components with parent-child relations. 
+                                    Conflicted name: "${name}"`
+                                );
                             }
                             return true;
                         });
@@ -513,7 +520,8 @@ class DirectiveEngine {
             'click','blur','focus',
             'submit',
             'keypress','keyup','keydown',
-            'input'
+            'input',
+            'mousemove','mouseleave','mouseenter','mouseover','mousout'
 
         ].forEach(eventName =>{
             this.runDomEvent(eventName);
@@ -526,6 +534,7 @@ class DirectiveEngine {
         this.runDirective_Hide();
         this.runDirective_Disabled();
         this.runDirective_Html();
+        this.runDirective_Attribute();
         this.runDirective_Attributes();
         this.runExpressionsInAttrs();
         this.runDirective_If();

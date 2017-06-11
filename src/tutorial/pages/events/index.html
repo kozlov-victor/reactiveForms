@@ -1,7 +1,7 @@
 
 <form id="bind_change">
     change:
-    <input data-model="app.model" type="range" data-change="modelToResult()">
+    <input data-model="app.model" type="range" data-change="modelToResult($event)">
     <div>
         {{app.result}}
     </div>
@@ -9,7 +9,7 @@
 <hr/>
 <form id="bind_click">
     click:
-    <input data-model="app.model" data-click="modelToResult()">
+    <input data-model="app.model" data-click="modelToResult($event)">
     <div>
         {{app.result}}
     </div>
@@ -17,7 +17,7 @@
 <hr/>
 <form id="bind_blur">
     blur:
-    <input data-model="app.model" data-blur="modelToResult()">
+    <input data-model="app.model" data-blur="modelToResult($event)">
     <div>
         {{app.result}}
     </div>
@@ -25,13 +25,13 @@
 <hr/>
 <form id="bind_focus">
     focus:
-    <input data-model="app.model" data-focus="modelToResult()">
+    <input data-model="app.model" data-focus="modelToResult($event)">
     <div>
         {{app.result}}
     </div>
 </form>
 <hr/>
-<form data-submit="modelToResult()" id="bind_submit">
+<form data-submit="modelToResult($event)" id="bind_submit">
     submit:
     <input data-model="app.model">
     <div>
@@ -42,7 +42,7 @@
 <hr/>
 <form id="bind_keypress">
     keypress:
-    <input data-model="app.model" data-keypress="modelToResult()">
+    <input data-model="app.model" data-keypress="modelToResult($event)">
     <div>
         {{app.result}}
     </div>
@@ -50,7 +50,7 @@
 <hr/>
 <form id="bind_keyup">
     keyup:
-    <input data-model="app.model" data-keyup="modelToResult()">
+    <input data-model="app.model" data-keyup="modelToResult($event)">
     <div>
         {{app.result}}
     </div>
@@ -58,7 +58,7 @@
 <hr/>
 <form id="bind_keydown">
     keydown:
-    <input data-model="app.model" data-keydown="modelToResult()">
+    <input data-model="app.model" data-keydown="modelToResult($event)">
     <div>
         {{app.result}}
     </div>
@@ -66,7 +66,7 @@
 
 <form id="bind_input">
     input:
-    <input type="number" data-model="app.model" data-input="modelToResult()">
+    <input type="number" data-model="app.model" data-input="modelToResult($event)">
     <div>
         {{app.result}}
     </div>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MiscUtils Test</title>
+    <script src="../src/lib/utils/miscUtils.js"></script>
+    <style>
+        .item {
+            color: white;
+            padding: 5px;
+            margin: 5px;
+        }
+        .success {
+            background-color: #dff9df;
+            color: black;
+        }
+        .error {
+            background-color: #d1232f;
+            color: white;
+        }
+    </style>
+    <script>
+        let toStr = (a)=>{
+            if (typeof a == 'object') return JSON.stringify(a);
+            return a.toString();
+        };
+        let showResult = (a,b,isSuccess)=>{
+            let msg = `
+                ${isSuccess?'ok====>':'failed====>'}
+                expected: ${toStr(b)}, received: ${toStr(a)}
+            `;
+            let item = document.createElement('div');
+            item.textContent = msg;
+            item.className = `item ${isSuccess?'success':'error'}`;
+            document.body.appendChild(item);
+        };
+
+        let assertEqual = (a,b)=>{
+            if (MiscUtils.deepEqual(a,b)) {
+                showResult(a,b,true);
+            }
+            else {
+                showResult(a,b,false);
+            }
+        };
+    </script>
+</head>
+<body>
+<script>
+    let a = {};
+    a.b = a;
+    let aCloned = MiscUtils.deepCopy(a);
+    console.log(a,aCloned);
+    assertEqual(MiscUtils.deepEqual(a,aCloned),true);
+
+</script>
+</body>
+</html>

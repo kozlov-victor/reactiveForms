@@ -48,6 +48,7 @@ class ExpressionEngine {
             console.error('can not compile function from expression');
             console.error('expression',code);
             console.error('compiled code',codeProcessed);
+            throw e;
         }
 
     }

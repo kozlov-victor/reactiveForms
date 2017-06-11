@@ -47,23 +47,13 @@ button:active,input:active {
 
     
 <div id="app">
-    <input data-model="user.name"><input data-model="user.name">
+    <input data-model="name"><input data-model="name">
     <br/>
-
-    <div
-        data-attribute="color:'red'"
-    >ee</div>
-
     Вы ввели значение:
-
-    {{
-
-        user.name
-
-    }}
+    {{name}}
     <br/>
     nameSize:
-    {{user.nameSize()}}
+    {{nameSize()}}
 </div>
 
 
@@ -71,11 +61,9 @@ button:active,input:active {
         
 
 RF.applyBindings('#app',{
-    user: {
-        name: 'defaultUserName',
-        nameSize: function(){
-            return this.name.length;
-        }
+    name: 'defaultUserName',
+    nameSize: function(){
+        return this.name.length;
     }
 });
     </script>

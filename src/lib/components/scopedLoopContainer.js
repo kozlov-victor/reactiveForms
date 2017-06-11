@@ -41,6 +41,11 @@ class ScopedLoopContainer extends Component {
         let currNodeInIteration = this.anchor;
         if (newArr instanceof Object) newArr = MiscUtils.objectToArray(newArr);
 
+        if (!newArr.forEach) {
+            console.error(this.node);
+            throw `can not evaluate loop expression: ${this.eachItemName}${this.indexName?','+this.eachItemName:''}. Expected object or array, but ${newArr} found.`
+        }
+
         let index = 0;
         newArr.forEach((iterableItem,i)=>{
 

@@ -18,7 +18,8 @@ for (var i=0;i<evnts.length;i++) {
             model: 'appModel',
             result:'appResult'
         },
-        modelToResult: function(){
+        modelToResult: function(event){
+            console.log(event);
             this.app.result = this.app.model;
         }
     });

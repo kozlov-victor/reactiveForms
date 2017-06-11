@@ -4,22 +4,37 @@ class MiscUtils {
 
     /**
      * @param obj
+     * @param _clonedObjects - internal store of cloned object to avoid self-cycled object recursion
      * @returns {*}
      */
-    static deepCopy(obj) {
+    static deepCopy(obj, _clonedObjects = []) {
         if (obj===undefined) return undefined;
         else if (obj===null) return null;
         if (Object.prototype.toString.call(obj) === '[object Array]') {
             let out = [], i = 0, len = obj.length;
             for (; i < len; i++) {
-                out[i] = MiscUtils.deepCopy(obj[i]);
+                let clonedObject;
+                if (_clonedObjects.indexOf(obj[i])>-1) {
+                    clonedObject = obj[i];
+                } else {
+                    _clonedObjects.push(obj[i]);
+                    clonedObject = MiscUtils.deepCopy(obj[i],_clonedObjects);
+                }
+                out[i] = clonedObject;
             }
             return out;
         }
         if (typeof obj === 'object') {
             let out = {};
             for (let i in obj) {
-                out[i] = MiscUtils.deepCopy(obj[i]);
+                let clonedObject;
+                if (_clonedObjects.indexOf(obj[i])>-1) {
+                    clonedObject = obj[i];
+                } else {
+                    _clonedObjects.push(obj[i]);
+                    clonedObject = MiscUtils.deepCopy(obj[i],_clonedObjects);
+                }
+                out[i] = clonedObject;
             }
             return out;
         }
@@ -40,11 +55,16 @@ class MiscUtils {
      */
     static deepEqual(x, y) {
         //if (isNaN(x) && isNaN(y)) return true;
-        return (x && y && typeof x === 'object' && typeof y === 'object') ?
-            (Object.keys(x).length === Object.keys(y).length) &&
-            Object.keys(x).reduce(function (isEqual, key) {
-                return isEqual && MiscUtils.deepEqual(x[key], y[key]);
-            }, true) : (x === y);
+        if (x && y && typeof x === 'object' && typeof y === 'object') {
+            if (x===y) return true;
+            return (Object.keys(x).length === Object.keys(y).length) &&
+                Object.keys(x).reduce((isEqual, key)=> {
+                    return isEqual && MiscUtils.deepEqual(x[key], y[key]);
+                },true);
+        } else {
+            return x===y;
+        }
+
     }
 
     static camelToSnake(str) {
