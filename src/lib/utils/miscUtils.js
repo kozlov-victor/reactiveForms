@@ -83,6 +83,12 @@ class MiscUtils {
         return res;
     }
 
+    static copyMethods(src,dest){
+        Object.keys(dest).forEach(name=>{
+            src[name] = dest.name;
+        })
+    }
+
 }
 
 

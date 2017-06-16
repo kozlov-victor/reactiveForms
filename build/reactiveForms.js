@@ -1002,6 +1002,12 @@ var MiscUtils = function () {
         return res;
     };
 
+    MiscUtils.copyMethods = function copyMethods(src, dest) {
+        Object.keys(dest).forEach(function (name) {
+            src[name] = dest.name;
+        });
+    };
+
     return MiscUtils;
 }();
 
@@ -1760,6 +1766,33 @@ var ExpressionEngine = function () {
 
     return ExpressionEngine;
 }();
+"use strict";
+
+var setTimeoutNative = window.setTimeout;
+var setIntervalNative = window.setInterval;
+var clearTimeOutNative = window.clearTimeout;
+var clearIntervalNative = window.clearInterval;
+
+var Reactivity = {
+    setTimeOut: function setTimeOut(fn, time) {
+        setTimeoutNative(function () {
+            fn();
+            RF.digest();
+        }, time);
+    },
+    setInterval: function setInterval(fn, time) {
+        setIntervalNative(function () {
+            fn();
+            RF.digest();
+        }, time);
+    },
+    clearTimeOut: function clearTimeOut(tid) {
+        clearTimeOutNative(tid);
+    },
+    clearInterval: function clearInterval(tid) {
+        clearIntervalNative(tid);
+    }
+};
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2130,6 +2163,7 @@ var Core = function () {
     return Core;
 }();
 
+MiscUtils.copyMethods(Core, Reactivity);
 Core.version = '0.7.17';
 
 window.RF = Core;
