@@ -93,17 +93,42 @@ class DirectiveEngine {
         });
     }
 
-    runDirective_Bind(){
-        this._eachElementWithAttr('data-bind',(el,expression)=>{
-            ExpressionEngine.runExpressionFn(fn,this.component);
-            this.component.addWatcher(
-                expression,
-                value=>{
-                    DomUtils.setTextNodeValue(el,value);
-                }
-            )
+    _runDirectiveEvents(el,expression){
+        expression = expression.trim();
+        if (!(expression.startsWith("{") && expression.endsWith("}")))
+            throw `Attribute error. can not parse expression ${expression}`;
+        expression = expression.substr(1,expression.length-2);
+        expression.split(',').forEach(expr=>{
+            let p = expr.split(':');
+            if (p.length!==2)
+                throw `Attribute error. can not parse expression ${expression}`;
+            this._runDomEvent(el,p[1],p[0]);
         });
-    };
+    }
+
+    runDirective_Events(){
+        this._eachElementWithAttr('data-'+'events',(el,expression)=>{
+            this._runDirectiveEvents(el,expression);
+        });
+    }
+
+    runDirective_Event(){
+        this._eachElementWithAttr('data-'+'event',(el,expression)=>{
+            this._runDirectiveEvents(el,`{${expression}}`);
+        });
+    }
+
+    // runDirective_Bind(){
+    //     this._eachElementWithAttr('data-bind',(el,expression)=>{
+    //         ExpressionEngine.runExpressionFn(fn,this.component);
+    //         this.component.addWatcher(
+    //             expression,
+    //             value=>{
+    //                 DomUtils.setTextNodeValue(el,value);
+    //             }
+    //         )
+    //     });
+    // };
 
     _runDirective_Model_OfSelect(selectEl,modelExpression){
         let isMultiple = selectEl.multiple, val = [];
@@ -530,7 +555,9 @@ class DirectiveEngine {
             this.runDomEvent(eventName);
         });
         this.runDomEvent_Change();
-        this.runDirective_Bind();
+        this.runDirective_Events();
+        this.runDirective_Event();
+        //this.runDirective_Bind();
         this.runDirective_Class();
         this.runDirective_Style();
         this.runDirective_Show();

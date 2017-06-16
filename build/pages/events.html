@@ -48,7 +48,7 @@ button:active,input:active {
     
 <form id="bind_change">
     change:
-    <input data-model="app.model" type="range" data-change="modelToResult($event)">
+    <input data-model="app.model" type="range" data-events="{change:modelToResult($event)}">
     <div>
         {{app.result}}
     </div>
@@ -56,7 +56,7 @@ button:active,input:active {
 <hr/>
 <form id="bind_click">
     click:
-    <input data-model="app.model" data-click="modelToResult($event)">
+    <input data-model="app.model" data-event="click:modelToResult($event)">
     <div>
         {{app.result}}
     </div>
