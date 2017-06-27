@@ -48,7 +48,7 @@ button:active,input:active {
     
 <div id="tmpl" style="display:none;">
     <div id="redBorderedTmpl">
-        <div style="border: 3px solid red;">
+        <div style="border: 3px solid red;padding: 5px;">
             <div data-transclusion="red_content"></div>
         </div>
     </div>
@@ -67,6 +67,24 @@ button:active,input:active {
                 </app-green-bordered>
             </div>
         </app-red-bordered>
+
+        <br/>
+
+        <!--<div data-for="a,index in [1,2,3]">-->
+            <app-red-bordered data-transclusion-id="a">
+                <div data-transclusion="red_content:#a">
+                    <app-red-bordered data-transclusion-id="b">
+                        <div data-transclusion="red_content:#b">
+                            <app-red-bordered data-transclusion-id="c">
+                                <div data-transclusion="red_content:#c">
+                                    content here: <input data-model="componentContent">
+                                </div>
+                            </app-red-bordered>
+                        </div>
+                    </app-red-bordered>
+                </div>
+            </app-red-bordered>
+        <!--</div>-->
     </div>
 </div>
 <div id="application">

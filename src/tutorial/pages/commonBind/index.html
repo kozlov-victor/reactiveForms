@@ -1,20 +1,20 @@
 
 <div id="app">
-    <input data-model="user.name"><input data-model="user.name">
+    <input data-model="name"><input type="number" data-model="age">
     <br/>
 
     <div
         data-attribute="color:'red'"
-    >ee</div>
-
-    Вы ввели значение:
+    >
+        Вы ввели значение:
+    </div>
 
     {{
 
-        user.name
+        name
 
-    }}
+    }}, {{age}}
     <br/>
     nameSize:
-    {{user.nameSize()}}
+    {{nameSize()}}
 </div>

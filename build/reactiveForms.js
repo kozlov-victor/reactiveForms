@@ -372,14 +372,20 @@ var Component = function () {
         return res;
     };
 
-    Component.prototype.addWatcher = function addWatcher(expression, listenerFn) {
+    Component.prototype.addWatcher = function addWatcher(expression, listenerFn, ifExpressionsList) {
+        if (!ifExpressionsList) {
+            console.trace("trace");
+            throw "ifList not specified";
+        } // todo remove after test
         var watcherFn = ExpressionEngine.getExpressionFn(expression);
         this.watchers.push({
             expression: expression,
             watcherFn: watcherFn,
-            listenerFn: listenerFn
+            listenerFn: listenerFn,
+            ifExpressionsList: ifExpressionsList
         });
         listenerFn(ExpressionEngine.runExpressionFn(watcherFn, this));
+        console.trace('added watcher');
     };
 
     Component.prototype._updateExternalState = function _updateExternalState() {
@@ -396,9 +402,18 @@ var Component = function () {
         var _this5 = this;
 
         if (!this.isWatchEnable) return;
-
         this._updateExternalState();
         this.watchers.forEach(function (watcher) {
+            var ifDirective = true;
+            watcher.ifExpressionsList.some(function (ifExpression) {
+                var res = ExpressionEngine.executeExpression(ifExpression, _this5);
+                if (!res) {
+                    ifDirective = false;
+                    return true;
+                }
+            });
+            if (!ifDirective) return;
+
             var newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, _this5);
             var oldValue = watcher.last;
             var newValDeepCopy = MiscUtils.deepCopy(newValue);
@@ -411,6 +426,7 @@ var Component = function () {
 
     Component.prototype.run = function run() {
         new DirectiveEngine(this).run();
+        this.digest();
     };
 
     Component.prototype.destroy = function destroy() {
@@ -610,20 +626,22 @@ var ScopedLoopContainer = function (_Component) {
         this.lastFrafmentsLength--;
     };
 
-    ScopedLoopContainer.prototype.run = function run(eachItemName, indexName, iterableObjectName) {
+    ScopedLoopContainer.prototype.run = function run(eachItemName, indexName, iterableObjectExpr) {
         var _this2 = this;
 
         this.eachItemName = eachItemName;
         this.indexName = indexName;
 
-        this.anchor = document.createComment('component-id: ' + this.id + '; loop: ' + eachItemName + ' in ' + iterableObjectName);
+        this.anchor = document.createComment('component-id: ' + this.id + '; loop: ' + eachItemName + ' in ' + iterableObjectExpr);
         this.node.parentNode.insertBefore(this.anchor, this.node.nextSibling);
         this.node.remove();
         this.node = this.node.cloneNode(true);
 
-        this.addWatcher(iterableObjectName, function (newArr, oldArr) {
+        this.addWatcher(iterableObjectExpr, function (newArr, oldArr) {
             _this2._processIterations(newArr, oldArr);
-        });
+        }, [] // todo!!!! replace to real array of "if" expressions
+        );
+        this.digest();
     };
 
     ScopedLoopContainer.prototype._processIterations = function _processIterations() {
@@ -638,7 +656,7 @@ var ScopedLoopContainer = function (_Component) {
 
         if (!newArr.forEach) {
             console.error(this.node);
-            throw 'can not evaluate loop expression: ' + this.eachItemName + (this.indexName ? ',' + this.eachItemName : '') + '. Expected object or array, but ' + newArr + ' found.';
+            throw 'can not evaluate loop expression: ' + this.eachItemName + (this.indexName ? ',' + this.indexName : '') + '. Expected object or array, but ' + newArr + ' found.';
         }
 
         var index = 0;
@@ -901,6 +919,17 @@ var DomUtils = function () {
         }
     };
 
+    DomUtils._get_If_expressionTopDownList = function _get_If_expressionTopDownList(el) {
+        var res = [];
+        do {
+            var dataIfExp = el.getAttribute && el.getAttribute('data-if');
+            if (dataIfExp) {
+                res.unshift(dataIfExp);
+            }
+        } while (el = el.parentNode);
+        return res;
+    };
+
     return DomUtils;
 }();
 
@@ -1069,9 +1098,123 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var dataTransclusion = 'data-transclusion';
 
-var ComponentHelper = function ComponentHelper() {
-    _classCallCheck(this, ComponentHelper);
-};
+var ComponentHelper = function () {
+    function ComponentHelper() {
+        _classCallCheck(this, ComponentHelper);
+    }
+
+    ComponentHelper._runTransclNode = function _runTransclNode(componentProto, domEl, transclNode, transclComponents) {
+        var transclusionId = domEl.getAttribute('data-transclusion-id') || '';
+        var name = transclNode.getAttribute(dataTransclusion);
+        var nameSpecifiedById = transclusionId ? name += '\\:\\#' + transclusionId : '';
+        if (!name) {
+            console.error(componentProto.node);
+            console.error(transclNode);
+            throw dataTransclusion + ' attribute can not be empty';
+        }
+
+        var recipients = DomUtils.nodeListToArray(domEl.querySelectorAll('[' + dataTransclusion + '="' + name + '"],[' + dataTransclusion + '="' + nameSpecifiedById + '"]')).filter(function (el) {
+            var closestWithSameName = el.parentNode && (el.parentNode.closest('[' + dataTransclusion + '="' + name + '"]') || el.parentNode.closest('[' + dataTransclusion + '="' + nameSpecifiedById + '"]'));
+            if (!!closestWithSameName) {
+                console.error(domEl);
+                console.error(closestWithSameName);
+                throw '\n                            transclusion name conflict:\n                            dont use same transclusion name at different components with parent-child relations.\n                            Conflicted name: "' + name + '"';
+            }
+            return true;
+        });
+
+        recipients.forEach(function (rcp) {
+            transclNode.innerHTML = '';
+            transclComponents.push({ transclNode: transclNode, rcp: rcp });
+        });
+    };
+
+    ComponentHelper._runComponentDomEl = function _runComponentDomEl(rootComponent, componentProto, domEl, transclComponents, componentNodes) {
+        if (domEl.getAttribute('data-_processed')) return;
+        domEl.setAttribute('data-_processed', '1');
+
+        var hasNotTranscluded = false;
+        DomUtils.nodeListToArray(domEl.childNodes).forEach(function (chdrn) {
+            if (chdrn.hasAttribute && !chdrn.hasAttribute(dataTransclusion)) hasNotTranscluded = true;
+        });
+        if (hasNotTranscluded) {
+            console.warn(domEl);
+            console.warn('children elements of component ' + componentProto.name + ' will be removed');
+        }
+
+        var domId = domEl.getAttribute('id');
+        var componentNode = componentProto.node.cloneNode(true);
+        DomUtils.nodeListToArray(componentNode.querySelectorAll('[' + dataTransclusion + ']')).forEach(function (transclNode) {
+            ComponentHelper._runTransclNode(componentProto, domEl, transclNode, transclComponents);
+        });
+        domEl.parentNode.insertBefore(componentNode, domEl);
+
+        var dataStateExpression = domEl.getAttribute('data-state');
+        var dataState = dataStateExpression ? ExpressionEngine.executeExpression(dataStateExpression, rootComponent) : {};
+        var component = componentProto.newInstance(componentNode, dataState);
+        domId && (component.domId = domId);
+
+        component.parent = rootComponent;
+        component.parent.addChild(component);
+        if (dataStateExpression) component.stateExpression = dataStateExpression;
+        component.disableParentScopeEvaluation = true; // avoid recursion in Component
+
+        component.run();
+
+        domEl.parentNode.removeChild(domEl);
+        componentNodes.push({ component: component, componentNode: componentNode });
+    };
+
+    ComponentHelper._runComponent = function _runComponent(rootComponent, componentProto) {
+        var transclComponents = [];
+        var domEls = DomUtils.nodeListToArray(rootComponent.node.getElementsByTagName(componentProto.name));
+        if (rootComponent.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
+            console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
+            console.error('component node:', rootComponent.node);
+            throw "Can not use data-for attribute at component";
+        }
+        var componentNodes = [];
+        domEls.forEach(function (domEl) {
+            ComponentHelper._runComponentDomEl(rootComponent, componentProto, domEl, transclComponents, componentNodes);
+        });
+        var hasStateChanged = false;
+        componentNodes.forEach(function (item) {
+            var children = DomUtils.removeParentButNotChildren(item.componentNode);
+            if (children.length == 1) {
+                item.component.modelView.$el = children[0];
+            } else {
+                item.component.modelView.$el = children;
+            }
+            hasStateChanged = item.component.setMounted(true) != 'noChanged' || hasStateChanged;
+            hasStateChanged = item.component.setShown(true) != 'noChanged' || hasStateChanged;
+        });
+        hasStateChanged && Component.digestAll();
+        return transclComponents;
+    };
+
+    ComponentHelper._runTransclusionComponent = function _runTransclusionComponent(rootComponent, trnscl) {
+        DomUtils.nodeListToArray(trnscl.rcp.childNodes).forEach(function (n) {
+            trnscl.transclNode.appendChild(n);
+        });
+        var transclComponent = new ScopedDomFragment(trnscl.transclNode, rootComponent.modelView);
+        rootComponent.addChild(transclComponent);
+        transclComponent.parent = rootComponent;
+        trnscl.transclNode.setAttribute('data-_processed', '1');
+        transclComponent.run();
+    };
+
+    ComponentHelper.runComponents = function runComponents(rootComponent) {
+        var transclComponents = [];
+        ComponentProto.instances.forEach(function (componentProto) {
+            transclComponents = transclComponents.concat(ComponentHelper._runComponent(rootComponent, componentProto));
+        });
+        transclComponents.forEach(function (trnscl) {
+            ComponentHelper._runTransclusionComponent(rootComponent, trnscl);
+        });
+    };
+
+    return ComponentHelper;
+}();
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1122,10 +1265,12 @@ var DirectiveEngine = function () {
             if (!variables.length) throw 'can not parse expression: ' + expression;
             var eachItemName = variables[0];
             var indexName = variables[1];
-            var iterableObjectName = tokens[2];
+            tokens.shift();
+            tokens.shift();
+            var iterableObjectExpr = tokens.join(' ');
             var scopedLoopContainer = new ScopedLoopContainer(el, _this.component.modelView);
             scopedLoopContainer.parent = _this.component;
-            scopedLoopContainer.run(eachItemName, indexName, iterableObjectName);
+            scopedLoopContainer.run(eachItemName, indexName, iterableObjectExpr);
         });
     };
 
@@ -1136,7 +1281,7 @@ var DirectiveEngine = function () {
             _this2.component.addWatcher(it.expression, function (value) {
                 if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'object') value = JSON.stringify(value);
                 DomUtils.setTextNodeValue(it.node, value);
-            });
+            }, DomUtils._get_If_expressionTopDownList(it.node));
         });
     };
 
@@ -1298,7 +1443,7 @@ var DirectiveEngine = function () {
                 } else {
                     if (DomUtils.getInputValue(el) !== value) DomUtils.setInputValue(el, value);
                 }
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
@@ -1316,7 +1461,7 @@ var DirectiveEngine = function () {
                 } else {
                     el.className = initialClassName + ' ' + classNameOrObj;
                 }
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
@@ -1333,7 +1478,7 @@ var DirectiveEngine = function () {
                         //ie8 throws error if style is incorrect
                     }
                 }
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
@@ -1343,7 +1488,7 @@ var DirectiveEngine = function () {
         this._eachElementWithAttr('data-disabled', function (el, expression) {
             _this12.component.addWatcher(expression, function (value) {
                 if (value) el.setAttribute('disabled', 'disabled');else el.removeAttribute('disabled');
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
@@ -1386,7 +1531,7 @@ var DirectiveEngine = function () {
                         cmp.setShown(false);
                     });
                 }
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
@@ -1408,7 +1553,7 @@ var DirectiveEngine = function () {
                         cmp.setShown(false);
                     });
                 }
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
@@ -1430,7 +1575,7 @@ var DirectiveEngine = function () {
                         cmp.setShown(true);
                     });
                 }
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
@@ -1440,7 +1585,7 @@ var DirectiveEngine = function () {
         this._eachElementWithAttr('data-html', function (el, expression) {
             _this16.component.addWatcher(expression, function (val) {
                 el.innerHTML = val;
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
@@ -1457,7 +1602,7 @@ var DirectiveEngine = function () {
         this._eachElementWithAttr('data-attributes', function (el, expression) {
             _this17.component.addWatcher(expression, function (properties) {
                 _this17._runAttributes(el, properties);
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
@@ -1468,113 +1613,20 @@ var DirectiveEngine = function () {
             expression = '{' + expression + '}';
             _this18.component.addWatcher(expression, function (properties) {
                 _this18._runAttributes(el, properties);
-            });
+            }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
 
     DirectiveEngine.prototype.runComponents = function runComponents() {
-        var _this19 = this;
-
-        // todo refactor
-        var transclComponents = [];
-        ComponentProto.instances.forEach(function (componentProto) {
-            var domEls = DomUtils.nodeListToArray(_this19.component.node.getElementsByTagName(componentProto.name));
-            if (_this19.component.node.tagName.toLowerCase() == componentProto.name.toLowerCase()) {
-                console.error('\n                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node');
-                console.error('component node:', _this19.component.node);
-                throw "Can not use data-for attribute at component";
-            }
-            var componentNodes = [];
-            domEls.forEach(function (domEl) {
-
-                if (domEl.getAttribute('data-_processed')) return;
-                domEl.setAttribute('data-_processed', '1');
-
-                var dataTransclusion = 'data-transclusion';
-
-                var hasNotTranscluded = false;
-                DomUtils.nodeListToArray(domEl.childNodes).forEach(function (chdrn) {
-                    if (chdrn.hasAttribute && !chdrn.hasAttribute(dataTransclusion)) hasNotTranscluded = true;
-                });
-                if (hasNotTranscluded) {
-                    console.warn(domEl);
-                    console.warn('children elements of component ' + componentProto.name + ' will be removed');
-                }
-
-                var domId = domEl.getAttribute('id');
-                var componentNode = componentProto.node.cloneNode(true);
-                DomUtils.nodeListToArray(componentNode.querySelectorAll('[' + dataTransclusion + ']')).forEach(function (transclNode) {
-                    var name = transclNode.getAttribute(dataTransclusion);
-                    if (!name) {
-                        console.error(componentProto.node);
-                        console.error(transclNode);
-                        throw dataTransclusion + ' attribute can not be empty';
-                    }
-
-                    var recipients = DomUtils.nodeListToArray(domEl.querySelectorAll('[' + dataTransclusion + '=' + name + ']')).filter(function (el) {
-                        var closestWithSameName = el.parentNode && el.parentNode.closest('[' + dataTransclusion + '=' + name + ']');
-                        if (!!closestWithSameName) {
-                            console.error(domEl);
-                            console.error(closestWithSameName);
-                            throw '\n                                    transclusion name conflict: \n                                    dont use same transclusion name at different components with parent-child relations. \n                                    Conflicted name: "' + name + '"';
-                        }
-                        return true;
-                    });
-
-                    recipients.forEach(function (rcp) {
-                        transclNode.innerHTML = '';
-                        transclComponents.push({ transclNode: transclNode, rcp: rcp });
-                    });
-                });
-                domEl.parentNode.insertBefore(componentNode, domEl);
-
-                var dataStateExpression = domEl.getAttribute('data-state');
-                var dataState = dataStateExpression ? ExpressionEngine.executeExpression(dataStateExpression, _this19.component) : {};
-                var component = componentProto.newInstance(componentNode, dataState);
-                domId && (component.domId = domId);
-
-                component.parent = _this19.component;
-                component.parent.addChild(component);
-                if (dataStateExpression) component.stateExpression = dataStateExpression;
-                component.disableParentScopeEvaluation = true; // avoid recursion in Component
-
-                component.run();
-
-                domEl.parentNode.removeChild(domEl);
-                componentNodes.push({ component: component, componentNode: componentNode });
-            });
-            var hasStateChanged = false;
-            componentNodes.forEach(function (item) {
-                var children = DomUtils.removeParentButNotChildren(item.componentNode);
-                if (children.length == 1) {
-                    item.component.modelView.$el = children[0];
-                } else {
-                    item.component.modelView.$el = children;
-                }
-                hasStateChanged = item.component.setMounted(true) != 'noChanged' || hasStateChanged;
-                hasStateChanged = item.component.setShown(true) != 'noChanged' || hasStateChanged;
-            });
-            hasStateChanged && Component.digestAll();
-        });
-        transclComponents.forEach(function (trnscl) {
-            //trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
-            DomUtils.nodeListToArray(trnscl.rcp.childNodes).forEach(function (n) {
-                trnscl.transclNode.appendChild(n);
-            });
-            var transclComponent = new ScopedDomFragment(trnscl.transclNode, new ModelView(_this19.component.name));
-            _this19.component.addChild(transclComponent);
-            transclComponent.parent = _this19.component;
-            trnscl.transclNode.setAttribute('data-_processed', '1');
-            transclComponent.run();
-        });
+        ComponentHelper.runComponents(this.component);
     };
 
     DirectiveEngine.prototype.runExpressionsInAttrs = function runExpressionsInAttrs() {
-        var _this20 = this;
+        var _this19 = this;
 
-        DomUtils.nodeListToArray(this.component.node.querySelectorAll('*')).forEach(function (node) {
-            if (!node.attributes) return;
-            Array.prototype.forEach.call(node.attributes, function (attr) {
+        DomUtils.nodeListToArray(this.component.node.querySelectorAll('*')).forEach(function (el) {
+            if (!el.attributes) return;
+            Array.prototype.forEach.call(el.attributes, function (attr) {
                 if (!attr) return;
                 var name = attr.name,
                     value = attr.value;
@@ -1582,7 +1634,7 @@ var DirectiveEngine = function () {
                 if (value.indexOf('{{') == -1 && value.indexOf('}}') == -1) return;
                 value = value.split(/[\n\t]|[\s]{2,}/).join(' ').trim();
                 var resultExpArr = [],
-                    resultExpr = '';
+                    resultExpr = void 0;
                 value.split(DomUtils.EXPRESSION_REGEXP).forEach(function (token) {
                     if (!token.length) return;
                     if (token.indexOf('{{') == 0) {
@@ -1593,22 +1645,22 @@ var DirectiveEngine = function () {
                     }
                 });
                 resultExpr = resultExpArr.join('+');
-                _this20.component.addWatcher(resultExpr, function (expr) {
-                    node.setAttribute(name, expr.trim());
-                });
+                _this19.component.addWatcher(resultExpr, function (expr) {
+                    el.setAttribute(name, expr.trim());
+                }, DomUtils._get_If_expressionTopDownList(el));
             });
         });
     };
 
     DirectiveEngine.prototype.run = function run() {
-        var _this21 = this;
+        var _this20 = this;
 
         this.runDirective_For();
         this.runComponents();
         this.runTextNodes();
         this.runDirective_Model(); // todo check event sequence in legacy browsers
         ['click', 'blur', 'focus', 'submit', 'keypress', 'keyup', 'keydown', 'input', 'mousedown', 'mouseup', 'mousemove', 'mouseleave', 'mouseenter', 'mouseover', 'mousout'].forEach(function (eventName) {
-            _this21.runDomEvent(eventName);
+            _this20.runDomEvent(eventName);
         });
         this.runDomEvent_Change();
         this.runDirective_Events();
@@ -1674,6 +1726,7 @@ var ExpressionEngine = function () {
     ExpressionEngine.getExpressionFn = function getExpressionFn(code) {
         var unconvertedCodeTail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
 
+        var codeRaw = code;
         code = code.split('\n').join('').split("'").join('"');
         var codeProcessed = '\n                return ' + Lexer.convertExpression(code, RF_API_STR + '.getVal(component,\'{expr}\')') + '\n        ' + unconvertedCodeTail;
         try {
@@ -1683,7 +1736,7 @@ var ExpressionEngine = function () {
             return fn;
         } catch (e) {
             console.error('can not compile function from expression');
-            console.error('expression', code);
+            console.error('expression', codeRaw);
             console.error('compiled code', codeProcessed);
             throw e;
         }
@@ -2133,9 +2186,9 @@ var Core = function () {
         if (!domElement) throw 'can not apply bindings: root element with selector ' + domElementSelector + ' not defined';
         var modelView = new ModelView(null, properties);
         var fragment = new ScopedDomFragment(domElement, modelView);
-        fragment.run();
         fragment.setMounted(true);
         fragment.setShown(true);
+        fragment.run();
         modelView.component = fragment;
         return fragment;
     };
@@ -2164,7 +2217,7 @@ var Core = function () {
 }();
 
 MiscUtils.copyMethods(Core, Reactivity);
-Core.version = '0.7.17';
+Core.version = '0.7.19';
 
 window.RF = Core;
 window.RF.Router = Router;

@@ -27,9 +27,9 @@ class Core{
         if (!domElement) throw `can not apply bindings: root element with selector ${domElementSelector} not defined`;
         let modelView = new ModelView(null,properties);
         let fragment = new ScopedDomFragment(domElement,modelView);
-        fragment.run();
         fragment.setMounted(true);
         fragment.setShown(true);
+        fragment.run();
         modelView.component = fragment;
         return fragment;
     };

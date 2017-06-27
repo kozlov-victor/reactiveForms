@@ -136,6 +136,7 @@ button:active,input:active {
         </div>
 
         <button data-click="changeDialogData()">changeDialogData()</button>
+        primitiveValue: <input data-model="primitiveValue">({{primitiveValue}})
 
         <popup-dialog id="dialog1">
             <div data-transclusion="title">
@@ -155,6 +156,9 @@ button:active,input:active {
                 <span data-for="w,index in openedArr">
                     <span class="ru">{{w}}</span>
                 </span>
+                <br>
+                primitiveValue: <input data-model="primitiveValue">
+                ({{primitiveValue}})
             </div>
         </popup-dialog>
 
@@ -209,6 +213,7 @@ var app = RF.registerComponent('app',{
     dialog2Content: 'content Of Dialog Two',
 
     openedArr:[],
+    primitiveValue:'defaultPrimitiveValue',
 
     openDialog: function(dialogId){
         this.openedArr.push(rnd());

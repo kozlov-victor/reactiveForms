@@ -203,6 +203,17 @@ class DomUtils {
         }
     }
 
+    static _get_If_expressionTopDownList(el){
+        let res = [];
+        do {
+            let dataIfExp  = el.getAttribute && el.getAttribute('data-if');
+            if (dataIfExp) {
+                res.unshift(dataIfExp);
+            }
+        } while (el=el.parentNode);
+        return res;
+    }
+
 }
 
 DomUtils.EXPRESSION_REGEXP = /(\{\{[^\t]*?}})/;

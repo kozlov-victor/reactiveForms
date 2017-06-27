@@ -35,6 +35,7 @@ let cache = {};
 
 class ExpressionEngine {
     static getExpressionFn(code,unconvertedCodeTail = ''){
+        let codeRaw = code;
         code = code.split('\n').join('').split("'").join('"');
         let codeProcessed = `
                 return ${Lexer.convertExpression(code,`${RF_API_STR}.getVal(component,'{expr}')`)}
@@ -46,7 +47,7 @@ class ExpressionEngine {
             return fn;
         } catch(e){
             console.error('can not compile function from expression');
-            console.error('expression',code);
+            console.error('expression',codeRaw);
             console.error('compiled code',codeProcessed);
             throw e;
         }

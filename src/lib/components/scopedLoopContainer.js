@@ -19,21 +19,24 @@ class ScopedLoopContainer extends Component {
         this.lastFrafmentsLength--;
     }
 
-    run(eachItemName,indexName,iterableObjectName){
+    run(eachItemName,indexName,iterableObjectExpr){
 
         this.eachItemName = eachItemName;
         this.indexName = indexName;
 
-        this.anchor = document.createComment(`component-id: ${this.id}; loop: ${eachItemName} in ${iterableObjectName}`);
+        this.anchor = document.createComment(`component-id: ${this.id}; loop: ${eachItemName} in ${iterableObjectExpr}`);
         this.node.parentNode.insertBefore(this.anchor,this.node.nextSibling);
         this.node.remove();
         this.node = this.node.cloneNode(true);
 
         this.addWatcher(
-            iterableObjectName,
+            iterableObjectExpr,
             (newArr,oldArr)=>{
                 this._processIterations(newArr,oldArr);
-            });
+            },
+            [] // todo!!!! replace to real array of "if" expressions
+        );
+        this.digest();
     }
 
     _processIterations(newArr = [],oldArr){
@@ -43,7 +46,7 @@ class ScopedLoopContainer extends Component {
 
         if (!newArr.forEach) {
             console.error(this.node);
-            throw `can not evaluate loop expression: ${this.eachItemName}${this.indexName?','+this.eachItemName:''}. Expected object or array, but ${newArr} found.`
+            throw `can not evaluate loop expression: ${this.eachItemName}${this.indexName?','+this.indexName:''}. Expected object or array, but ${newArr} found.`
         }
 
         let index = 0;

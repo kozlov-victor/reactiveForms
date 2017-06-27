@@ -19,7 +19,7 @@
     </select>
 
     <table>
-        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(item)" data-for="item, index in fruits">
+        <tr class="pointer" data-class="{selected:item==currentFruit}" title="применить" data-click="setCurrentFruit(item)" data-for="item, index in (fruits!=undefined && fruits)">
             <td>{{item.name}}</td>
             <td>fruits[index].name<input data-model="fruits[index].name"></td>
             <td>item['name']<input data-model="item['name']"></td>

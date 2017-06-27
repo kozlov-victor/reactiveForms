@@ -1,5 +1,7 @@
 let noop = function(){};
 
+let PromiseProvider = window.PromiseLight || window.Promise;
+
 let objectToQuery = function(o) {
     if (!o) return '';
     if (o instanceof window.FormData) return o;
@@ -19,14 +21,16 @@ let request = function(data) {
     if (data.data && data.method=='get') data.url+='?'+objectToQuery(data.data);
     let xhr=new XMLHttpRequest();
     let resolveFn = noop, rejectFn = noop;
-    let promise = new PromiseLight(function(resolve,reject){
+    let promise = new PromiseProvider(function(resolve,reject){
             resolveFn = resolve;
             rejectFn = reject;
         });
     xhr.onreadystatechange=function() {
         if (xhr.readyState==4) {
             if ( xhr.status==200 || xhr.status==0) {
-                let resp = JSON.parse(xhr.responseText);
+                let resp = xhr.responseText;
+                let contentType = xhr.getResponseHeader("Content-Type")||'';
+                if (contentType.toLowerCase().indexOf('json')>-1) resp = JSON.parse(resp);
                 if (data.success) data.success(resp);
                 resolveFn(resp);
             } else {

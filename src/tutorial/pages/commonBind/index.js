@@ -1,10 +1,9 @@
 
 
 RF.applyBindings('#app',{
-    user: {
-        name: 'defaultUserName',
-        nameSize: function(){
-            return this.name.length;
-        }
+    name: 'defaultUserName',
+    age:42,
+    nameSize: function(){
+        return this.name.length;
     }
 });

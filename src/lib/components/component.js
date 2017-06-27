@@ -64,12 +64,17 @@ class Component {
         return res;
     }
 
-    addWatcher(expression, listenerFn) {
+    addWatcher(expression, listenerFn,ifExpressionsList) {
+        if (!ifExpressionsList) {
+            console.trace("trace");
+            throw "ifList not specified";
+        } // todo remove after full test
         let watcherFn = ExpressionEngine.getExpressionFn(expression);
         this.watchers.push({
             expression,
             watcherFn,
-            listenerFn
+            listenerFn,
+            ifExpressionsList
         });
         listenerFn(ExpressionEngine.runExpressionFn(watcherFn, this));
     }
@@ -85,9 +90,18 @@ class Component {
 
     digest() {
         if (!this.isWatchEnable) return;
-
         this._updateExternalState();
         this.watchers.forEach(watcher => {
+            let ifDirective = true;
+            watcher.ifExpressionsList.some(ifExpression=>{
+                let res = ExpressionEngine.executeExpression(ifExpression,this);
+                if (!res) {
+                    ifDirective = false;
+                    return true;
+                }
+            });
+            if (!ifDirective) return;
+
             let newValue = ExpressionEngine.runExpressionFn(watcher.watcherFn, this);
             let oldValue = watcher.last;
             let newValDeepCopy = MiscUtils.deepCopy(newValue);
@@ -100,6 +114,7 @@ class Component {
 
     run() {
         new DirectiveEngine(this).run();
+        this.digest();
     }
 
     destroy() {

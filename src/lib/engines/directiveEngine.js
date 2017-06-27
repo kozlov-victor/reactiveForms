@@ -36,11 +36,13 @@ class DirectiveEngine {
 
             if (!variables.length) throw  'can not parse expression: ' + expression;
             let eachItemName = variables[0];
-            let indexName = variables[1];
-            let iterableObjectName = tokens[2];
+            let indexName =  variables[1];
+            tokens.shift();
+            tokens.shift();
+            let iterableObjectExpr = tokens.join(' ');
             let scopedLoopContainer = new ScopedLoopContainer(el,this.component.modelView);
             scopedLoopContainer.parent = this.component;
-            scopedLoopContainer.run(eachItemName,indexName,iterableObjectName);
+            scopedLoopContainer.run(eachItemName,indexName,iterableObjectExpr);
         });
     }
 
@@ -51,7 +53,8 @@ class DirectiveEngine {
                 value=>{
                     if (typeof value == 'object') value = JSON.stringify(value);
                     DomUtils.setTextNodeValue(it.node,value);
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(it.node)
             )
         });
     };
@@ -210,8 +213,8 @@ class DirectiveEngine {
                         if (DomUtils.getInputValue(el)!==value)
                             DomUtils.setInputValue(el,value);
                     }
-
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             )
         });
     };
@@ -230,7 +233,8 @@ class DirectiveEngine {
                     } else {
                         el.className = initialClassName + ' ' +classNameOrObj;
                     }
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             );
         });
     };
@@ -248,7 +252,8 @@ class DirectiveEngine {
                             //ie8 throws error if style is incorrect
                         }
                     }
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             );
         });
     };
@@ -260,7 +265,8 @@ class DirectiveEngine {
                 value=>{
                     if (value) el.setAttribute('disabled','disabled');
                     else el.removeAttribute('disabled');
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             );
         });
     };
@@ -307,7 +313,8 @@ class DirectiveEngine {
                             cmp.setShown(false);
                         });
                     }
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             );
         });
     };
@@ -330,7 +337,8 @@ class DirectiveEngine {
                             cmp.setShown(false);
                         });
                     }
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             );
         });
     };
@@ -353,7 +361,8 @@ class DirectiveEngine {
                             cmp.setShown(true);
                         });
                     }
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             );
         });
     };
@@ -364,7 +373,8 @@ class DirectiveEngine {
                 expression,
                 val=>{
                     el.innerHTML = val;
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             );
         });
     };
@@ -384,7 +394,8 @@ class DirectiveEngine {
                 expression,
                 properties=>{
                     this._runAttributes(el,properties);
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             );
         });
     };
@@ -396,127 +407,26 @@ class DirectiveEngine {
                 expression,
                 properties=>{
                     this._runAttributes(el,properties);
-                }
+                },
+                DomUtils._get_If_expressionTopDownList(el)
             );
         });
     };
 
 
-    runComponents(){ // todo refactor
-        let transclComponents = [];
-        ComponentProto.instances.forEach(componentProto=>{
-            let domEls =  DomUtils.nodeListToArray(this.component.node.getElementsByTagName(componentProto.name));
-            if (this.component.node.tagName.toLowerCase()==componentProto.name.toLowerCase()) {
-                console.error(`
-                   Can not use "data-for" attribute at component directly. Use "data-for" directive at parent node`);
-                console.error('component node:',this.component.node);
-                throw "Can not use data-for attribute at component"
-            }
-            let componentNodes = [];
-            domEls.forEach(domEl=>{
-
-                if (domEl.getAttribute('data-_processed')) return;
-                domEl.setAttribute('data-_processed','1');
-
-                let dataTransclusion = 'data-transclusion';
-
-                let hasNotTranscluded = false;
-                DomUtils.nodeListToArray(domEl.childNodes).forEach(chdrn=>{
-                    if (chdrn.hasAttribute && !(chdrn.hasAttribute(dataTransclusion)))
-                        hasNotTranscluded = true;
-                });
-                if (hasNotTranscluded) {
-                    console.warn(domEl);
-                    console.warn(`children elements of component ${componentProto.name} will be removed`);
-                }
-
-
-                let domId = domEl.getAttribute('id');
-                let componentNode = componentProto.node.cloneNode(true);
-                DomUtils.nodeListToArray(componentNode.querySelectorAll(`[${dataTransclusion}]`)).forEach(transclNode=>{
-                    let name = transclNode.getAttribute(dataTransclusion);
-                    if (!name) {
-                        console.error(componentProto.node);
-                        console.error(transclNode);
-                        throw `${dataTransclusion} attribute can not be empty`;
-                    }
-
-                    let recipients =
-                        DomUtils.
-                        nodeListToArray(domEl.querySelectorAll(`[${dataTransclusion}=${name}]`)).
-                        filter(el=>{
-                            let closestWithSameName = el.parentNode && el.parentNode.closest(`[${dataTransclusion}=${name}]`);
-                            if (!!closestWithSameName) {
-                                console.error(domEl);
-                                console.error(closestWithSameName);
-                                throw (
-                                    `
-                                    transclusion name conflict: 
-                                    dont use same transclusion name at different components with parent-child relations. 
-                                    Conflicted name: "${name}"`
-                                );
-                            }
-                            return true;
-                        });
-
-                    recipients.forEach(rcp=>{
-                        transclNode.innerHTML = '';
-                        transclComponents.push({transclNode,rcp});
-                    });
-                });
-                domEl.parentNode.insertBefore(componentNode,domEl);
-
-                let dataStateExpression = domEl.getAttribute('data-state');
-                let dataState = dataStateExpression?
-                    ExpressionEngine.executeExpression(dataStateExpression,this.component):{};
-                let component = componentProto.newInstance(componentNode,dataState);
-                domId && (component.domId = domId);
-
-                component.parent = this.component;
-                component.parent.addChild(component);
-                if (dataStateExpression) component.stateExpression = dataStateExpression;
-                component.disableParentScopeEvaluation = true; // avoid recursion in Component
-
-                component.run();
-
-                domEl.parentNode.removeChild(domEl);
-                componentNodes.push({component,componentNode});
-            });
-            let hasStateChanged = false;
-            componentNodes.forEach((item)=>{
-                let children = DomUtils.removeParentButNotChildren(item.componentNode);
-                if (children.length == 1) {
-                    item.component.modelView.$el = children[0];
-                } else {
-                    item.component.modelView.$el = children;
-                }
-                hasStateChanged = item.component.setMounted(true)!='noChanged' || hasStateChanged;
-                hasStateChanged = item.component.setShown(true)!='noChanged' || hasStateChanged;
-            });
-            hasStateChanged && (Component.digestAll());
-        });
-        transclComponents.forEach(trnscl=>{
-            //trnscl.transclNode.innerHTML = trnscl.rcp.innerHTML;
-            DomUtils.nodeListToArray(trnscl.rcp.childNodes).forEach(n=>{
-                trnscl.transclNode.appendChild(n);
-            });
-            let transclComponent = new ScopedDomFragment(trnscl.transclNode,new ModelView(this.component.name));
-            this.component.addChild(transclComponent);
-            transclComponent.parent = this.component;
-            trnscl.transclNode.setAttribute('data-_processed','1');
-            transclComponent.run();
-        });
+    runComponents(){
+        ComponentHelper.runComponents(this.component);
     }
 
     runExpressionsInAttrs(){
-        DomUtils.nodeListToArray(this.component.node.querySelectorAll('*')).forEach(node=>{
-            if (!node.attributes) return;
-            Array.prototype.forEach.call(node.attributes,attr=>{
+        DomUtils.nodeListToArray(this.component.node.querySelectorAll('*')).forEach(el=>{
+            if (!el.attributes) return;
+            Array.prototype.forEach.call(el.attributes,attr=>{
                 if (!attr) return;
                 let {name,value}= attr;
                 if (value.indexOf('{{')==-1 && value.indexOf('}}')==-1) return;
                 value = value.split(/[\n\t]|[\s]{2,}/).join(' ').trim();
-                let resultExpArr = [], resultExpr = '';
+                let resultExpArr = [], resultExpr;
                 value.split(DomUtils.EXPRESSION_REGEXP).forEach(token=>{
                     if (!token.length) return;
                     if (token.indexOf('{{')==0) {
@@ -530,8 +440,9 @@ class DirectiveEngine {
                 this.component.addWatcher(
                     resultExpr,
                     expr=>{
-                        node.setAttribute(name,expr.trim());
-                    }
+                        el.setAttribute(name,expr.trim());
+                    },
+                    DomUtils._get_If_expressionTopDownList(el)
                 );
             });
         });

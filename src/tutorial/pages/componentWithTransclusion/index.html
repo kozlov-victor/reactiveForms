@@ -89,6 +89,7 @@
         </div>
 
         <button data-click="changeDialogData()">changeDialogData()</button>
+        primitiveValue: <input data-model="primitiveValue">({{primitiveValue}})
 
         <popup-dialog id="dialog1">
             <div data-transclusion="title">
@@ -108,6 +109,9 @@
                 <span data-for="w,index in openedArr">
                     <span class="ru">{{w}}</span>
                 </span>
+                <br>
+                primitiveValue: <input data-model="primitiveValue">
+                ({{primitiveValue}})
             </div>
         </popup-dialog>
 

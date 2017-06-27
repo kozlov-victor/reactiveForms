@@ -34,6 +34,7 @@ var app = RF.registerComponent('app',{
     dialog2Content: 'content Of Dialog Two',
 
     openedArr:[],
+    primitiveValue:'defaultPrimitiveValue',
 
     openDialog: function(dialogId){
         this.openedArr.push(rnd());
