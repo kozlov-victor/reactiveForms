@@ -46,43 +46,36 @@ button:active,input:active {
 <body>
 
     
-<div id="application">
-
-    <input data-model="user.name">
-
-    <div data-if="user.name">
-        userName length:
-        <br>
-        {{user.name}} : {{getNameLength()}}
-        <br>
-        <button data-click="resetToNull()">reset to null</button>
+<div id="app">
+    {{draggableModel}}
+    isDraggable <input type="checkbox" data-model="isDraggable">
+    <div
+        data-draggable="isDraggable && draggableModel"
+        style="width:20px;height:20px;background-color: #5cb85c;">
     </div>
 
-    <br>
-
-    <button data-click="setUserName()">setUserName</button>
+    <div
+        data-style="{
+            'background-color': '#eef3fc'
+        }"
+        data-droppable="onDrop">
+        drop area
+    </div>
 
 </div>
-
 
 
     <script>
         
 
-
-RF.applyBindings('#application',{
-    user: {name:"initial"},
-    setUserName: function(){
-        this.user.name= 'test user';
+RF.applyBindings('#app',{
+    draggableModel: {
+        name: 'user_name'
     },
-    getNameLength(){
-        console.log('getNameLength invoked');
-        return this.user.name.length;
-    },
-    resetToNull(){
-        this.user.name = null;
+    isDraggable: true,
+    onDrop: (object,e)=>{
+        console.log(object,e);
     }
-
 });
     </script>
 

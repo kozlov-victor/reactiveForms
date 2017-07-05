@@ -373,10 +373,6 @@ var Component = function () {
     };
 
     Component.prototype.addWatcher = function addWatcher(expression, listenerFn, ifExpressionsList) {
-        if (!ifExpressionsList) {
-            console.trace("trace");
-            throw "ifList not specified";
-        } // todo remove after test
         var watcherFn = ExpressionEngine.getExpressionFn(expression);
         this.watchers.push({
             expression: expression,
@@ -385,7 +381,6 @@ var Component = function () {
             ifExpressionsList: ifExpressionsList
         });
         listenerFn(ExpressionEngine.runExpressionFn(watcherFn, this));
-        console.trace('added watcher');
     };
 
     Component.prototype._updateExternalState = function _updateExternalState() {
@@ -394,7 +389,9 @@ var Component = function () {
         if (!this.stateExpression) return;
         var newExternalState = ExpressionEngine.executeExpression(this.stateExpression, this.parent);
         Object.keys(newExternalState).forEach(function (key) {
-            if (_this4.modelView[key] !== newExternalState[key]) _this4.modelView[key] = newExternalState[key];
+            if (_this4.modelView[key] !== null && _this4.modelView[key] !== undefined && _this4.modelView[key] !== newExternalState[key]) {
+                _this4.modelView[key] = newExternalState[key];
+            }
         });
     };
 
@@ -648,7 +645,6 @@ var ScopedLoopContainer = function (_Component) {
         var _this3 = this;
 
         var newArr = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-        var oldArr = arguments[1];
 
 
         var currNodeInIteration = this.anchor;
@@ -919,10 +915,14 @@ var DomUtils = function () {
         }
     };
 
+    DomUtils.__getAttribute = function __getAttribute(el, attr) {
+        return el.getAttribute && el.getAttribute('data-' + attr);
+    };
+
     DomUtils._get_If_expressionTopDownList = function _get_If_expressionTopDownList(el) {
         var res = [];
         do {
-            var dataIfExp = el.getAttribute && el.getAttribute('data-if');
+            var dataIfExp = DomUtils.__getAttribute(el, 'if');
             if (dataIfExp) {
                 res.unshift(dataIfExp);
             }
@@ -1175,6 +1175,8 @@ var ComponentHelper = function () {
         }
         var componentNodes = [];
         domEls.forEach(function (domEl) {
+            var hasClosestSameComponent = domEl.parentNode && domEl.parentNode.closest(domEl.tagName.toLowerCase());
+            if (hasClosestSameComponent) return;
             ComponentHelper._runComponentDomEl(rootComponent, componentProto, domEl, transclComponents, componentNodes);
         });
         var hasStateChanged = false;
@@ -1222,7 +1224,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var DirectiveEngine = function () {
-    function DirectiveEngine(component, ignoreComponents) {
+    function DirectiveEngine(component) {
         _classCallCheck(this, DirectiveEngine);
 
         this.component = component;
@@ -1356,18 +1358,6 @@ var DirectiveEngine = function () {
             _this8._runDirectiveEvents(el, '{' + expression + '}');
         });
     };
-
-    // runDirective_Bind(){
-    //     this._eachElementWithAttr('data-bind',(el,expression)=>{
-    //         ExpressionEngine.runExpressionFn(fn,this.component);
-    //         this.component.addWatcher(
-    //             expression,
-    //             value=>{
-    //                 DomUtils.setTextNodeValue(el,value);
-    //             }
-    //         )
-    //     });
-    // };
 
     DirectiveEngine.prototype._runDirective_Model_OfSelect = function _runDirective_Model_OfSelect(selectEl, modelExpression) {
         var isMultiple = selectEl.multiple,
@@ -1652,20 +1642,48 @@ var DirectiveEngine = function () {
         });
     };
 
-    DirectiveEngine.prototype.run = function run() {
+    DirectiveEngine.prototype.runDragAndDrop = function runDragAndDrop() {
         var _this20 = this;
+
+        var ddObjects = {};
+        this._eachElementWithAttr('data-draggable', function (el, expression) {
+            DomUtils.addEventListener(el, 'dragstart', function (e) {
+                var id = Math.random() + '_' + Math.random();
+                ddObjects[id] = ExpressionEngine.executeExpression(expression, _this20.component);
+                e.dataTransfer.setData('text/plain', id); //cannot be empty string
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            _this20.component.addWatcher(expression, function (draggableObj) {
+                el.setAttribute('draggable', '' + !!draggableObj);
+            }, DomUtils._get_If_expressionTopDownList(el));
+        });
+        this._eachElementWithAttr('data-droppable', function (el, expression) {
+            var callbackFn = ExpressionEngine.executeExpression(expression, _this20.component);
+            DomUtils.addEventListener(el, 'dragover', function (e) {
+                e.preventDefault();
+            });
+            DomUtils.addEventListener(el, 'drop', function (e) {
+                e.preventDefault();
+                var id = e.dataTransfer.getData('text/plain');
+                callbackFn(ddObjects[id], e);
+                delete ddObjects[id];
+            });
+        });
+    };
+
+    DirectiveEngine.prototype.run = function run() {
+        var _this21 = this;
 
         this.runDirective_For();
         this.runComponents();
         this.runTextNodes();
-        this.runDirective_Model(); // todo check event sequence in legacy browsers
+        this.runDirective_Model();
         ['click', 'blur', 'focus', 'submit', 'keypress', 'keyup', 'keydown', 'input', 'mousedown', 'mouseup', 'mousemove', 'mouseleave', 'mouseenter', 'mouseover', 'mousout'].forEach(function (eventName) {
-            _this20.runDomEvent(eventName);
+            _this21.runDomEvent(eventName);
         });
         this.runDomEvent_Change();
         this.runDirective_Events();
         this.runDirective_Event();
-        //this.runDirective_Bind();
         this.runDirective_Class();
         this.runDirective_Style();
         this.runDirective_Show();
@@ -1675,6 +1693,7 @@ var DirectiveEngine = function () {
         this.runDirective_Attribute();
         this.runDirective_Attributes();
         this.runExpressionsInAttrs();
+        this.runDragAndDrop();
         this.runDirective_If();
     };
 
@@ -1716,7 +1735,8 @@ var getVal = function getVal(component, path) {
 var RF_API = { getVal: getVal };
 var RF_API_STR = '__RF__';
 
-var cache = {};
+var getterFnCache = {};
+var setterFnCache = {};
 
 var ExpressionEngine = function () {
     function ExpressionEngine() {
@@ -1725,7 +1745,7 @@ var ExpressionEngine = function () {
 
     ExpressionEngine.getExpressionFn = function getExpressionFn(code) {
         var unconvertedCodeTail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-
+        //todo is second param used?
         var codeRaw = code;
         code = code.split('\n').join('').split("'").join('"');
         var codeProcessed = '\n                return ' + Lexer.convertExpression(code, RF_API_STR + '.getVal(component,\'{expr}\')') + '\n        ' + unconvertedCodeTail;
@@ -1755,9 +1775,9 @@ var ExpressionEngine = function () {
     };
 
     ExpressionEngine.executeExpression = function executeExpression(code, component) {
-        var fn = cache[code];
+        var fn = getterFnCache[code];
         if (!fn) {
-            fn = cache[code] = ExpressionEngine.getExpressionFn(code);
+            fn = getterFnCache[code] = ExpressionEngine.getExpressionFn(code);
         }
         return ExpressionEngine.runExpressionFn(fn, component);
     };
@@ -1771,7 +1791,7 @@ var ExpressionEngine = function () {
 
 
     ExpressionEngine.setValueToContext = function setValueToContext(component, expression, value) {
-        var fn = cache[expression];
+        var fn = setterFnCache[expression];
         try {
             if (!fn) {
                 var exprTokens = expression.split(/(\..[_$a-zA-Z0-9]+)|(\[.+])/).filter(function (it) {
@@ -1788,7 +1808,7 @@ var ExpressionEngine = function () {
                 expression = exprTokens.join('');
                 expression = Lexer.convertExpression(expression, RF_API_STR + '.getVal(component,\'{expr}\')');
                 expression = '' + expression + lastToken + '=value';
-                cache[expression] = fn = new Function('component', '' + RF_API_STR, 'value', expression);
+                setterFnCache[expression] = fn = new Function('component', '' + RF_API_STR, 'value', expression);
             }
             fn(component, RF_API, value);
         } catch (e) {
@@ -2086,6 +2106,7 @@ var RouterStrategyProvider = function () {
 var routeNode = null;
 var lastPageItem = void 0;
 var __showPage = function __showPage(pageName, params) {
+
     if (lastPageItem) {
         lastPageItem.component.setShown(false);
         DomUtils.nodeListToArray(routeNode.childNodes).forEach(function (el) {
@@ -2217,7 +2238,7 @@ var Core = function () {
 }();
 
 MiscUtils.copyMethods(Core, Reactivity);
-Core.version = '0.7.19';
+Core.version = '0.7.23';
 
 window.RF = Core;
 window.RF.Router = Router;

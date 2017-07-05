@@ -31,10 +31,11 @@ let getVal = (component,path)=>{
 let RF_API = {getVal};
 let RF_API_STR = '__RF__';
 
-let cache = {};
+let getterFnCache = {};
+let setterFnCache = {};
 
 class ExpressionEngine {
-    static getExpressionFn(code,unconvertedCodeTail = ''){
+    static getExpressionFn(code,unconvertedCodeTail = ''){ //todo is second param used?
         let codeRaw = code;
         code = code.split('\n').join('').split("'").join('"');
         let codeProcessed = `
@@ -68,9 +69,9 @@ class ExpressionEngine {
     }
 
     static executeExpression(code,component){
-        let fn = cache[code];
+        let fn = getterFnCache[code];
         if (!fn) {
-            fn = cache[code] = ExpressionEngine.getExpressionFn(code)
+            fn = getterFnCache[code] = ExpressionEngine.getExpressionFn(code)
         }
         return ExpressionEngine.runExpressionFn(fn,component);
     }
@@ -82,7 +83,7 @@ class ExpressionEngine {
      * object['field'] = value
      */
     static setValueToContext(component,expression,value){
-        let fn = cache[expression];
+        let fn = setterFnCache[expression];
         try {
             if (!fn) {
                 let exprTokens = expression.split(/(\..[_$a-zA-Z0-9]+)|(\[.+])/).filter(it=>{return !!it;});
@@ -97,7 +98,7 @@ class ExpressionEngine {
                 expression = exprTokens.join('');
                 expression = Lexer.convertExpression(expression,`${RF_API_STR}.getVal(component,'{expr}')`);
                 expression = `${expression}${lastToken}=value`;
-                cache[expression] = fn = new Function('component',`${RF_API_STR}`,'value',expression);
+                setterFnCache[expression] = fn = new Function('component',`${RF_API_STR}`,'value',expression);
             }
             fn(component,RF_API,value);
         } catch(e){

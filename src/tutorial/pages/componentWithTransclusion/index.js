@@ -35,6 +35,10 @@ var app = RF.registerComponent('app',{
 
     openedArr:[],
     primitiveValue:'defaultPrimitiveValue',
+    getPrimitiveValueLength(){
+       console.trace('invoked getPrimitiveValueLength');
+       return this.primitiveValue.length;
+    },
 
     openDialog: function(dialogId){
         this.openedArr.push(rnd());

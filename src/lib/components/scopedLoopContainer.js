@@ -39,7 +39,7 @@ class ScopedLoopContainer extends Component {
         this.digest();
     }
 
-    _processIterations(newArr = [],oldArr){
+    _processIterations(newArr = []){
 
         let currNodeInIteration = this.anchor;
         if (newArr instanceof Object) newArr = MiscUtils.objectToArray(newArr);

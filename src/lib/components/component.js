@@ -65,10 +65,6 @@ class Component {
     }
 
     addWatcher(expression, listenerFn,ifExpressionsList) {
-        if (!ifExpressionsList) {
-            console.trace("trace");
-            throw "ifList not specified";
-        } // todo remove after full test
         let watcherFn = ExpressionEngine.getExpressionFn(expression);
         this.watchers.push({
             expression,
@@ -83,8 +79,13 @@ class Component {
         if (!this.stateExpression) return;
         let newExternalState = ExpressionEngine.executeExpression(this.stateExpression,this.parent);
         Object.keys(newExternalState).forEach(key=>{
-            if (this.modelView[key]!==newExternalState[key])
+            if (
+                this.modelView[key]!==null &&
+                this.modelView[key]!==undefined &&
+                this.modelView[key]!==newExternalState[key])
+            {
                 this.modelView[key]=newExternalState[key];
+            }
         });
     }
 

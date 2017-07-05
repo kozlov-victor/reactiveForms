@@ -159,6 +159,7 @@ button:active,input:active {
                 <br>
                 primitiveValue: <input data-model="primitiveValue">
                 ({{primitiveValue}})
+                length: {{getPrimitiveValueLength()}}
             </div>
         </popup-dialog>
 
@@ -214,6 +215,10 @@ var app = RF.registerComponent('app',{
 
     openedArr:[],
     primitiveValue:'defaultPrimitiveValue',
+    getPrimitiveValueLength(){
+       console.trace('invoked getPrimitiveValueLength');
+       return this.primitiveValue.length;
+    },
 
     openDialog: function(dialogId){
         this.openedArr.push(rnd());

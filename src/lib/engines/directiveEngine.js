@@ -1,7 +1,7 @@
 
 class DirectiveEngine {
 
-    constructor(component,ignoreComponents) {
+    constructor(component) {
         this.component = component;
     }
 
@@ -120,18 +120,6 @@ class DirectiveEngine {
             this._runDirectiveEvents(el,`{${expression}}`);
         });
     }
-
-    // runDirective_Bind(){
-    //     this._eachElementWithAttr('data-bind',(el,expression)=>{
-    //         ExpressionEngine.runExpressionFn(fn,this.component);
-    //         this.component.addWatcher(
-    //             expression,
-    //             value=>{
-    //                 DomUtils.setTextNodeValue(el,value);
-    //             }
-    //         )
-    //     });
-    // };
 
     _runDirective_Model_OfSelect(selectEl,modelExpression){
         let isMultiple = selectEl.multiple, val = [];
@@ -448,11 +436,42 @@ class DirectiveEngine {
         });
     }
 
+    runDragAndDrop(){
+        let ddObjects = {};
+        this._eachElementWithAttr('data-draggable',(el,expression)=>{
+            DomUtils.addEventListener(el,'dragstart',(e)=>{
+                let id = Math.random()+'_'+Math.random();
+                ddObjects[id] = ExpressionEngine.executeExpression(expression,this.component);
+                e.dataTransfer.setData('text/plain', id); //cannot be empty string
+                e.dataTransfer.effectAllowed='move';
+            });
+            this.component.addWatcher(
+                expression,
+                draggableObj=>{
+                    el.setAttribute('draggable',`${!!draggableObj}`);
+                },
+                DomUtils._get_If_expressionTopDownList(el)
+            );
+        });
+        this._eachElementWithAttr('data-droppable',(el,expression)=>{
+            let callbackFn = ExpressionEngine.executeExpression(expression,this.component);
+            DomUtils.addEventListener(el,'dragover',e=>{
+                e.preventDefault();
+            });
+            DomUtils.addEventListener(el,'drop',e=>{
+                e.preventDefault();
+                let id = e.dataTransfer.getData('text/plain');
+                callbackFn(ddObjects[id],e);
+                delete ddObjects[id]
+            });
+        });
+    }
+
     run(){
         this.runDirective_For();
         this.runComponents();
         this.runTextNodes();
-        this.runDirective_Model(); // todo check event sequence in legacy browsers
+        this.runDirective_Model();
         [
             'click','blur','focus',
             'submit',
@@ -468,7 +487,6 @@ class DirectiveEngine {
         this.runDomEvent_Change();
         this.runDirective_Events();
         this.runDirective_Event();
-        //this.runDirective_Bind();
         this.runDirective_Class();
         this.runDirective_Style();
         this.runDirective_Show();
@@ -478,6 +496,7 @@ class DirectiveEngine {
         this.runDirective_Attribute();
         this.runDirective_Attributes();
         this.runExpressionsInAttrs();
+        this.runDragAndDrop();
         this.runDirective_If();
     }
 

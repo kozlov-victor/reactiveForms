@@ -9,6 +9,9 @@ RF.applyBindings('#application',{
     getNameLength(){
         console.log('getNameLength invoked');
         return this.user.name.length;
+    },
+    resetToNull(){
+        this.user.name = null;
     }
 
 });

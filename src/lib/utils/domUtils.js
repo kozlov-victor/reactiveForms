@@ -203,10 +203,18 @@ class DomUtils {
         }
     }
 
+    static __getAttribute(el,attr){
+        return(
+            el.getAttribute
+            &&
+            (el.getAttribute(`data-${attr}`))
+        );
+    }
+
     static _get_If_expressionTopDownList(el){
         let res = [];
         do {
-            let dataIfExp  = el.getAttribute && el.getAttribute('data-if');
+            let dataIfExp  = DomUtils.__getAttribute(el,'if');
             if (dataIfExp) {
                 res.unshift(dataIfExp);
             }

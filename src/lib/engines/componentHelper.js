@@ -5,7 +5,9 @@ class ComponentHelper {
 
 
     static _runTransclNode(componentProto,domEl,transclNode,transclComponents){
-        let transclusionId = domEl.getAttribute('data-transclusion-id')||'';
+        let transclusionId =
+            domEl.getAttribute('data-transclusion-id')||
+            '';
         let name = transclNode.getAttribute(dataTransclusion);
         let nameSpecifiedById = transclusionId?name+=`\\:\\#${transclusionId}`:'';
         if (!name) {
@@ -98,6 +100,8 @@ class ComponentHelper {
         }
         let componentNodes = [];
         domEls.forEach(domEl=>{
+            let hasClosestSameComponent = domEl.parentNode && domEl.parentNode.closest(domEl.tagName.toLowerCase())
+            if (hasClosestSameComponent) return;
             ComponentHelper._runComponentDomEl(rootComponent,componentProto,domEl,transclComponents,componentNodes);
         });
         let hasStateChanged = false;

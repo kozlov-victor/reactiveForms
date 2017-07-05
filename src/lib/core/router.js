@@ -76,6 +76,7 @@ class RouterStrategyProvider {
 let routeNode = null;
 let lastPageItem;
 let __showPage = (pageName,params)=>{
+
     if (lastPageItem) {
         lastPageItem.component.setShown(false);
         DomUtils.nodeListToArray(routeNode.childNodes).forEach(el=>{
