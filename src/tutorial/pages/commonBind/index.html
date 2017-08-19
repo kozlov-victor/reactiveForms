@@ -1,4 +1,10 @@
 
+<style>
+    .red {
+        color: red;
+    }
+</style>
+
 <div id="app">
     <input data-model="name"><input type="number" data-model="age">
     <br/>
@@ -17,4 +23,10 @@
     <br/>
     nameSize:
     {{nameSize()}}
+
+    <input data-model="name">
+    <div data-class="{red: !name}">
+        red if empty
+    </div>
+
 </div>

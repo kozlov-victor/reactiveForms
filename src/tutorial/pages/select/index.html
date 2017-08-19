@@ -4,7 +4,7 @@
     Супермен <input type="checkbox" data-model="user.isSuperMan">
     <br/>
     Пол
-    <select data-model="user.sex">
+    <select data-model="user.sex" data-change="onChanged(user.sex)">
         <option value="?">?</option>
         <option value="F">Ж</option>
         <option value="M">М</option>
@@ -13,4 +13,6 @@
     {{user.name}}, Супермен ли Вы: {{user.isSuperMan?'Да':'Нет'}}
     <br/>
     пол {{user.sex}}
+    <br/>
+    (currSexValue: {{currSexValue}})
 </div>

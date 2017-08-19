@@ -43,6 +43,14 @@ if (!ElementPrototype.closest) {
     })(Element.prototype);
 }
 
+if (!ElementPrototype.addEventListener) {
+    ElementPrototype.addEventListener = function(name,fn){
+        this.attachEvent(name,function(e){
+            fn(e || window.event);
+        });
+    }
+}
+
 if (!Object.keys) {
     Object.keys = function(obj) {
         let keys = [];
@@ -147,6 +155,19 @@ if (typeof Array.prototype.forEach != 'function') {
         return d; // give back the new array
     });
 
+Array.prototype.every = Array.prototype.every.every || // Use the native every method if available, otherwise:
+    function (
+        a, // expression to test each element of the array against
+        b, // optionally change the 'this' context in the given expression
+        c, // placeholder iterator variable
+        d // placeholder variable (stores context of original array)
+    ) {
+        for (c = 0, d = this; c < d.length; c++) // iterate over all of the array elements
+            if (!a.call(b, d[c], c, d)) // call the given expression, passing in context, value, index, and original array
+                return !1; // if any expression evaluates false, immediately return since 'every' is false
+        return !0; // otherwise return true since all expressions evaluated to true
+    };
+
 if (!Array.prototype.map) {
     Array.prototype.map = function(fn) {
         let rv = [];
@@ -183,10 +204,22 @@ if(!String.prototype.trim){
     };
 }
 
-if(!String.prototype.startsWith){
-    String.prototype.startsWith = function (str) {
-        return !this.indexOf(str);
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(searchString, position) {
+        position = position || 0;
+        return this.indexOf(searchString, position) === position;
     }
+}
+if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function(searchString, position) {
+        let subjectString = this.toString();
+        if (position === undefined || position > subjectString.length) {
+            position = subjectString.length;
+        }
+        position -= searchString.length;
+        let lastIndex = subjectString.indexOf(searchString, position);
+        return lastIndex !== -1 && lastIndex === position;
+    };
 }
 
 if (!Object.create) {
@@ -215,7 +248,7 @@ if (!window.Node)
 
 (function (undef) {
 
-    var nativeSplit = String.prototype.split,
+    let nativeSplit = String.prototype.split,
         compliantExecNpcg = /()??/.exec("")[1] === undef, // NPCG: nonparticipating capturing group
         self;
 
@@ -257,7 +290,7 @@ if (!window.Node)
                 // nonparticipating capturing groups
                 if (!compliantExecNpcg && match.length > 1) {
                     match[0].replace(separator2, function () {
-                        for (var i = 1; i < arguments.length - 2; i++) {
+                        for (let i = 1; i < arguments.length - 2; i++) {
                             if (arguments[i] === undef) {
                                 match[i] = undef;
                             }

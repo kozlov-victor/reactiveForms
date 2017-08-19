@@ -55,6 +55,7 @@ class Core{
 }
 
 MiscUtils.copyMethods(Core,Reactivity);
+
 Core.version = '{{version}}';
 
 window.RF = Core;

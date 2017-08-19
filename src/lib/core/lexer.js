@@ -59,6 +59,7 @@ class Lexer {
         let isEndWithSemicolon = expression[expression.length-1]==Token.SYMBOL.SEMICOLON;
         let tokens = [], t, lastChar = '';
         expression = expression.trim();
+        expression = expression.replace(/[\n\t\r]+/gi,'');
         if (!isEndWithSemicolon) expression = expression+Token.SYMBOL.SEMICOLON;
 
         let isStringCurrent;

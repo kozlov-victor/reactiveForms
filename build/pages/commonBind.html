@@ -46,8 +46,19 @@ button:active,input:active {
 <body>
 
     
+<style>
+    .red {
+        color: red;
+    }
+</style>
+
 <div id="app">
     <input data-model="name"><input type="number" data-model="age">
+    <br/>
+    testObject
+    <input data-model="testObject.name"><input type="number">
+    {{testObject}}
+    <button data-click="changeTestObject()"></button>
     <br/>
 
     <div
@@ -64,6 +75,12 @@ button:active,input:active {
     <br/>
     nameSize:
     {{nameSize()}}
+
+    <input data-model="name">
+    <div data-class="{red: !name}">
+        red if empty
+    </div>
+
 </div>
 
 
@@ -73,6 +90,10 @@ button:active,input:active {
 RF.applyBindings('#app',{
     name: 'defaultUserName',
     age:42,
+    testObject: {a:42},
+    changeTestObject(){
+        this.testObject = {changed:1};
+    },
     nameSize: function(){
         return this.name.length;
     }

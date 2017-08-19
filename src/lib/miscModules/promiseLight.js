@@ -1,4 +1,8 @@
 
+/**
+ * v 1.0.0
+ */
+
 export default class PromiseLight{
     constructor(resolveFn){
         this.resolveFn = resolveFn;

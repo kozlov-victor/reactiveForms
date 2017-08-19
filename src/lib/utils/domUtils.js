@@ -122,8 +122,9 @@ class DomUtils {
                         return 'click'; // ie8 change returns previous value
                         break;
                     case 'range':
+                    case 'date':
                     case 'number':
-                        return 'input,change';
+                        return 'oninput' in el?'input':'keyup,change';
                         break;
                     default:
                         return 'keyup,input,change';
@@ -220,6 +221,20 @@ class DomUtils {
             }
         } while (el=el.parentNode);
         return res;
+    }
+
+    static _replaceAll(val,delimiter,value){
+        return val.split(delimiter).join(value);
+    }
+
+
+    static sanitize(value){
+        let node = document.createElement('div');
+        node.innerHTML = value;
+        DomUtils.nodeListToArray(node.querySelectorAll('script,style,iframe,frame')).forEach(nodeItem=>{
+            nodeItem.parentNode.removeChild(nodeItem);
+        });
+        return node.innerHTML;
     }
 
 }

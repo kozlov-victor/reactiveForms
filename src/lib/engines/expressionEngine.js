@@ -35,7 +35,7 @@ let getterFnCache = {};
 let setterFnCache = {};
 
 class ExpressionEngine {
-    static getExpressionFn(code,unconvertedCodeTail = ''){ //todo is second param used?
+    static getExpressionFn(code,unconvertedCodeTail = ''){
         let codeRaw = code;
         code = code.split('\n').join('').split("'").join('"');
         let codeProcessed = `
@@ -48,8 +48,13 @@ class ExpressionEngine {
             return fn;
         } catch(e){
             console.error('can not compile function from expression');
-            console.error('expression',codeRaw);
-            console.error('compiled code',codeProcessed);
+            console.error({
+                debugContext: {
+                    expression: codeRaw,
+                    compiled: codeProcessed,
+                    exception: e
+                }
+            });
             throw e;
         }
 
@@ -61,9 +66,14 @@ class ExpressionEngine {
             return fn.call(component.modelView,component,RF_API);
         } catch(e){
             console.error('getting value error');
-            console.error('can not evaluate expression:' + fn.expression);
-            console.error('     at compiled function:' + fn.fnProcessed);
-            console.error('component',component);
+            console.error({
+                debugContext: {
+                    expression: fn.expression,
+                    compiled: fn.fnProcessed,
+                    component: component,
+                    exception: e
+                }
+            });
             throw e;
         }
     }
@@ -103,10 +113,14 @@ class ExpressionEngine {
             fn(component,RF_API,value);
         } catch(e){
             console.error('setting value error');
-            console.error('current component',component);
-            console.error('can not evaluate expression:' + expression);
-            console.error(' at compiled fn:',fn);
-            console.error('desired value to set',value);
+            console.error({
+                debugContext: {
+                    expression: expression,
+                    compiled: fn,
+                    value: value,
+                    exception: e
+                }
+            });
             throw e;
         }
     }
@@ -116,6 +130,7 @@ class ExpressionEngine {
      * @returns {*}
      */
     static getObjectFromString(code) {
+        code = code.replace(/[\n\t\r\s]+/gi,'');
         try  {
             let fn = new Function('return (' + code + ')');
             return fn();

@@ -10,6 +10,7 @@ class MiscUtils {
     static deepCopy(obj, _clonedObjects = []) {
         if (obj===undefined) return undefined;
         else if (obj===null) return null;
+        else if (typeof window !== 'undefined' && obj===window) return undefined;
         if (Object.prototype.toString.call(obj) === '[object Array]') {
             let out = [], i = 0, len = obj.length;
             for (; i < len; i++) {
@@ -51,15 +52,20 @@ class MiscUtils {
     /**
      * @param x
      * @param y
+     * @param _checkCache - circular structure holder
      * @returns {*}
+     *
      */
-    static deepEqual(x, y) {
+    static deepEqual(x, y, _checkCache = []) {
         //if (isNaN(x) && isNaN(y)) return true;
         if (x && y && typeof x === 'object' && typeof y === 'object') {
             if (x===y) return true;
+            if (_checkCache.indexOf(x)>-1 || _checkCache.indexOf(y)>-1) return true;
+            _checkCache.push(x);
+            _checkCache.push(y);
             return (Object.keys(x).length === Object.keys(y).length) &&
                 Object.keys(x).reduce((isEqual, key)=> {
-                    return isEqual && MiscUtils.deepEqual(x[key], y[key]);
+                    return isEqual && MiscUtils.deepEqual(x[key], y[key], _checkCache);
                 },true);
         } else {
             return x===y;

@@ -1,3 +1,7 @@
+/**
+ * v 1.0.0
+ */
+
 let noop = function(){};
 
 let PromiseProvider = window.PromiseLight || window.Promise;

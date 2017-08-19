@@ -45,6 +45,14 @@ if (!ElementPrototype.closest) {
     })(Element.prototype);
 }
 
+if (!ElementPrototype.addEventListener) {
+    ElementPrototype.addEventListener = function (name, fn) {
+        this.attachEvent(name, function (e) {
+            fn(e || window.event);
+        });
+    };
+}
+
 if (!Object.keys) {
     Object.keys = function (obj) {
         var keys = [];
@@ -155,6 +163,20 @@ e // placeholder
     return d; // give back the new array
 });
 
+Array.prototype.every = Array.prototype.every.every || // Use the native every method if available, otherwise:
+function (a, // expression to test each element of the array against
+b, // optionally change the 'this' context in the given expression
+c, // placeholder iterator variable
+d // placeholder variable (stores context of original array)
+) {
+    for (c = 0, d = this; c < d.length; c++) {
+        // iterate over all of the array elements
+        if (!a.call(b, d[c], c, d)) // call the given expression, passing in context, value, index, and original array
+            return !1;
+    } // if any expression evaluates false, immediately return since 'every' is false
+    return !0; // otherwise return true since all expressions evaluated to true
+};
+
 if (!Array.prototype.map) {
     Array.prototype.map = function (fn) {
         var rv = [];
@@ -185,8 +207,20 @@ if (!String.prototype.trim) {
 }
 
 if (!String.prototype.startsWith) {
-    String.prototype.startsWith = function (str) {
-        return !this.indexOf(str);
+    String.prototype.startsWith = function (searchString, position) {
+        position = position || 0;
+        return this.indexOf(searchString, position) === position;
+    };
+}
+if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function (searchString, position) {
+        var subjectString = this.toString();
+        if (position === undefined || position > subjectString.length) {
+            position = subjectString.length;
+        }
+        position -= searchString.length;
+        var lastIndex = subjectString.indexOf(searchString, position);
+        return lastIndex !== -1 && lastIndex === position;
     };
 }
 
@@ -217,7 +251,7 @@ if (!window.Node) window.Node = {
     var nativeSplit = String.prototype.split,
         compliantExecNpcg = /()??/.exec("")[1] === undef,
         // NPCG: nonparticipating capturing group
-    self;
+    self = void 0;
 
     self = function self(str, separator, limit) {
         // If `separator` is not a regex, use `nativeSplit`
@@ -834,8 +868,9 @@ var DomUtils = function () {
                         return 'click'; // ie8 change returns previous value
                         break;
                     case 'range':
+                    case 'date':
                     case 'number':
-                        return 'input,change';
+                        return 'oninput' in el ? 'input' : 'keyup,change';
                         break;
                     default:
                         return 'keyup,input,change';
@@ -930,6 +965,19 @@ var DomUtils = function () {
         return res;
     };
 
+    DomUtils._replaceAll = function _replaceAll(val, delimiter, value) {
+        return val.split(delimiter).join(value);
+    };
+
+    DomUtils.sanitize = function sanitize(value) {
+        var node = document.createElement('div');
+        node.innerHTML = value;
+        DomUtils.nodeListToArray(node.querySelectorAll('script,style,iframe,frame')).forEach(function (nodeItem) {
+            nodeItem.parentNode.removeChild(nodeItem);
+        });
+        return node.innerHTML;
+    };
+
     return DomUtils;
 }();
 
@@ -953,7 +1001,7 @@ var MiscUtils = function () {
     MiscUtils.deepCopy = function deepCopy(obj) {
         var _clonedObjects = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 
-        if (obj === undefined) return undefined;else if (obj === null) return null;
+        if (obj === undefined) return undefined;else if (obj === null) return null;else if (typeof window !== 'undefined' && obj === window) return undefined;
         if (Object.prototype.toString.call(obj) === '[object Array]') {
             var out = [],
                 i = 0,
@@ -997,16 +1045,23 @@ var MiscUtils = function () {
     /**
      * @param x
      * @param y
+     * @param _checkCache - circular structure holder
      * @returns {*}
+     *
      */
 
 
     MiscUtils.deepEqual = function deepEqual(x, y) {
+        var _checkCache = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+
         //if (isNaN(x) && isNaN(y)) return true;
         if (x && y && (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && (typeof y === 'undefined' ? 'undefined' : _typeof(y)) === 'object') {
             if (x === y) return true;
+            if (_checkCache.indexOf(x) > -1 || _checkCache.indexOf(y) > -1) return true;
+            _checkCache.push(x);
+            _checkCache.push(y);
             return Object.keys(x).length === Object.keys(y).length && Object.keys(x).reduce(function (isEqual, key) {
-                return isEqual && MiscUtils.deepEqual(x[key], y[key]);
+                return isEqual && MiscUtils.deepEqual(x[key], y[key], _checkCache);
             }, true);
         } else {
             return x === y;
@@ -1299,7 +1354,9 @@ var DirectiveEngine = function () {
                 return false;
             });
         }
+
         DomUtils.addEventListener(el, eventName, function (e) {
+
             _this3.component.modelView.$event = e;
             ExpressionEngine.runExpressionFn(fn, _this3.component);
             delete _this3.component.modelView.$event;
@@ -1324,7 +1381,8 @@ var DirectiveEngine = function () {
         var _this5 = this;
 
         this._eachElementWithAttr('data-' + 'change', function (el, expression) {
-            ['keyup', 'blur', 'input', 'change'].forEach(function (eventName) {
+            var events = DomUtils.getDefaultInputChangeEvents(el).split(',');
+            events.forEach(function (eventName) {
                 _this5._runDomEvent(el, expression, eventName);
             });
         });
@@ -1431,7 +1489,9 @@ var DirectiveEngine = function () {
                         }
                     }
                 } else {
-                    if (DomUtils.getInputValue(el) !== value) DomUtils.setInputValue(el, value);
+                    if (DomUtils.getInputValue(el) == value) return;
+                    if (value == undefined) value = '';
+                    DomUtils.setInputValue(el, value);
                 }
             }, DomUtils._get_If_expressionTopDownList(el));
         });
@@ -1574,7 +1634,7 @@ var DirectiveEngine = function () {
 
         this._eachElementWithAttr('data-html', function (el, expression) {
             _this16.component.addWatcher(expression, function (val) {
-                el.innerHTML = val;
+                el.innerHTML = DomUtils.sanitize(val);
             }, DomUtils._get_If_expressionTopDownList(el));
         });
     };
@@ -1645,11 +1705,21 @@ var DirectiveEngine = function () {
     DirectiveEngine.prototype.runDragAndDrop = function runDragAndDrop() {
         var _this20 = this;
 
-        var ddObjects = {};
         this._eachElementWithAttr('data-draggable', function (el, expression) {
+            DomUtils.addEventListener(el, 'mousedown', function (e) {
+                var mouseX = e.offsetX,
+                    mouseY = e.offsetY;
+                el.__coords = { mouseX: mouseX, mouseY: mouseY };
+            });
             DomUtils.addEventListener(el, 'dragstart', function (e) {
                 var id = Math.random() + '_' + Math.random();
-                ddObjects[id] = ExpressionEngine.executeExpression(expression, _this20.component);
+                var clientRect = el.getBoundingClientRect();
+                var mouseX = e.clientX,
+                    mouseY = e.clientY;
+                DirectiveEngine.ddObjects[id] = {
+                    obj: ExpressionEngine.executeExpression(expression, _this20.component),
+                    coords: el.__coords
+                };
                 e.dataTransfer.setData('text/plain', id); //cannot be empty string
                 e.dataTransfer.effectAllowed = 'move';
             });
@@ -1665,8 +1735,12 @@ var DirectiveEngine = function () {
             DomUtils.addEventListener(el, 'drop', function (e) {
                 e.preventDefault();
                 var id = e.dataTransfer.getData('text/plain');
-                callbackFn(ddObjects[id], e);
-                delete ddObjects[id];
+                var _DirectiveEngine$ddOb = DirectiveEngine.ddObjects[id],
+                    obj = _DirectiveEngine$ddOb.obj,
+                    coords = _DirectiveEngine$ddOb.coords;
+
+                callbackFn && callbackFn(obj, e, coords);
+                delete DirectiveEngine.ddObjects[id];
             });
         });
     };
@@ -1699,6 +1773,8 @@ var DirectiveEngine = function () {
 
     return DirectiveEngine;
 }();
+
+DirectiveEngine.ddObjects = {};
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1745,7 +1821,7 @@ var ExpressionEngine = function () {
 
     ExpressionEngine.getExpressionFn = function getExpressionFn(code) {
         var unconvertedCodeTail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-        //todo is second param used?
+
         var codeRaw = code;
         code = code.split('\n').join('').split("'").join('"');
         var codeProcessed = '\n                return ' + Lexer.convertExpression(code, RF_API_STR + '.getVal(component,\'{expr}\')') + '\n        ' + unconvertedCodeTail;
@@ -1756,8 +1832,13 @@ var ExpressionEngine = function () {
             return fn;
         } catch (e) {
             console.error('can not compile function from expression');
-            console.error('expression', codeRaw);
-            console.error('compiled code', codeProcessed);
+            console.error({
+                debugContext: {
+                    expression: codeRaw,
+                    compiled: codeProcessed,
+                    exception: e
+                }
+            });
             throw e;
         }
     };
@@ -1767,9 +1848,14 @@ var ExpressionEngine = function () {
             return fn.call(component.modelView, component, RF_API);
         } catch (e) {
             console.error('getting value error');
-            console.error('can not evaluate expression:' + fn.expression);
-            console.error('     at compiled function:' + fn.fnProcessed);
-            console.error('component', component);
+            console.error({
+                debugContext: {
+                    expression: fn.expression,
+                    compiled: fn.fnProcessed,
+                    component: component,
+                    exception: e
+                }
+            });
             throw e;
         }
     };
@@ -1813,10 +1899,14 @@ var ExpressionEngine = function () {
             fn(component, RF_API, value);
         } catch (e) {
             console.error('setting value error');
-            console.error('current component', component);
-            console.error('can not evaluate expression:' + expression);
-            console.error(' at compiled fn:', fn);
-            console.error('desired value to set', value);
+            console.error({
+                debugContext: {
+                    expression: expression,
+                    compiled: fn,
+                    value: value,
+                    exception: e
+                }
+            });
             throw e;
         }
     };
@@ -1828,6 +1918,7 @@ var ExpressionEngine = function () {
 
 
     ExpressionEngine.getObjectFromString = function getObjectFromString(code) {
+        code = code.replace(/[\n\t\r\s]+/gi, '');
         try {
             var fn = new Function('return (' + code + ')');
             return fn();
@@ -1937,6 +2028,7 @@ var Lexer = function () {
             t = void 0,
             lastChar = '';
         expression = expression.trim();
+        expression = expression.replace(/[\n\t\r]+/gi, '');
         if (!isEndWithSemicolon) expression = expression + Token.SYMBOL.SEMICOLON;
 
         var isStringCurrent = void 0;
@@ -2238,7 +2330,8 @@ var Core = function () {
 }();
 
 MiscUtils.copyMethods(Core, Reactivity);
-Core.version = '0.7.23';
+
+Core.version = '0.8.5';
 
 window.RF = Core;
 window.RF.Router = Router;

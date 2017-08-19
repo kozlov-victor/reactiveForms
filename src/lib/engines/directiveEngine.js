@@ -69,7 +69,9 @@ class DirectiveEngine {
                 return false;
             });
         }
+
         DomUtils.addEventListener(el,eventName,e=>{
+
             this.component.modelView.$event = e;
             ExpressionEngine.runExpressionFn(fn,this.component);
             delete this.component.modelView.$event;
@@ -90,7 +92,8 @@ class DirectiveEngine {
 
     runDomEvent_Change(){
         this._eachElementWithAttr('data-'+'change',(el,expression)=>{
-            ['keyup','blur','input','change'].forEach(eventName=>{
+            let events = DomUtils.getDefaultInputChangeEvents(el).split(',');
+            events.forEach(eventName=>{
                 this._runDomEvent(el,expression,eventName);
             });
         });
@@ -198,8 +201,9 @@ class DirectiveEngine {
                             }
                         }
                     } else {
-                        if (DomUtils.getInputValue(el)!==value)
-                            DomUtils.setInputValue(el,value);
+                        if (DomUtils.getInputValue(el)==value) return;
+                        if (value==undefined) value = '';
+                        DomUtils.setInputValue(el,value);
                     }
                 },
                 DomUtils._get_If_expressionTopDownList(el)
@@ -360,7 +364,7 @@ class DirectiveEngine {
             this.component.addWatcher(
                 expression,
                 val=>{
-                    el.innerHTML = val;
+                    el.innerHTML = DomUtils.sanitize(val);
                 },
                 DomUtils._get_If_expressionTopDownList(el)
             );
@@ -437,11 +441,20 @@ class DirectiveEngine {
     }
 
     runDragAndDrop(){
-        let ddObjects = {};
         this._eachElementWithAttr('data-draggable',(el,expression)=>{
+            DomUtils.addEventListener(el,'mousedown',function(e){
+                var mouseX = e.offsetX,
+                    mouseY = e.offsetY;
+                el.__coords = {mouseX,mouseY};
+            });
             DomUtils.addEventListener(el,'dragstart',(e)=>{
                 let id = Math.random()+'_'+Math.random();
-                ddObjects[id] = ExpressionEngine.executeExpression(expression,this.component);
+                let clientRect = el.getBoundingClientRect();
+                let mouseX = e.clientX, mouseY = e.clientY;
+                DirectiveEngine.ddObjects[id] = {
+                    obj: ExpressionEngine.executeExpression(expression,this.component),
+                    coords: el.__coords
+                };
                 e.dataTransfer.setData('text/plain', id); //cannot be empty string
                 e.dataTransfer.effectAllowed='move';
             });
@@ -461,8 +474,9 @@ class DirectiveEngine {
             DomUtils.addEventListener(el,'drop',e=>{
                 e.preventDefault();
                 let id = e.dataTransfer.getData('text/plain');
-                callbackFn(ddObjects[id],e);
-                delete ddObjects[id]
+                let {obj,coords} = DirectiveEngine.ddObjects[id];
+                callbackFn && callbackFn(obj,e,coords);
+                delete DirectiveEngine.ddObjects[id];
             });
         });
     }
@@ -501,3 +515,5 @@ class DirectiveEngine {
     }
 
 }
+
+DirectiveEngine.ddObjects = {};
